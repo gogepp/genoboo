@@ -285,39 +285,124 @@ const addAnnotation = add.command('annotation');
 
 addAnnotation
   .description(
-    'Add fasta formatted reference genome to a running GeneNoteBook server'
+    'Add fasta formatted reference genome to a running GeneNoteBook server',
   )
   .usage('[options] <annotation gff3 file>')
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
   .option(
-    '-n, --genome-name <name>',
-    'Reference genome name to which the annotation should be added'
+    '-n, --name <genome-name>',
+    'Reference genome name to which the annotation should be added.',
+  )
+  .option(
+    '-m, --motif <pattern>',
+    'The motif / pattern added to an identifier (gene, mRNA, exon ...) e.g: "MMUCEDO_000005-T1" with the motif "-protein": "MMUCEDO_000005-T1-protein".',
+  )
+  .option(
+    '-t, --type <type-annotation>',
+    'The type of the feature (e.g: gene, mRNA, exon ...). Can be combined e.g: --type "mRNA, exon".',
+    'mRNA',
+  )
+  .option(
+    '-k, --keep',
+    'Keep in the database the ID field (as written in the annotation file) and add with the pattern another reference field.',
+  )
+  .option(
+    '-o, --overwrite',
+    'Overwrite and replace the ID field with the new pattern. Loses the original identifier in the annotation file.',
+    false,
   )
   .option(
     '--port [port]',
-    'Port on which GeneNoteBook is running. Default: 3000'
+    'Port on which GeneNoteBook is running. Default: 3000',
   )
-  .option('-v, --verbose', 'Verbose warnings during GFF parsing')
+  .option(
+    '-v, --verbose',
+    'Verbose warnings during GFF parsing.',
+    false,
+  )
   .action(
     (
       file,
-      { username, password, genomeName, port = 3000, verbose = false }
+      {
+        username,
+        password,
+        port = 3000,
+        name,
+        motif,
+        type,
+        keep,
+        overwrite,
+        verbose,
+      },
     ) => {
       if (typeof file !== 'string') addAnnotation.help();
-      const fileName = path.resolve(file);
 
+      const fileName = path.resolve(file);
       if (!(fileName && username && password)) {
         addAnnotation.help();
       }
 
-      new GeneNoteBookConnection({ username, password, port }).call(
-        'addAnnotationTrack',
-        { fileName, genomeName, verbose }
-      );
-    }
+      // Assign the correct boolean according to the parameters -k, --keep and -o, --overwrite.
+      let keepParam = keep;
+      if (motif) {
+        if (typeof keepParam === 'undefined') {
+          if (overwrite) {
+            keepParam = false;
+          } else {
+            keepParam = true;
+          }
+        } else {
+          if (overwrite) {
+            console.error('You cannot use the two properties -k, --keep and -o, --overwrite together.');
+            addAnnotation.help();
+          } else {
+            keepParam = true;
+          }
+        }
+      } else {
+        if (typeof keepParam !== 'undefined' || overwrite !== false) {
+          console.error('Unknown motif / pattern.');
+          addAnnotation.help();
+        } else {
+          keepParam = false;
+        }
+      }
+
+      console.log('name (genome) :', name);
+      console.log('motif (pattern) :', motif);
+      console.log('type (mRNA, exons ...):', type);
+      console.log('keep (ID) :', keepParam);
+      console.log('overwrite (ID) :', overwrite);
+      console.log('verbose :', verbose);
+
+      // new GeneNoteBookConnection({ username, password, port }).call(
+      //   'addAnnotationTrack',
+      //   { fileName, genomeName: name, verbose },
+      // );
+    },
   )
+  .on('--help', () => {
+    console.log(`
+Basic usage:
+    genenotebook add annotation -n 'mucedo' annot.gff3 -u admin -p admin
+or
+    genenotebook add annotation --name 'mucedo' annot.gff3 -u admin -p admin
+
+Use of motif/pattern:
+    genenotebook add annotation -n 'mucedo' --motif '-protein' annot.gff3 -u admin -p admin
+
+    # Specifying the type
+    genenotebook add annotation -n 'mucedo' --motif '-protein' --type 'mRNA' annot.gff3 -u admin -p admin
+
+    # Combine motifs/patterns with multiple types
+    genenotebook add annotation -n 'mucedo' --motif '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+
+    # Overwrite the original ID field with the new motif/pattern.
+    genenotebook add annotation -n 'mucedo' --overwrite --motif '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+    `);
+  })
   .exitOverride(customExitOverride(addAnnotation));
 
 // Add Diamond.

@@ -13,7 +13,7 @@ import './transcriptomes/updateReplicaGroup.js';
 import './genomes/addGenome.js';
 import './genomes/updateGenome.js';
 import './genomes/removeGenome.js';
-import './genomes/addAnnotationTrack.js';
+import './genomes/annotation/addAnnotationTrack.js';
 import './genomes/removeAnnotationTrack.js';
 
 import './genes/interproscan.js';

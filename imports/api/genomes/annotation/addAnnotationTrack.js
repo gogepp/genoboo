@@ -264,9 +264,15 @@ const gffFileToMongoDb = ({
 const addAnnotationTrack = new ValidatedMethod({
   name: 'addAnnotationTrack',
   validate: new SimpleSchema({
-    fileName: { type: String },
-    genomeName: { type: String },
-    verbose: { type: Boolean },
+    fileName: {
+      type: String,
+    },
+    genomeName: {
+      type: String,
+    },
+    verbose: {
+      type: Boolean,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
