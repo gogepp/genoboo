@@ -27,7 +27,7 @@ function hasOwnProperty(object, property) {
  */
 const Interval = class Interval {
   constructor({
-    gffFields, genomeId, verbose, deriveIdFromParent = true,
+    gffFields, genomeId, motif, keepdata, verbose, deriveIdFromParent = true,
   }) {
     const [seqid, source, type, start, end,
       _score, strand, phase, attributeString] = gffFields;
@@ -48,9 +48,13 @@ const Interval = class Interval {
       }
     }
 
-    // eslint-disable-next-line prefer-destructuring
-    this.ID = attributes.ID[0];
-    delete attributes.ID;
+    if (!keepdata) {
+      this.ID = motif;
+    } else {
+      // eslint-disable-next-line prefer-destructuring
+      this.ID = attributes.ID[0];
+      delete attributes.ID;
+    }
 
     if (typeof attributes.Parent === 'undefined') {
       // top level feature
@@ -62,11 +66,19 @@ const Interval = class Interval {
       this.phase = phase;
       this.parents = attributes.Parent;
       delete attributes.Parent;
+
+      // Add motif / pattern.
+      if (motif) {
+        this.custom_id = this.ID.concat('', motif);
+      }
+      console.log(this);
     }
 
     Object.assign(this, {
       type, start, end, score, attributes,
     });
+
+    logger.log(this);
   }
 };
 
@@ -139,6 +151,7 @@ const GeneModel = class GeneModel {
 
   validate = () => {
     const validationContext = GeneSchema.newContext();
+    logger.log('The thing to validate :', this.dataFields);
     validationContext.validate(this.dataFields);
     return validationContext;
   }
@@ -147,6 +160,7 @@ const GeneModel = class GeneModel {
     if (this.type === 'gene') {
       this.fetchGenomeSequence();
       const validation = this.validate();
+      logger.log('Valide ? :', validation.isValid());
       if (validation.isValid()) {
         bulkOp.insert(this.dataFields);
       } else if (this.verbose) {
@@ -176,7 +190,7 @@ const GeneModel = class GeneModel {
  * @return {Promise}                            [description]
  */
 const gffFileToMongoDb = ({
-  fileName, genomeId, verbose,
+  fileName, genomeId, motif, keepdata, type, verbose,
 }) => new Promise((resolve, reject) => {
   if (!fs.existsSync(fileName)) {
     reject(new Meteor.Error(`${fileName} is not an existing file`));
@@ -206,7 +220,13 @@ const gffFileToMongoDb = ({
         try {
           assert(gffFields.length === 9,
             `line ${lineNumber} is not a correct gff line with 9 fields: ${gffFields} ${gffFields.length}`);
-          const interval = new Interval({ gffFields, genomeId, verbose });
+          const interval = new Interval({
+            gffFields,
+            genomeId,
+            motif,
+            keepdata,
+            verbose,
+          });
 
           if (typeof interval.parents === 'undefined') {
             if (!isEmpty(intervals)) {
@@ -228,7 +248,9 @@ const gffFileToMongoDb = ({
         if (!isEmpty(intervals)) {
           logger.log('constructing final gene model');
           const gene = new GeneModel({ intervals, verbose });
+          logger.log('coucou mon pote ?');
           gene.saveToDb(bulkOp);
+          logger.log('coucou mon pote 2');
           geneCount += 1;
         }
 
@@ -236,6 +258,7 @@ const gffFileToMongoDb = ({
               && bulkOp.s.currentBatch.operations.length) {
           logger.log('Executing bulk operation');
           const result = bulkOp.execute();
+          logger.log('coucou mon pote 3');
 
           genomeCollection.update({
             _id: genomeId,
@@ -270,6 +293,25 @@ const addAnnotationTrack = new ValidatedMethod({
     genomeName: {
       type: String,
     },
+    motif: {
+      type: String,
+      optional: true,
+    },
+    type: {
+      type: String,
+      optional: true,
+      custom() {
+        return true;
+      },
+    },
+    keep: {
+      type: Boolean,
+      optional: true,
+    },
+    overwrite: {
+      type: Boolean,
+      optional: true,
+    },
     verbose: {
       type: Boolean,
     },
@@ -278,12 +320,9 @@ const addAnnotationTrack = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, genomeName, verbose, strict = true,
+    fileName, genomeName, motif, type, keep, overwrite, verbose, strict = true,
   }) {
-    if (!this.userId) {
-      throw new Meteor.Error('not-authorized');
-    }
-    if (!Roles.userIsInRole(this.userId, 'admin')) {
+    if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
       throw new Meteor.Error('not-authorized');
     }
 
@@ -293,20 +332,29 @@ const addAnnotationTrack = new ValidatedMethod({
     if (!existingGenome) {
       throw new Meteor.Error(`Unknown genome name: ${genomeName}`);
     }
-
     if (typeof existingGenome.annotationTrack !== 'undefined') {
       throw new Meteor.Error(`Genome ${genomeName} already has an annotation track`);
     }
 
     const genomeId = existingGenome._id;
 
+    logger.log('file :', fileName);
+    logger.log('name :', genomeName);
+    logger.log('motif :', motif);
+    logger.log('type :', type);
+    logger.log('keep :', keep);
+    logger.log('overwrite :', overwrite);
+    logger.log('verbose :', verbose);
+
+    // Keed ID field or overwrite it.
+    const keepIdField = (keep === true ? keep : overwrite);
+
     return gffFileToMongoDb({
-      fileName, genomeId, verbose, strict,
-    })
-      .catch((error) => {
-        logger.warn(error);
-        throw new Meteor.Error(error);
-      });
+      fileName, genomeId, motif, keepdata: keepIdField, type, verbose, strict,
+    }).catch((error) => {
+      logger.warn(error);
+      throw new Meteor.Error(error);
+    });
   },
 });
 

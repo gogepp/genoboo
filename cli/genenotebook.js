@@ -370,17 +370,18 @@ addAnnotation
         }
       }
 
-      console.log('name (genome) :', name);
-      console.log('motif (pattern) :', motif);
-      console.log('type (mRNA, exons ...):', type);
-      console.log('keep (ID) :', keepParam);
-      console.log('overwrite (ID) :', overwrite);
-      console.log('verbose :', verbose);
-
-      // new GeneNoteBookConnection({ username, password, port }).call(
-      //   'addAnnotationTrack',
-      //   { fileName, genomeName: name, verbose },
-      // );
+      new GeneNoteBookConnection({ username, password, port }).call(
+        'addAnnotationTrack',
+        {
+          fileName,
+          genomeName: name,
+          motif,
+          type,
+          keep: keepParam,
+          overwrite,
+          verbose,
+        },
+      );
     },
   )
   .on('--help', () => {
