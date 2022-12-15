@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import find from 'lodash/find';
 
 import { getGeneSequences } from '/imports/api/util/util.js';
@@ -73,9 +73,23 @@ function Controls({
 }
 
 export function Seq({
-  header, sequence, maxLength, fontSize,
+  headers, seqType, sequence, maxLength, fontSize,
 }) {
+  const [topHeader, setTopHeader] = useState('');
   const [showAll, setShowAll] = useState(false);
+
+  useEffect(() => {
+    if (seqType === 'nucl') {
+      setTopHeader(headers[0]);
+    } else if (seqType === 'prot') {
+      if (typeof headers[1] !== 'undefined') {
+        setTopHeader(headers[1]);
+      } else {
+        setTopHeader(headers[0]);
+      }
+    }
+  }, [seqType]);
+
   const exceedsMaxLength = sequence.length > maxLength;
   const showSequence = showAll
     ? sequence
@@ -87,7 +101,7 @@ export function Seq({
   return (
     <>
       <p className="seq" style={{ fontSize }}>
-        {`>${header} `}
+        {`>${topHeader} `}
         <br />
         {showSequence}
       </p>
@@ -116,6 +130,9 @@ export default function SeqContainer({ gene, maxLength = 1200 }) {
   const sequences = getGeneSequences(gene);
   const sequence = find(sequences, { ID: selectedTranscript });
 
+  // Add custom_id if exists.
+  const headers = [sequence.ID, sequence.custom_id];
+
   return (
     <div id="sequence">
       <hr />
@@ -129,7 +146,8 @@ export default function SeqContainer({ gene, maxLength = 1200 }) {
       <h4 className="subtitle is-4">Coding Sequence</h4>
       <div className="card seq-container">
         <Seq
-          header={selectedTranscript}
+          headers={headers}
+          seqType={seqType}
           sequence={sequence[seqType]}
           maxLenght={maxLength}
           fontSize=".8rem"
