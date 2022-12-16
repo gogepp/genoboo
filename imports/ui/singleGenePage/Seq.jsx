@@ -87,6 +87,9 @@ export function Seq({
       } else {
         setTopHeader(headers[0]);
       }
+    } else {
+      // CDS, exons ...
+      setTopHeader(headers[0]);
     }
   }, [seqType]);
 

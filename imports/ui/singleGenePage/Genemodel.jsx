@@ -14,6 +14,8 @@ import {
   PopoverBody,
 } from '/imports/ui/util/Popover.jsx';
 
+import logger from '/imports/api/util/logger.js';
+
 import './genemodel.scss';
 
 function XAxis({ scale, numTicks, transform, seqid }) {
@@ -64,7 +66,9 @@ function XAxis({ scale, numTicks, transform, seqid }) {
   );
 }
 
-function IntervalInfo({ ID, type, start, end, phase, attributes, seq }) {
+function IntervalInfo({ ID, custom_id, type, start, end, phase, attributes, seq }) {
+  const customHeader = [ID, custom_id];
+
   return (
     <div className="panel-body">
       <table className="table is-hoverable is-narrow is-small">
@@ -95,7 +99,7 @@ function IntervalInfo({ ID, type, start, end, phase, attributes, seq }) {
             <td colSpan="2">
               <h6>{`${type} sequence`}</h6>
               <div className="card exon-sequence">
-                <Seq header={ID} sequence={seq} maxLength={50} fontSize=".6rem" />
+                <Seq headers={customHeader} seqType={type} sequence={seq} maxLength={50} fontSize=".6rem" />
               </div>
             </td>
           </tr>
@@ -107,6 +111,7 @@ function IntervalInfo({ ID, type, start, end, phase, attributes, seq }) {
 
 function Exon({
   genomeId,
+  custom_id,
   start,
   end,
   type,
@@ -147,7 +152,14 @@ function Exon({
       <PopoverBody header={ID}>
         <IntervalInfo
           {...{
-            type, start, end, phase, attributes, seq,
+            ID,
+            custom_id,
+            type,
+            start,
+            end,
+            phase,
+            attributes,
+            seq
           }}
         />
       </PopoverBody>
@@ -155,13 +167,13 @@ function Exon({
   );
 }
 
-function Transcript({ transcript, exons, scale, strand, genomeId, geneId }) {
+function Transcript({ transcript, customHeader, exons, scale, strand, genomeId, geneId }) {
   // put CDS exons last so they get drawn last and are placed on top
   exons.sort((exon1) => (exon1.type === 'CDS' ? 1 : -1));
 
-  const { start, end, ID, attributes, seq, type } = transcript;
+  const { start, end, ID, custom_id, attributes, seq, type } = transcript;
 
-  const targetId = ID.replace(/\.|:/g, '_');
+  const targetId = (typeof custom_id !== 'undefined'? custom_id : ID.replace(/\.|:/g, '_'));
 
   // flip start and end coordinates based on strand so that marker end is always drawn correctly
   const x1 = scale(strand === '+' ? start : end);
@@ -200,6 +212,7 @@ function Transcript({ transcript, exons, scale, strand, genomeId, geneId }) {
           <IntervalInfo
             {...{
               ID,
+              custom_id,
               type,
               start,
               end,
@@ -217,6 +230,7 @@ function Transcript({ transcript, exons, scale, strand, genomeId, geneId }) {
             genomeId,
             geneId,
             scale,
+            custom_id,
             ...exon,
           }}
         />
@@ -232,7 +246,7 @@ export function GenemodelGroup({ gene, transcripts, scale }) {
         const exons = gene.subfeatures.filter(
           ({ parents }) => parents.indexOf(transcript.ID) >= 0
         );
-        const { ID: geneId, strand, genomeId } = gene;
+        const { ID: geneId, custom_id: customHeader, strand, genomeId } = gene;
         return (
           <g
             key={transcript.ID}
@@ -244,6 +258,7 @@ export function GenemodelGroup({ gene, transcripts, scale }) {
                 exons,
                 transcript,
                 scale,
+                customHeader,
                 geneId,
                 genomeId,
                 strand,
