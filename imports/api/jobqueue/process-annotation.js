@@ -1,7 +1,9 @@
-import logger from '/imports/api/util/logger.js';
-import jobQueue from './jobqueue.js';
 import readline from 'readline';
 import fs from 'fs';
+//import AnnotationProcessor from '../genomes/annotation/parser/annotationParser';
+import AnnotationProcessorBis from '../genomes/annotation/parser/annotationParserBis';
+import logger from '../util/logger';
+import jobQueue from './jobqueue';
 
 jobQueue.processJobs(
   'addAnnotation',
@@ -37,32 +39,28 @@ jobQueue.processJobs(
       input: fs.createReadStream(fileName, 'utf8'),
     });
 
-    // test.
-    job.done();
-    callback();
+    const lineProcessor = new AnnotationProcessorBis(genomeId);
 
-    const lineProcessor = new AnnotationProcessor(program, algorithm, matrix, database);
+    lineReader.on('line', async (line) => {
+      try {
+        lineProcessor.parse(line);
+      } catch (error) {
+        logger.error(error);
+        job.fail({ error });
+        callback();
+      }
+    });
 
-    // lineReader.on('line', async (line) => {
-    //   try {
-    //     lineProcessor.parse(line);
-    //   } catch (error) {
-    //     logger.error(error);
-    //     job.fail({ error });
-    //     callback();
-    //   }
-    // });
-
-    // lineReader.on('close', async () => {
-    //   try {
-    //     logger.log('File reading finished, start bulk insert');
-    //     lineProcessor.lastPairwise();
-    //     job.done();
-    //   } catch (error) {
-    //     logger.error(error);
-    //     job.fail({ error });
-    //   }
-    //   callback();
-    // });
+    lineReader.on('close', async () => {
+      try {
+        logger.log('File reading finished, start bulk insert');
+        //lineProcessor.lastAnnotatation();
+        job.done();
+      } catch (error) {
+        logger.error(error);
+        job.fail({ error });
+      }
+      callback();
+    });
   },
 );

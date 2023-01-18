@@ -6,8 +6,8 @@ import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
 
-const addAnnotationTrack = new ValidatedMethod({
-  name: 'addAnnotationTrack',
+const addAnnotation = new ValidatedMethod({
+  name: 'addAnnotation',
   validate: new SimpleSchema({
     fileName: {
       type: String,
@@ -92,4 +92,4 @@ const addAnnotationTrack = new ValidatedMethod({
   },
 });
 
-export default addAnnotationTrack;
+export default addAnnotation;

@@ -1,5 +1,5 @@
 import { Genes, GeneSchema, VALID_INTERVAL_TYPES } from '/imports/api/genes/geneCollection.js';
-import { parseAttributeString } from '/imports/api/util/util.js';
+import { parseAttributeString, logger } from '/imports/api/util/util.js';
 import { isEmpty, partition, omit } from 'lodash';
 import assert from 'assert';
 import Papa from 'papaparse';
@@ -33,14 +33,34 @@ class AnnotationProcessor {
  * @type {Interval}
  */
 const Interval = class Interval {
-  constructor({
-    gffFields, genomeId, motif, keepdata, verbose, deriveIdFromParent = true,
-  }) {
-    const [seqid, source, type, start, end,
-      _score, strand, phase, attributeString] = gffFields;
+  constructor(gffFields, genomeId, motif, keepdata, verbose, deriveIdFromParent = true )
+  {
+    this.gffFields = gffFields;
+    this.motif = motif;
+    this.keepdata = keepdata;
+    this.verbose = verbose;
+    this.deriveIdFromParent = deriveIdFromParent;
+
+    const [
+      seqid,
+      source,
+      type,
+      start,
+      end,
+      _score,
+      strand,
+      phase,
+      attributeString
+    ] = this.gffFields;
+
     const score = String(_score);
     const attributes = parseAttributeString(attributeString);
+  }
 
+  /**
+   *
+   */
+  getParent = (attributes, deriveIdFromParent) => {
     if (!hasOwnProperty(attributes, 'ID')) {
       if (verbose) {
         logger.warn('The following line does not have the gff3 ID attribute:');
@@ -54,7 +74,12 @@ const Interval = class Interval {
         attributes.ID = [derivedId];
       }
     }
+  }
 
+  /**
+   *
+   */
+  replaceIdentifier = (keepdata) => {
     if (!keepdata) {
       this.ID = motif;
     } else {
@@ -62,7 +87,18 @@ const Interval = class Interval {
       this.ID = attributes.ID[0];
       delete attributes.ID;
     }
+  };
 
+  /**
+   *
+   */
+  addCustomIdentifier = (motif) => {
+    if (motif) {
+      this.custom_id = this.ID.concat('', motif);
+    }
+  };
+
+  assignParent = (attributes) => {
     if (typeof attributes.Parent === 'undefined') {
       // top level feature
       Object.assign(this, {
@@ -75,18 +111,24 @@ const Interval = class Interval {
       delete attributes.Parent;
 
       // Add motif / pattern.
-      if (motif) {
-        this.custom_id = this.ID.concat('', motif);
-      }
-      console.log(this);
+      addCustomIdentifier(motif)
     }
 
     Object.assign(this, {
       type, start, end, score, attributes,
     });
+  };
 
-    logger.log(this);
-  }
+  /**
+   * Read line by line.
+   * @function
+   * @param {sstring} line - The line to parse.
+   */
+  parse = (line) => {
+    if (line.length !== 0 || line[0] !== '#') {
+      logger.log(line);
+    }
+  };
 };
 
 /**
@@ -296,3 +338,5 @@ const gffFileToMongoDb = ({
     },
   });
 });
+
+export default AnnotationProcessor;

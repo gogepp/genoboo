@@ -371,7 +371,7 @@ addAnnotation
       }
 
       new GeneNoteBookConnection({ username, password, port }).call(
-        'addAnnotationTrack',
+        'addAnnotation',
         {
           fileName,
           genomeName: name,
