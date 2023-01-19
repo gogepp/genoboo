@@ -65,8 +65,9 @@ class AnnotationProcessorBis {
   /**
    * Complete features and subfeatures of gene.
    * @function
-   * @param {Boolean} isSubfeature -
-   * @param {Array} features -
+   * @param {Boolean} isSubfeature - Define if the sub-features are mRNA,
+   * exons, cds ...
+   * @param {Object} features - The 9 fields of a line in gff(3) format.
    */
   completeGeneHierarchy = (isSubfeature, features) => {
     if (!isSubfeature) {
@@ -79,18 +80,30 @@ class AnnotationProcessorBis {
         this.geneLevelHierarchy.subfeatures = [];
       }
 
+      // Parents, children and sequences (nucl) are missing /!\.
+
       // Add certain subfeatures (exclude seqid and genomeId).
       this.geneLevelHierarchy.subfeatures.push({
         ID: features.ID,
-        phase: features.phase,
         type: features.type,
         start: features.start,
         end: features.end,
+        phase: features.phase,
         score: features.score,
         attributes: features.attributes,
       });
     }
   };
+
+  /**
+   * @function
+   */
+  initGeneHierarchy = (features) => this.completeGeneHierarchy(false, features);
+
+  /**
+   * @function
+   */
+  addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
 
   /**
    * Read line by line.
@@ -125,6 +138,7 @@ class AnnotationProcessorBis {
         // Get ID (identifier);
         const identifier = this.getIdentifier(attributesGff);
 
+        //
         const features = {
           ID: identifier,
           genomeId: this.genomeID,
@@ -140,14 +154,15 @@ class AnnotationProcessorBis {
         };
 
         // Except for the first gene, as long as there is no new gene (3rd
-        // field) we store the information.
+        // field) we complete and store the information.
         // For each new gene the information is stored in a bulk operation
         // mongodb.
         logger.log('type: ', typeGff);
         if (typeGff === 'gene') {
+          // Top level feature of the gene.
           if (this.constructor.isEmpty(this.geneLevelHierarchy)) {
             logger.log('Init to level of gene data');
-            this.completeGeneHierarchy(false, features);
+            this.initGeneHierarchy(features);
           } else {
             logger.log('bulk mongodb');
             // Reset the gene hierarchy.
@@ -156,8 +171,8 @@ class AnnotationProcessorBis {
           }
         } else {
           // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
-          this.completeGeneHierarchy(true, features);
-          logger.log('after :', this.geneLevelHierarchy);
+          this.addSubfeatures(features);
+          logger.log('after :', JSON.stringify(this.geneLevelHierarchy));
         }
       } else {
         logger.warn(`${line} is not a correct gff line with 9 fields: ${spitGffLine.length}`);
