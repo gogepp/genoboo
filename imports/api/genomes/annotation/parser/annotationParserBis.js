@@ -18,6 +18,8 @@ class AnnotationProcessorBis {
     // Object of a gene with the following hierarchy: gene → transcript → exon
     // ...
     this.geneLevelHierarchy = {};
+    this.indexIDtree = 0;
+    this.IDtree = {};
   }
 
   /**
@@ -153,6 +155,47 @@ class AnnotationProcessorBis {
   static isEmpty = (obj) => Object.keys(obj).length === 0;
 
   /**
+   * @function
+   * @param {Boolean} isInit -
+   * @param {String} ID -
+   */
+  setIDtree = (isInit, ID) => {
+    if (isInit) {
+      // Top level.
+      this.IDtree[ID] = -1;
+    } else {
+      // subfeatures.
+      this.IDtree[ID] = this.indexIDtree;
+
+      // Increment the index.
+      this.indexIDtree += 1;
+    }
+  };
+
+  /**
+   * @function
+   * @param {String} IDsubfeature -
+   * @param {Array} parents -
+   */
+  addChildren = (IDsubfeature, parents) => {
+    const indexFeature = this.IDtree[parents[0]];
+    const valueIDtree = this.IDtree[parents[0]];
+    if (valueIDtree === -1 && typeof this.IDtree[parents[0]] !== 'undefined') {
+      // top level.
+      if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy, 'children')) {
+        this.geneLevelHierarchy.children = [];
+      }
+      this.geneLevelHierarchy.children.push(IDsubfeature);
+    } else {
+      // subfeatures
+      if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy.subfeatures[indexFeature], 'children')) {
+        this.geneLevelHierarchy.subfeatures[indexFeature].children = [];
+      }
+      this.geneLevelHierarchy.subfeatures[indexFeature].children.push(IDsubfeature);
+    }
+  };
+
+  /**
    * Complete features and subfeatures of gene.
    * @function
    * @param {Boolean} isSubfeature - Define if the sub-features are mRNA,
@@ -165,6 +208,9 @@ class AnnotationProcessorBis {
       // will be filtered and added later.
       const { attributes, ...featuresWithoutAttributes } = features;
       this.geneLevelHierarchy = featuresWithoutAttributes;
+
+      // Init IDtree.
+      this.setIDtree(true, features.ID);
 
       // Sequence (nucl) are missing /!\.
 
@@ -181,25 +227,6 @@ class AnnotationProcessorBis {
       // Get all parents from the attributes field.
       const parentsAttributes = this.constructor.getParents(features.attributes);
 
-      // // If there are parents, there are children.
-      // for (let i = 0; i < parentsAttributes.length; i += 1) {
-      //   const parentKey = parentsAttributes[i]; // parent.
-      //   const childValue = features.ID; // child.
-
-      //   logger.log('parent :', parentKey);
-      //   logger.log('child :', childValue);
-      //   logger.log(this.geneLevelHierarchy["BniB01g000010.2N"]);
-
-      //   logger.log(this.geneLevelHierarchy);
-      //   if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy, 'children')) {
-      //     logger.log('coucou');
-      //     logger.log('test 2', this.geneLevelHierarchy.ID[parent]);
-      //     this.geneLevelHierarchy.ID[parent].children = [];
-      //     logger.log('gene :', this.geneLevelHierarchy);
-      //   }
-      //   //this.geneLevelHierarchy[parent].children.slice(-1)[0].add(child);
-      // }
-
       // Get raw sequence. /!\ do the request once only ??
       const [rawSequence, shiftCoordinates] = this.findSequenceGenome(
         features.seqid,
@@ -214,6 +241,11 @@ class AnnotationProcessorBis {
         features.start,
         features.end,
       );
+
+      // Complete IDtree
+      this.setIDtree(false, features.ID);
+
+      // Get children if exists.
 
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
@@ -230,6 +262,9 @@ class AnnotationProcessorBis {
         attributes: filteredAttr,
         seq: sequence,
       });
+
+      // Add children.
+      this.addChildren(features.ID, parentsAttributes);
     }
   };
 
