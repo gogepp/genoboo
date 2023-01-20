@@ -1,5 +1,6 @@
 import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
+import { genomeSequenceCollection } from '../../genomeCollection';
 
 /**
  *
@@ -24,8 +25,10 @@ class AnnotationProcessorBis {
    * In the rare case where the identifier is not present, assign the parent
    * identifier.
    * @function
-   * @param {Object} attributesGff - The last field of a line in gff3 format splitted.
-   * @return {String} - The identifier (ID).
+   * @param {Object} attributesGff - The attributes of a gff (last field) in a
+   * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
+   * Parent: [ 'BniB01g000050.2N.1' ]}
+   * @returns {String} - The identifier (ID).
    */
   getIdentifier = (attributesGff) => {
     if (!Object.prototype.hasOwnProperty.call(attributesGff, 'ID')) {
@@ -35,6 +38,93 @@ class AnnotationProcessorBis {
       // const derivedId = `${attributes.Parent}_${type}_${start}_${end}`;
     }
     return attributesGff.ID[0];
+  };
+
+  /**
+   * From the attributes of a gff(3) (last field), return the parent(s).
+   * @function
+   * @static
+   * @param {Object} attributesGff - The attributes of a gff (last field) in a
+   * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
+   * Parent: [ 'BniB01g000050.2N.1' ]}
+   * @returns {Array} - The list of parent(s).
+   */
+  static getParents = (attributesGff) => {
+    const attributesKeys = Object.keys(attributesGff);
+    let parents = [];
+    attributesKeys.forEach((key) => {
+      if (key === 'Parent') {
+        parents = attributesGff[key];
+      }
+    });
+    return parents;
+  };
+
+  /**
+   * Find the raw sequence from the genome collection of mongodb.
+   * @function
+   * @param {String} seqid - The name of the sequence where the feature is
+   * located (first field of the gff).
+   * @param {Number} start - Genomic start of the feature.
+   * @param {Number} end - Genomic end of the feature.
+   * @returns {String} Return the complete sequence.
+   */
+  findSequenceGenome = (seqid, start, end) => {
+    let shiftCoordinates = 10e99;
+
+    // Request the genome collection.
+    const genomicRegion = genomeSequenceCollection.find(
+      {
+        genomeId: this.genomeID,
+        header: seqid,
+        start: { $lte: end },
+        end: { $gte: start },
+      },
+    ).fetch().sort((a, b) => a.start - b.start).map((seqPart) => {
+      shiftCoordinates = Math.min(shiftCoordinates, seqPart.start);
+      return seqPart.seq;
+    })
+      .join('');
+
+    return [genomicRegion, shiftCoordinates];
+  };
+
+  /**
+   * Splits the sequence (e.g: for mRNA, exons, cds... ).
+   * @function
+   * @param {String} seq - The complete sequence.
+   * @param {Number} shiftCoordiantes - .
+   * @param {Number} start - Genomic start of the feature.
+   * @param {Number} end - Genomic end of the feature.
+   * @returns {String} Return the split sequence.
+   */
+  splitRawSequence = (seq, shiftCoordinates, start, end) => {
+    let sequence;
+
+    if (seq.length > 0) {
+      sequence = seq.slice(start - shiftCoordinates - 1, end - shiftCoordinates);
+    } else if (this.verbose) {
+      logger.warn(`Could not find sequence for gene ${this.ID} with seqid ${this.seqid}.`
+                  + ' Make sure the sequence IDs between the genome fasta and annotation gff3 are the same.');
+    }
+    return sequence;
+  };
+
+  /**
+   * To avoid duplicates we remove the keys values of the ID identifier and the
+   * parents.
+   * @function
+   * @static
+   * @param {Object} attributesGff - The attributes of a gff (last field) in a
+   * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
+   * Parent: [ 'BniB01g000050.2N.1' ]}
+   * @return {Object} - Return attributes object without his ID and Parent keys.
+   */
+  static filterAttributes = (attributesGff) => {
+    const filteredAtt = Object.fromEntries(
+      Object.entries(attributesGff).filter(([key]) => key !== 'ID' && key !== 'Parent'),
+    );
+    return filteredAtt;
   };
 
   /**
@@ -71,8 +161,16 @@ class AnnotationProcessorBis {
    */
   completeGeneHierarchy = (isSubfeature, features) => {
     if (!isSubfeature) {
-      // Init gene (top level) with all features.
-      this.geneLevelHierarchy = features;
+      // Initialize the gene with the features but without the attributes that
+      // will be filtered and added later.
+      const { attributes, ...featuresWithoutAttributes } = features;
+      this.geneLevelHierarchy = featuresWithoutAttributes;
+
+      // Sequence (nucl) are missing /!\.
+
+      // Filter and add attributes to avoid duplication.
+      const attributesFiltered = this.constructor.filterAttributes(features.attributes);
+      this.geneLevelHierarchy.attributes = attributesFiltered;
     } else {
       // Create an array if not exists for the subfeatures (exons, cds ...) of
       // the gene.
@@ -80,9 +178,47 @@ class AnnotationProcessorBis {
         this.geneLevelHierarchy.subfeatures = [];
       }
 
-      // Parents, children and sequences (nucl) are missing /!\.
+      // Get all parents from the attributes field.
+      const parentsAttributes = this.constructor.getParents(features.attributes);
 
-      // Add certain subfeatures (exclude seqid and genomeId).
+      // // If there are parents, there are children.
+      // for (let i = 0; i < parentsAttributes.length; i += 1) {
+      //   const parentKey = parentsAttributes[i]; // parent.
+      //   const childValue = features.ID; // child.
+
+      //   logger.log('parent :', parentKey);
+      //   logger.log('child :', childValue);
+      //   logger.log(this.geneLevelHierarchy["BniB01g000010.2N"]);
+
+      //   logger.log(this.geneLevelHierarchy);
+      //   if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy, 'children')) {
+      //     logger.log('coucou');
+      //     logger.log('test 2', this.geneLevelHierarchy.ID[parent]);
+      //     this.geneLevelHierarchy.ID[parent].children = [];
+      //     logger.log('gene :', this.geneLevelHierarchy);
+      //   }
+      //   //this.geneLevelHierarchy[parent].children.slice(-1)[0].add(child);
+      // }
+
+      // Get raw sequence. /!\ do the request once only ??
+      const [rawSequence, shiftCoordinates] = this.findSequenceGenome(
+        features.seqid,
+        features.start,
+        features.end,
+      );
+
+      // Get the sequence.
+      const sequence = this.splitRawSequence(
+        rawSequence,
+        shiftCoordinates,
+        features.start,
+        features.end,
+      );
+
+      // Filter attributes (exclude ID, parents keys).
+      const filteredAttr = this.constructor.filterAttributes(features.attributes);
+
+      // Add subfeatures.
       this.geneLevelHierarchy.subfeatures.push({
         ID: features.ID,
         type: features.type,
@@ -90,7 +226,9 @@ class AnnotationProcessorBis {
         end: features.end,
         phase: features.phase,
         score: features.score,
-        attributes: features.attributes,
+        parents: parentsAttributes,
+        attributes: filteredAttr,
+        seq: sequence,
       });
     }
   };
@@ -104,6 +242,15 @@ class AnnotationProcessorBis {
    * @function
    */
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
+
+  /**
+   * @functionx
+   */
+  lastAnnotation = () => {
+    logger.log('The last thing to do for annotation');
+    logger.log('exemple add childen ? ');
+    logger.log('last : ', JSON.stringify(this.geneLevelHierarchy, null, 4));
+  };
 
   /**
    * Read line by line.
@@ -145,8 +292,8 @@ class AnnotationProcessorBis {
           seqid: seqidGff,
           source: sourceGff,
           type: typeGff,
-          start: startGff,
-          end: endGff,
+          start: Number(startGff),
+          end: Number(endGff),
           score: _scoreGff,
           strand: strandGff,
           phase: phaseGff,
@@ -172,7 +319,7 @@ class AnnotationProcessorBis {
         } else {
           // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
           this.addSubfeatures(features);
-          logger.log('after :', JSON.stringify(this.geneLevelHierarchy));
+          logger.log('after :', JSON.stringify(this.geneLevelHierarchy, null, 4));
         }
       } else {
         logger.warn(`${line} is not a correct gff line with 9 fields: ${spitGffLine.length}`);

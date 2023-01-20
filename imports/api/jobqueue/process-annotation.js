@@ -54,7 +54,7 @@ jobQueue.processJobs(
     lineReader.on('close', async () => {
       try {
         logger.log('File reading finished, start bulk insert');
-        //lineProcessor.lastAnnotatation();
+        lineProcessor.lastAnnotation();
         job.done();
       } catch (error) {
         logger.error(error);
