@@ -244,87 +244,82 @@ class AnnotationProcessorBis {
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
 
   /**
-   * @functionx
-   */
-  lastAnnotation = () => {
-    logger.log('The last thing to do for annotation');
-    logger.log('exemple add childen ? ');
-    logger.log('last : ', JSON.stringify(this.geneLevelHierarchy, null, 4));
-  };
-
-  /**
    * Read line by line.
    * @function
    * @param {String} line - The line to parse.
    */
   parse = (line) => {
-    if (line.length !== 0 && line.charAt(0) !== '#') {
-      const spitGffLine = line.split('\t');
+    if (this.constructor.isNineFields(line)) {
+      // The 9 fields of gff.
+      const [
+        seqidGff,
+        sourceGff,
+        typeGff,
+        startGff,
+        endGff,
+        _scoreGff,
+        strandGff,
+        phaseGff,
+        attributeString,
+      ] = line;
 
-      if (this.constructor.isNineFields(spitGffLine)) {
-        // The 9 fields of gff.
-        const [
-          seqidGff,
-          sourceGff,
-          typeGff,
-          startGff,
-          endGff,
-          _scoreGff,
-          strandGff,
-          phaseGff,
-          attributeString,
-        ] = spitGffLine;
+      // Parse gff3 attribute column into key:value object. e.g:
+      // attributes : {
+      //   ID: [ 'BniB01g000050.2N.1.exon12' ],
+      //   Parent: [ 'BniB01g000050.2N.1' ]
+      // }
+      const attributesGff = parseAttributeString(attributeString);
 
-        // Parse gff3 attribute column into key:value object. e.g:
-        // attributes : {
-        //   ID: [ 'BniB01g000050.2N.1.exon12' ],
-        //   Parent: [ 'BniB01g000050.2N.1' ]
-        // }
-        const attributesGff = parseAttributeString(attributeString);
+      // Get ID (identifier);
+      const identifier = this.getIdentifier(attributesGff);
 
-        // Get ID (identifier);
-        const identifier = this.getIdentifier(attributesGff);
+      //
+      const features = {
+        ID: identifier,
+        genomeId: this.genomeID,
+        seqid: seqidGff,
+        source: sourceGff,
+        type: typeGff,
+        start: Number(startGff),
+        end: Number(endGff),
+        score: _scoreGff,
+        strand: strandGff,
+        phase: phaseGff,
+        attributes: attributesGff,
+      };
 
-        //
-        const features = {
-          ID: identifier,
-          genomeId: this.genomeID,
-          seqid: seqidGff,
-          source: sourceGff,
-          type: typeGff,
-          start: Number(startGff),
-          end: Number(endGff),
-          score: _scoreGff,
-          strand: strandGff,
-          phase: phaseGff,
-          attributes: attributesGff,
-        };
-
-        // Except for the first gene, as long as there is no new gene (3rd
-        // field) we complete and store the information.
-        // For each new gene the information is stored in a bulk operation
-        // mongodb.
-        logger.log('type: ', typeGff);
-        if (typeGff === 'gene') {
-          // Top level feature of the gene.
-          if (this.constructor.isEmpty(this.geneLevelHierarchy)) {
-            logger.log('Init to level of gene data');
-            this.initGeneHierarchy(features);
-          } else {
-            logger.log('bulk mongodb');
-            // Reset the gene hierarchy.
-            this.geneLevelHierarchy = {};
-            logger.log(this.constructor.isEmpty(this.geneLevelHierarchy));
-          }
+      // Except for the first gene, as long as there is no new gene (3rd
+      // field) we complete and store the information.
+      // For each new gene the information is stored in a bulk operation
+      // mongodb.
+      logger.log('type: ', typeGff);
+      if (typeGff === 'gene') {
+        // Top level feature of the gene.
+        if (this.constructor.isEmpty(this.geneLevelHierarchy)) {
+          logger.log('Init to level of gene data');
+          this.initGeneHierarchy(features);
         } else {
-          // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
-          this.addSubfeatures(features);
-          logger.log('after :', JSON.stringify(this.geneLevelHierarchy, null, 4));
+          logger.log('bulk mongodb');
+          // Reset the gene hierarchy.
+          this.geneLevelHierarchy = {};
+          logger.log(this.constructor.isEmpty(this.geneLevelHierarchy));
         }
       } else {
-        logger.warn(`${line} is not a correct gff line with 9 fields: ${spitGffLine.length}`);
+        // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
+        this.addSubfeatures(features);
+        // logger.log('after :', JSON.stringify(this.geneLevelHierarchy, null, 4));
       }
+    } else {
+      logger.warn(`${line} is not a correct gff line with 9 fields: ${line.length}`);
     }
+  };
+
+  /**
+   * @function
+   */
+  lastAnnotation = () => {
+    logger.log('The last thing to do for annotation :');
+    logger.log(JSON.stringify(this.geneLevelHierarchy, null, 4));
   };
 }
 

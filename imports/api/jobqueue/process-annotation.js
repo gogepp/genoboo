@@ -1,5 +1,5 @@
-import readline from 'readline';
 import fs from 'fs';
+import Papa from 'papaparse';
 //import AnnotationProcessor from '../genomes/annotation/parser/annotationParser';
 import AnnotationProcessorBis from '../genomes/annotation/parser/annotationParserBis';
 import logger from '../util/logger';
@@ -35,32 +35,37 @@ jobQueue.processJobs(
     logger.log('overwrite :', overwrite);
     logger.log('verbose :', verbose);
 
-    const lineReader = readline.createInterface({
-      input: fs.createReadStream(fileName, 'utf8'),
-    });
-
     const lineProcessor = new AnnotationProcessorBis(genomeId);
+    const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
-    lineReader.on('line', async (line) => {
-      try {
-        lineProcessor.parse(line);
-      } catch (error) {
-        logger.error(error);
-        job.fail({ error });
+    Papa.parse(fileHandle, {
+      delimiter: '\t',
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      comments: '#',
+      fastMode: true,
+      error(err) {
+        logger.error(err);
+        job.fail({ err });
+      },
+      step(line) {
+        try {
+          lineProcessor.parse(line.data);
+        } catch (err) {
+          logger.log(err);
+          job.fail({ err });
+        }
+      },
+      complete() {
+        try {
+          lineProcessor.lastAnnotation();
+          job.done();
+        } catch (err) {
+          logger.log(err);
+          job.fail({ err });
+        }
         callback();
-      }
-    });
-
-    lineReader.on('close', async () => {
-      try {
-        logger.log('File reading finished, start bulk insert');
-        lineProcessor.lastAnnotation();
-        job.done();
-      } catch (error) {
-        logger.error(error);
-        job.fail({ error });
-      }
-      callback();
+      },
     });
   },
 );
