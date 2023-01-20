@@ -1,6 +1,7 @@
 import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection } from '../../genomeCollection';
+import { Genes } from '../../../genes/geneCollection'
 
 /**
  *
@@ -14,6 +15,9 @@ class AnnotationProcessorBis {
     logger.log('test Annotation procesor bis');
     this.genomeID = genomeID;
     this.verbose = true;
+
+    // Initialize gene bulk operation (mongodb).
+    this.geneBulkOperation = Genes.rawCollection().initializeUnorderedBulkOp();
 
     // Object of a gene with the following hierarchy: gene → transcript → exon
     // ...
@@ -178,6 +182,7 @@ class AnnotationProcessorBis {
    * @param {Array} parents -
    */
   addChildren = (IDsubfeature, parents) => {
+    // the same.
     const indexFeature = this.IDtree[parents[0]];
     const valueIDtree = this.IDtree[parents[0]];
     if (valueIDtree === -1 && typeof this.IDtree[parents[0]] !== 'undefined') {
@@ -334,10 +339,23 @@ class AnnotationProcessorBis {
           logger.log('Init to level of gene data');
           this.initGeneHierarchy(features);
         } else {
-          logger.log('bulk mongodb');
-          // Reset the gene hierarchy.
+          logger.log('Cool a new gene !');
+          // Add to bulk operation.
+          this.geneBulkOperation.find({
+            ID: this.geneLevelHierarchy.ID,
+          }).upsert().update(
+            { $set: this.geneLevelHierarchy },
+            { upsert: false, multi: true },
+          );
+          logger.log('bulk mongodb done ?');
+
+          // Execute bulk operation ???
+          this.geneBulkOperation.execute();
+
+          // Reset values.
+          this.indexIDtree = 0;
+          this.IDtree = {};
           this.geneLevelHierarchy = {};
-          logger.log(this.constructor.isEmpty(this.geneLevelHierarchy));
         }
       } else {
         // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
@@ -353,8 +371,16 @@ class AnnotationProcessorBis {
    * @function
    */
   lastAnnotation = () => {
-    logger.log('The last thing to do for annotation :');
-    logger.log(JSON.stringify(this.geneLevelHierarchy, null, 4));
+    // logger.log('The last thing to do for annotation :');
+    // logger.log(JSON.stringify(this.geneLevelHierarchy, null, 4));
+    logger.log('the last bulk operation');
+    this.geneBulkOperation.find({
+      ID: this.geneLevelHierarchy.ID,
+    }).upsert().update(
+      { $set: this.geneLevelHierarchy },
+      { upsert: false, multi: true },
+    );
+    this.geneBulkOperation.execute();
   };
 }
 
