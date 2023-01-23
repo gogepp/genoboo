@@ -1,6 +1,6 @@
 import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
-import { genomeSequenceCollection } from '../../genomeCollection';
+import { genomeSequenceCollection, genomeCollection } from '../../genomeCollection';
 import { Genes } from '../../../genes/geneCollection';
 
 /**
@@ -11,11 +11,15 @@ import { Genes } from '../../../genes/geneCollection';
  * @class
  * @constructor
  * @public
+ * @param {String} filename - The filename (allows to track the annotation in
+ * the genome collection and in the admin panel).
  * @param {String} genomeID - The mongDB ID of a genome collection.
+ * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessorBis {
-  constructor(genomeID, verbose = true) {
+  constructor(filename, genomeID, verbose = true) {
     logger.log('test Annotation procesor bis');
+    this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
 
@@ -125,17 +129,11 @@ class AnnotationProcessorBis {
    * @param {Number} end - Genomic end of the feature.
    * @returns {String} Return the split sequence.
    */
-  splitRawSequence = (seq, shiftCoordinates, start, end) => {
-    let sequence;
-
-    if (seq.length > 0) {
-      sequence = seq.slice(start - shiftCoordinates - 1, end - shiftCoordinates);
-    } else if (this.verbose) {
-      logger.warn(`Could not find sequence for gene ${this.ID} with seqid ${this.seqid}.`
-                  + ' Make sure the sequence IDs between the genome fasta and annotation gff3 are the same.');
-      sequence = '';
+  static splitRawSequence = (seq, shiftCoordinates, start, end) => {
+    if (!seq.length > 0) {
+      return '';
     }
-    return sequence;
+    return seq.slice(start - shiftCoordinates - 1, end - shiftCoordinates);
   };
 
   /**
@@ -265,12 +263,20 @@ class AnnotationProcessorBis {
       );
 
       // Get sequence.
-      const sequence = this.splitRawSequence(
+      const sequence = this.constructor.splitRawSequence(
         rawSequence,
         shiftCoordinates,
         features.start,
         features.end,
       );
+
+      // Warning.
+      if (sequence === '' && this.verbose) {
+        logger.warn(
+          `Could not find sequence for gene ${features.ID} with seqid ${features.seqid} in the interval ${features.start} - ${features.end}.`
+            + ' Make sure the sequence IDs between the genome fasta and annotation gff3 are the same.',
+        );
+      }
 
       // Add sequence to the top level.
       if (typeof sequence !== 'undefined') {
@@ -298,12 +304,20 @@ class AnnotationProcessorBis {
       );
 
       // Get the sequence (call a mongoDB fetch function, can be reduce)
-      const sequence = this.splitRawSequence(
+      const sequence = this.constructor.splitRawSequence(
         rawSequence,
         shiftCoordinates,
         features.start,
         features.end,
       );
+
+      // Warning.
+      if (sequence === '' && this.verbose) {
+        logger.warn(
+          `Could not find sequence for gene ${features.ID} with seqid ${features.seqid} in the interval ${features.start} - ${features.end}.`
+            + ' Make sure the sequence IDs between the genome fasta and annotation gff3 are the same.',
+        );
+      }
 
       // Complete IDtree.
       this.setIDtree(false, features.ID);
@@ -450,6 +464,17 @@ class AnnotationProcessorBis {
 
     // Increment.
     this.nAnnotation += 1;
+
+    // Add annotation track to genome collection.
+    genomeCollection.update({
+      _id: this.genomeID,
+    }, {
+      $set: {
+        annotationTrack: {
+          name: this.filename.split('/').pop(),
+        },
+      },
+    });
 
     this.geneBulkOperation.execute();
   };

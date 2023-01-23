@@ -35,7 +35,7 @@ jobQueue.processJobs(
     logger.log('overwrite :', overwrite);
     logger.log('verbose :', verbose);
 
-    const lineProcessor = new AnnotationProcessorBis(genomeId, verbose);
+    const lineProcessor = new AnnotationProcessorBis(fileName, genomeId, verbose);
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
     Papa.parse(fileHandle, {
