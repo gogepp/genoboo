@@ -217,7 +217,25 @@ class AnnotationProcessorBis {
       // Init IDtree.
       this.setIDtree(true, features.ID);
 
-      // Sequence (nucl) are missing /!\.
+      // Get raw sequence.
+      const [rawSequence, shiftCoordinates] = this.findSequenceGenome(
+        features.seqid,
+        features.start,
+        features.end,
+      );
+
+      // Get sequence.
+      const sequence = this.splitRawSequence(
+        rawSequence,
+        shiftCoordinates,
+        features.start,
+        features.end,
+      );
+
+      // Add sequence to the top level.
+      if (typeof sequence !== 'undefined') {
+        this.geneLevelHierarchy.seq = sequence;
+      }
 
       // Filter and add attributes to avoid duplication.
       const attributesFiltered = this.constructor.filterAttributes(features.attributes);
@@ -239,7 +257,7 @@ class AnnotationProcessorBis {
         features.end,
       );
 
-      // Get the sequence.
+      // Get the sequence (call a mongodb fetch function, can be reduce)
       const sequence = this.splitRawSequence(
         rawSequence,
         shiftCoordinates,
