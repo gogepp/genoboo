@@ -1,14 +1,17 @@
 import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection } from '../../genomeCollection';
-import { Genes } from '../../../genes/geneCollection'
+import { Genes } from '../../../genes/geneCollection';
 
 /**
- *
+ * Read the annotation file in gff3 format. Add to the gene collection of
+ * mongoDB all the information about the genes. Each gene is structured with a
+ * top level which is the general information of the gene and
+ * sub-features which includes mRNA, exons, cds ...
  * @class
  * @constructor
  * @public
- * @param {String} genomeID - The mongdb ID of a genome collection.
+ * @param {String} genomeID - The mongDB ID of a genome collection.
  */
 class AnnotationProcessorBis {
   constructor(genomeID) {
@@ -16,14 +19,19 @@ class AnnotationProcessorBis {
     this.genomeID = genomeID;
     this.verbose = true;
 
-    // Initialize gene bulk operation (mongodb).
+    // Initialize gene bulk operation (mongoDB).
     this.geneBulkOperation = Genes.rawCollection().initializeUnorderedBulkOp();
 
     // Object of a gene with the following hierarchy: gene → transcript → exon
     // ...
     this.geneLevelHierarchy = {};
-    this.indexIDtree = 0;
+
+    // Store the index (value) and the ID of the parents (key) of the gene and
+    // the subfeatures in order to find the children of each one with an
+    // algorithm between O(1) and O(log(n)) with dict[key] e.g
+    // (this.IDtree[parents[0]] in addChildren function).
     this.IDtree = {};
+    this.indexIDtree = 0;
   }
 
   /**
@@ -34,7 +42,7 @@ class AnnotationProcessorBis {
    * @param {Object} attributesGff - The attributes of a gff (last field) in a
    * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
    * Parent: [ 'BniB01g000050.2N.1' ]}
-   * @returns {String} - The identifier (ID).
+   * @returns {String} The identifier (ID).
    */
   getIdentifier = (attributesGff) => {
     if (!Object.prototype.hasOwnProperty.call(attributesGff, 'ID')) {
@@ -53,7 +61,7 @@ class AnnotationProcessorBis {
    * @param {Object} attributesGff - The attributes of a gff (last field) in a
    * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
    * Parent: [ 'BniB01g000050.2N.1' ]}
-   * @returns {Array} - The list of parent(s).
+   * @returns {Array} The list of parent(s).
    */
   static getParents = (attributesGff) => {
     const attributesKeys = Object.keys(attributesGff);
@@ -78,7 +86,7 @@ class AnnotationProcessorBis {
   findSequenceGenome = (seqid, start, end) => {
     let shiftCoordinates = 10e99;
 
-    // Request the genome collection.
+    // Request the genome collection in mongoDB.
     const genomicRegion = genomeSequenceCollection.find(
       {
         genomeId: this.genomeID,
@@ -124,7 +132,7 @@ class AnnotationProcessorBis {
    * @param {Object} attributesGff - The attributes of a gff (last field) in a
    * key:value object. (e.g: attributes : {ID: [ 'BniB01g000050.2N.1.exon12' ],
    * Parent: [ 'BniB01g000050.2N.1' ]}
-   * @return {Object} - Return attributes object without his ID and Parent keys.
+   * @returns {Object} Return attributes object without his ID and Parent keys.
    */
   static filterAttributes = (attributesGff) => {
     const filteredAtt = Object.fromEntries(
@@ -159,9 +167,14 @@ class AnnotationProcessorBis {
   static isEmpty = (obj) => Object.keys(obj).length === 0;
 
   /**
+   * Stores the ID of the parents (key) of the gene and subfeatures and
+   * increments the index (value - position of the gene or subfeature in the
+   * array) in order to find the children of each one with an algorithm between
+   * O(1) and O(log(n)) later with the addChildren function.
    * @function
-   * @param {Boolean} isInit -
-   * @param {String} ID -
+   * @param {Boolean} isInit - True if the identifier initializes a gene (top
+   * level), false if it is a sub feature.
+   * @param {String} ID - The identifier.
    */
   setIDtree = (isInit, ID) => {
     if (isInit) {
@@ -177,15 +190,15 @@ class AnnotationProcessorBis {
   };
 
   /**
+   * Find the associated parent and complete the 'children' feature.
    * @function
-   * @param {String} IDsubfeature -
-   * @param {Array} parents -
+   * @param {String} IDsubfeature -The identifier.
+   * @param {Array} parents - The list of parents.
    */
   addChildren = (IDsubfeature, parents) => {
-    // the same.
+    // Find the parent with an algorithm between O(1) and O(log(n)).
     const indexFeature = this.IDtree[parents[0]];
-    const valueIDtree = this.IDtree[parents[0]];
-    if (valueIDtree === -1 && typeof this.IDtree[parents[0]] !== 'undefined') {
+    if (indexFeature === -1 && typeof indexFeature !== 'undefined') {
       // top level.
       if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy, 'children')) {
         this.geneLevelHierarchy.children = [];
@@ -257,7 +270,7 @@ class AnnotationProcessorBis {
         features.end,
       );
 
-      // Get the sequence (call a mongodb fetch function, can be reduce)
+      // Get the sequence (call a mongoDB fetch function, can be reduce)
       const sequence = this.splitRawSequence(
         rawSequence,
         shiftCoordinates,
@@ -265,10 +278,8 @@ class AnnotationProcessorBis {
         features.end,
       );
 
-      // Complete IDtree
+      // Complete IDtree.
       this.setIDtree(false, features.ID);
-
-      // Get children if exists.
 
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
@@ -292,19 +303,21 @@ class AnnotationProcessorBis {
   };
 
   /**
+   * Initialize a gene (top level).
    * @function
    */
   initGeneHierarchy = (features) => this.completeGeneHierarchy(false, features);
 
   /**
+   * Adds the sub-features of a gene (sub-features level).
    * @function
    */
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
 
   /**
-   * Read line by line.
+   * Read line by line the annotation file in gff3 format.
    * @function
-   * @param {String} line - The line to parse.
+   * @param {Array} line - The line to parse and tab split by Papa Parse.
    */
   parse = (line) => {
     if (this.constructor.isNineFields(line)) {
@@ -378,7 +391,6 @@ class AnnotationProcessorBis {
       } else {
         // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
         this.addSubfeatures(features);
-        // logger.log('after :', JSON.stringify(this.geneLevelHierarchy, null, 4));
       }
     } else {
       logger.warn(`${line} is not a correct gff line with 9 fields: ${line.length}`);
@@ -386,6 +398,7 @@ class AnnotationProcessorBis {
   };
 
   /**
+   * Save the gene annotation in the collection.
    * @function
    */
   lastAnnotation = () => {
