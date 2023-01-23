@@ -18,7 +18,6 @@ import { Genes } from '../../../genes/geneCollection';
  */
 class AnnotationProcessorBis {
   constructor(filename, genomeID, verbose = true) {
-    logger.log('test Annotation procesor bis');
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
@@ -407,14 +406,13 @@ class AnnotationProcessorBis {
       // field) we complete and store the information.
       // For each new gene the information is stored in a bulk operation
       // mongoDB.
-      logger.log('type: ', typeGff);
       if (typeGff === 'gene') {
-        // Top level feature of the gene.
         if (this.constructor.isEmpty(this.geneLevelHierarchy)) {
-          logger.log('Init to level of gene data');
+          // Top level feature of the gene.
           this.initGeneHierarchy(features);
         } else {
-          logger.log('Cool a new gene !');
+          // Cool a new gene !
+
           // Increment.
           this.nAnnotation += 1;
 
@@ -425,7 +423,6 @@ class AnnotationProcessorBis {
             { $set: this.geneLevelHierarchy },
             { upsert: false, multi: true },
           );
-          logger.log('bulk mongoDB done ?');
 
           // Execute bulk operation ???
           this.geneBulkOperation.execute();
@@ -452,9 +449,6 @@ class AnnotationProcessorBis {
    * @function
    */
   lastAnnotation = () => {
-    // logger.log('The last thing to do for annotation :');
-    // logger.log(JSON.stringify(this.geneLevelHierarchy, null, 4));
-    logger.log('the last bulk operation');
     this.geneBulkOperation.find({
       ID: this.geneLevelHierarchy.ID,
     }).upsert().update(
