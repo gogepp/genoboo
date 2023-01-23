@@ -35,7 +35,7 @@ jobQueue.processJobs(
     logger.log('overwrite :', overwrite);
     logger.log('verbose :', verbose);
 
-    const lineProcessor = new AnnotationProcessorBis(genomeId);
+    const lineProcessor = new AnnotationProcessorBis(genomeId, verbose);
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
     Papa.parse(fileHandle, {
@@ -59,7 +59,8 @@ jobQueue.processJobs(
       complete() {
         try {
           lineProcessor.lastAnnotation();
-          job.done();
+          const nAnnotation = lineProcessor.getNumberAnnotation();
+          job.done({ nInserted: nAnnotation });
         } catch (err) {
           logger.log(err);
           job.fail({ err });

@@ -14,16 +14,18 @@ import { Genes } from '../../../genes/geneCollection';
  * @param {String} genomeID - The mongDB ID of a genome collection.
  */
 class AnnotationProcessorBis {
-  constructor(genomeID) {
+  constructor(genomeID, verbose = true) {
     logger.log('test Annotation procesor bis');
     this.genomeID = genomeID;
-    this.verbose = true;
+    this.verbose = verbose;
+
+    this.nAnnotation = 0;
 
     // Initialize gene bulk operation (mongoDB).
     this.geneBulkOperation = Genes.rawCollection().initializeUnorderedBulkOp();
 
-    // Object of a gene with the following hierarchy: gene → transcript → exon
-    // ...
+    // Object of a gene with the following hierarchy: gene → subfeatures
+    // -> [transcript, exons, cds, ...].
     this.geneLevelHierarchy = {};
 
     // Store the index (value) and the ID of the parents (key) of the gene and
@@ -32,6 +34,17 @@ class AnnotationProcessorBis {
     // (this.IDtree[parents[0]] in addChildren function).
     this.IDtree = {};
     this.indexIDtree = 0;
+  }
+
+  /**
+   * Function that returns the total number of insertions or updates in the
+   * gene collection.
+   * @function
+   * @return {Number} Return the total number of insertions or updates of
+   * gene.
+   */
+  getNumberAnnotation() {
+    return this.nAnnotation;
   }
 
   /**
@@ -75,7 +88,7 @@ class AnnotationProcessorBis {
   };
 
   /**
-   * Find the raw sequence from the genome collection of mongodb.
+   * Find the raw sequence from the genome collection of mongoDB.
    * @function
    * @param {String} seqid - The name of the sequence where the feature is
    * located (first field of the gff).
@@ -214,6 +227,19 @@ class AnnotationProcessorBis {
   };
 
   /**
+   * Change type if called 'trancript' rather than mRNA.
+   * @function
+   * @param {String} type - The type
+   * returns {String} Returns the type.
+   */
+  static formatTranscriptType(type) {
+    if (type === 'transcript') {
+      return 'mRNA';
+    }
+    return type;
+  }
+
+  /**
    * Complete features and subfeatures of gene.
    * @function
    * @param {Boolean} isSubfeature - Define if the sub-features are mRNA,
@@ -284,10 +310,13 @@ class AnnotationProcessorBis {
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
 
+      // Change type if called 'trancript' rather than mRNA
+      const typeAttr = this.constructor.formatTranscriptType(features.type);
+
       // Add subfeatures.
       this.geneLevelHierarchy.subfeatures.push({
         ID: features.ID,
-        type: features.type,
+        type: typeAttr,
         start: features.start,
         end: features.end,
         phase: features.phase,
@@ -344,7 +373,7 @@ class AnnotationProcessorBis {
       // Get ID (identifier);
       const identifier = this.getIdentifier(attributesGff);
 
-      //
+      // Structures the data.
       const features = {
         ID: identifier,
         genomeId: this.genomeID,
@@ -362,7 +391,7 @@ class AnnotationProcessorBis {
       // Except for the first gene, as long as there is no new gene (3rd
       // field) we complete and store the information.
       // For each new gene the information is stored in a bulk operation
-      // mongodb.
+      // mongoDB.
       logger.log('type: ', typeGff);
       if (typeGff === 'gene') {
         // Top level feature of the gene.
@@ -371,6 +400,9 @@ class AnnotationProcessorBis {
           this.initGeneHierarchy(features);
         } else {
           logger.log('Cool a new gene !');
+          // Increment.
+          this.nAnnotation += 1;
+
           // Add to bulk operation.
           this.geneBulkOperation.find({
             ID: this.geneLevelHierarchy.ID,
@@ -378,7 +410,7 @@ class AnnotationProcessorBis {
             { $set: this.geneLevelHierarchy },
             { upsert: false, multi: true },
           );
-          logger.log('bulk mongodb done ?');
+          logger.log('bulk mongoDB done ?');
 
           // Execute bulk operation ???
           this.geneBulkOperation.execute();
@@ -387,6 +419,9 @@ class AnnotationProcessorBis {
           this.indexIDtree = 0;
           this.IDtree = {};
           this.geneLevelHierarchy = {};
+
+          // Init new gene.
+          this.initGeneHierarchy(features);
         }
       } else {
         // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
@@ -398,7 +433,7 @@ class AnnotationProcessorBis {
   };
 
   /**
-   * Save the gene annotation in the collection.
+   * Save the last gene annotation in the collection.
    * @function
    */
   lastAnnotation = () => {
@@ -411,6 +446,10 @@ class AnnotationProcessorBis {
       { $set: this.geneLevelHierarchy },
       { upsert: false, multi: true },
     );
+
+    // Increment.
+    this.nAnnotation += 1;
+
     this.geneBulkOperation.execute();
   };
 }
