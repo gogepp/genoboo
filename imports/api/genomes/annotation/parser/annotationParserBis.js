@@ -133,6 +133,7 @@ class AnnotationProcessorBis {
     } else if (this.verbose) {
       logger.warn(`Could not find sequence for gene ${this.ID} with seqid ${this.seqid}.`
                   + ' Make sure the sequence IDs between the genome fasta and annotation gff3 are the same.');
+      sequence = '';
     }
     return sequence;
   };
