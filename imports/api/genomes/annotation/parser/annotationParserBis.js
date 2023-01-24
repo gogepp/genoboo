@@ -424,9 +424,6 @@ class AnnotationProcessorBis {
             { upsert: false, multi: true },
           );
 
-          // Execute bulk operation ???
-          this.geneBulkOperation.execute();
-
           // Reset values.
           this.indexIDtree = 0;
           this.IDtree = {};
