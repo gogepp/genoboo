@@ -16,7 +16,7 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {String} genomeID - The mongDB ID of a genome collection.
  * @param {Boolean} verbose - View more details.
  */
-class AnnotationProcessorBis {
+class AnnotationProcessor {
   constructor(filename, genomeID, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
@@ -102,7 +102,6 @@ class AnnotationProcessorBis {
    * located (first field of the gff).
    * @param {Number} start - Genomic start of the feature.
    * @param {Number} end - Genomic end of the feature.
-   * @returns {String} Return the complete sequence.
    */
   findSequenceGenome = (seqid, start, end) => {
     let shiftCoordinates = 10e99;
@@ -499,4 +498,4 @@ class AnnotationProcessorBis {
   };
 }
 
-export default AnnotationProcessorBis;
+export default AnnotationProcessor;

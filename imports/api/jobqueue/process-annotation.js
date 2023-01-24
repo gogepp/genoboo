@@ -1,10 +1,8 @@
 import fs from 'fs';
 import Papa from 'papaparse';
-//import AnnotationProcessor from '../genomes/annotation/parser/annotationParser';
-import AnnotationProcessorBis from '../genomes/annotation/parser/annotationParserBis';
+import AnnotationProcessor from '../genomes/annotation/parser/annotationParserGff3';
 import logger from '../util/logger';
 import jobQueue from './jobqueue';
-import { performance } from 'perf_hooks';
 
 jobQueue.processJobs(
   'addAnnotation',
@@ -36,10 +34,9 @@ jobQueue.processJobs(
     logger.log('overwrite :', overwrite);
     logger.log('verbose :', verbose);
 
-    const lineProcessor = new AnnotationProcessorBis(fileName, genomeId, verbose);
+    const lineProcessor = new AnnotationProcessor(fileName, genomeId, verbose);
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
-    var startTime = performance.now()
     Papa.parse(fileHandle, {
       delimiter: '\t',
       dynamicTyping: true,
@@ -70,7 +67,5 @@ jobQueue.processJobs(
         callback();
       },
     });
-    const endTime = performance.now();
-    logger.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
   },
 );

@@ -2,7 +2,7 @@
 import React from 'react';
 
 import { removeAnnotationTrack }
-  from '/imports/api/genomes/removeAnnotationTrack.js';
+  from '/imports/api/genomes/annotation/removeAnnotationTrack.js';
 
 import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
 

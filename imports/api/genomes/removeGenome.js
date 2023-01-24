@@ -8,7 +8,6 @@ import { genomeCollection, genomeSequenceCollection } from './genomeCollection.j
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import logger from '/imports/api/util/logger.js';
 
-// import { removeAnnotationTrack } from './removeAnnotationTrack.js';
 
 const removeGenome = new ValidatedMethod({
   name: 'removeGenome',
