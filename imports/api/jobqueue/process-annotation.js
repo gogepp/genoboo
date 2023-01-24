@@ -67,10 +67,10 @@ jobQueue.processJobs(
           logger.log(err);
           job.fail({ err });
         }
-        var endTime = performance.now()
-        console.log(`Call to doSomething took ${endTime - startTime} milliseconds`)
         callback();
       },
     });
+    const endTime = performance.now();
+    logger.log(`Call to doSomething took ${endTime - startTime} milliseconds`);
   },
 );
