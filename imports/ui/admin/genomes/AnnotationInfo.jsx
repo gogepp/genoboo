@@ -1,8 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
 
-import { removeAnnotationTrack }
-  from '/imports/api/genomes/annotation/removeAnnotationTrack.js';
+import removeAnnotationTrack from '../../../api/genomes/annotation/removeAnnotationTrack';
 
 import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
 

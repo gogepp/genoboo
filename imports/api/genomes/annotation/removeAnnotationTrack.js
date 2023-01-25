@@ -1,13 +1,11 @@
 import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { Roles } from 'meteor/alanning:roles';
-
 import SimpleSchema from 'simpl-schema';
-
 import { genomeCollection } from '../genomeCollection';
-import { Genes } from '/imports/api/genes/geneCollection.js';
+import { Genes } from '../../genes/geneCollection';
 
-export const removeAnnotationTrack = new ValidatedMethod({
+const removeAnnotationTrack = new ValidatedMethod({
   name: 'removeAnnotationTrack',
   validate: new SimpleSchema({
     genomeId: { type: String },
@@ -28,3 +26,5 @@ export const removeAnnotationTrack = new ValidatedMethod({
     return genomeCollection.update({ _id: genomeId }, { $unset: { annotationTrack: true } });
   },
 });
+
+export default removeAnnotationTrack;

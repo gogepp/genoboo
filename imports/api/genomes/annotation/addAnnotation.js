@@ -1,10 +1,10 @@
-import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
-import jobQueue, { Job } from '/imports/api/jobqueue/jobqueue.js';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
-import logger from '/imports/api/util/logger.js';
 import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
+import { genomeCollection } from '../genomeCollection';
+import jobQueue, { Job } from '../../jobqueue/jobqueue';
+import logger from '../../util/logger';
 
 const addAnnotation = new ValidatedMethod({
   name: 'addAnnotation',
@@ -42,7 +42,7 @@ const addAnnotation = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, genomeName, motif, type, keep, overwrite, verbose, strict = true,
+    fileName, genomeName, motif, type, keep, overwrite, verbose,
   }) {
     if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
       throw new Meteor.Error('not-authorized');
@@ -72,7 +72,7 @@ const addAnnotation = new ValidatedMethod({
         verbose,
       },
     );
-    const jobId = job.priority('high').save();
+    job.priority('high').save();
 
     let { status } = job.doc;
     logger.debug(`Job status: ${status}`);
