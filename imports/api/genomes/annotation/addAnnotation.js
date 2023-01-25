@@ -82,13 +82,6 @@ const addAnnotation = new ValidatedMethod({
     }
 
     return { result: job.doc.result };
-
-    // return gffFileToMongoDb({
-    //   fileName, genomeId, motif, keepdata: keepIdField, type, verbose, strict,
-    // }).catch((error) => {
-    //   logger.warn(error);
-    //   throw new Meteor.Error(error);
-    // });
   },
 });
 

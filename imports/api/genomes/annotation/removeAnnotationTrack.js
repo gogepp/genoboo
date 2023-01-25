@@ -4,7 +4,7 @@ import { Roles } from 'meteor/alanning:roles';
 
 import SimpleSchema from 'simpl-schema';
 
-import { genomeCollection } from './genomeCollection.js';
+import { genomeCollection } from '../genomeCollection';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 
 export const removeAnnotationTrack = new ValidatedMethod({

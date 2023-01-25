@@ -1,7 +1,7 @@
 import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection, genomeCollection } from '../../genomeCollection';
-import { Genes } from '../../../genes/geneCollection';
+import { Genes, GeneSchema } from '../../../genes/geneCollection';
 
 /**
  * Read the annotation file in gff3 format. Add to the gene collection of
@@ -16,12 +16,13 @@ import { Genes } from '../../../genes/geneCollection';
  * @param {String} genomeID - The mongDB ID of a genome collection.
  * @param {Boolean} verbose - View more details.
  */
-class AnnotationProcessorBis {
+class AnnotationProcessor {
   constructor(filename, genomeID, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
 
+    // Number of insertion.
     this.nAnnotation = 0;
 
     // Initialize gene bulk operation (mongoDB).
@@ -30,6 +31,10 @@ class AnnotationProcessorBis {
     // Object of a gene with the following hierarchy: gene → subfeatures
     // -> [transcript, exons, cds, ...].
     this.geneLevelHierarchy = {};
+
+    // The raw sequence of the gene.
+    this.rawSequence = '';
+    this.shiftSequence = 0;
 
     // Store the index (value) and the ID of the parents (key) of the gene and
     // the subfeatures in order to find the children of each one with an
@@ -97,7 +102,6 @@ class AnnotationProcessorBis {
    * located (first field of the gff).
    * @param {Number} start - Genomic start of the feature.
    * @param {Number} end - Genomic end of the feature.
-   * @returns {String} Return the complete sequence.
    */
   findSequenceGenome = (seqid, start, end) => {
     let shiftCoordinates = 10e99;
@@ -116,7 +120,8 @@ class AnnotationProcessorBis {
     })
       .join('');
 
-    return [genomicRegion, shiftCoordinates];
+    this.rawSequence = genomicRegion;
+    this.shiftSequence = shiftCoordinates;
   };
 
   /**
@@ -227,8 +232,8 @@ class AnnotationProcessorBis {
   /**
    * Change type if called 'trancript' rather than mRNA.
    * @function
-   * @param {String} type - The type
-   * returns {String} Returns the type.
+   * @param {String} type - The type.
+   * @returns {String} Returns the type.
    */
   static formatTranscriptType(type) {
     if (type === 'transcript') {
@@ -236,6 +241,19 @@ class AnnotationProcessorBis {
     }
     return type;
   }
+
+  /**
+   * Returns the correct type for the phase field.
+   * @function
+   * @param {String} phase - The phase field.
+   * @returns {Number|String} The phase field with the correct type.
+   */
+  static getAllowedPhase = (phase) => {
+    if (['0', '1', '2'].includes(phase)) {
+      return Number(phase);
+    }
+    return phase;
+  };
 
   /**
    * Complete features and subfeatures of gene.
@@ -248,23 +266,19 @@ class AnnotationProcessorBis {
     if (!isSubfeature) {
       // Initialize the gene with the features but without the attributes that
       // will be filtered and added later.
-      const { attributes, ...featuresWithoutAttributes } = features;
+      const { attributes, phase, ...featuresWithoutAttributes } = features;
       this.geneLevelHierarchy = featuresWithoutAttributes;
 
       // Init IDtree.
       this.setIDtree(true, features.ID);
 
       // Get raw sequence.
-      const [rawSequence, shiftCoordinates] = this.findSequenceGenome(
-        features.seqid,
-        features.start,
-        features.end,
-      );
+      this.findSequenceGenome(features.seqid, features.start, features.end);
 
       // Get sequence.
       const sequence = this.constructor.splitRawSequence(
-        rawSequence,
-        shiftCoordinates,
+        this.rawSequence,
+        this.shiftSequence,
         features.start,
         features.end,
       );
@@ -295,17 +309,10 @@ class AnnotationProcessorBis {
       // Get all parents from the attributes field.
       const parentsAttributes = this.constructor.getParents(features.attributes);
 
-      // Get raw sequence. /!\ do the request once only ??
-      const [rawSequence, shiftCoordinates] = this.findSequenceGenome(
-        features.seqid,
-        features.start,
-        features.end,
-      );
-
       // Get the sequence (call a mongoDB fetch function, can be reduce)
       const sequence = this.constructor.splitRawSequence(
-        rawSequence,
-        shiftCoordinates,
+        this.rawSequence,
+        this.shiftSequence,
         features.start,
         features.end,
       );
@@ -327,13 +334,16 @@ class AnnotationProcessorBis {
       // Change type if called 'trancript' rather than mRNA
       const typeAttr = this.constructor.formatTranscriptType(features.type);
 
+      // Get allowed phase with the correct type.
+      const phaseAttr = this.constructor.getAllowedPhase(features.phase);
+
       // Add subfeatures.
       this.geneLevelHierarchy.subfeatures.push({
         ID: features.ID,
         type: typeAttr,
         start: features.start,
         end: features.end,
-        phase: features.phase,
+        phase: phaseAttr,
         score: features.score,
         parents: parentsAttributes,
         attributes: filteredAttr,
@@ -343,6 +353,25 @@ class AnnotationProcessorBis {
       // Add children.
       this.addChildren(features.ID, parentsAttributes);
     }
+  };
+
+  /**
+   * Check the correspondence between the input data and the schema of the gene
+   * collection.
+   * @function
+   * @returns {Boolean} Returns true if the data matches the schema of the gene
+   * collection, false if there is an error.
+   */
+  isValidateGeneSchema = () => {
+    // Excluded '_id' that it is not in the schema.
+    const { _id, ...geneWithoutId } = this.geneLevelHierarchy;
+    try {
+      GeneSchema.validate(geneWithoutId);
+    } catch (err) {
+      logger.error(err);
+      return false;
+    }
+    return true;
   };
 
   /**
@@ -417,20 +446,14 @@ class AnnotationProcessorBis {
           this.nAnnotation += 1;
 
           // Add to bulk operation.
-          this.geneBulkOperation.find({
-            ID: this.geneLevelHierarchy.ID,
-          }).upsert().update(
-            { $set: this.geneLevelHierarchy },
-            { upsert: false, multi: true },
-          );
-
-          // Execute bulk operation ???
-          this.geneBulkOperation.execute();
+          this.geneBulkOperation.insert(this.geneLevelHierarchy);
 
           // Reset values.
-          this.indexIDtree = 0;
-          this.IDtree = {};
           this.geneLevelHierarchy = {};
+          this.rawSequence = '';
+          this.shiftSequence = 0;
+          this.IDtree = {};
+          this.indexIDtree = 0;
 
           // Init new gene.
           this.initGeneHierarchy(features);
@@ -449,15 +472,16 @@ class AnnotationProcessorBis {
    * @function
    */
   lastAnnotation = () => {
-    this.geneBulkOperation.find({
-      ID: this.geneLevelHierarchy.ID,
-    }).upsert().update(
-      { $set: this.geneLevelHierarchy },
-      { upsert: false, multi: true },
-    );
+    // Check if it's validated by mongoDB schema.
+    if (!this.isValidateGeneSchema()) {
+      logger.error('There is something wrong with the gene collection schema !');
+    }
 
     // Increment.
     this.nAnnotation += 1;
+
+    // Add to bulk operation.
+    this.geneBulkOperation.insert(this.geneLevelHierarchy);
 
     // Add annotation track to genome collection.
     genomeCollection.update({
@@ -474,4 +498,4 @@ class AnnotationProcessorBis {
   };
 }
 
-export default AnnotationProcessorBis;
+export default AnnotationProcessor;
