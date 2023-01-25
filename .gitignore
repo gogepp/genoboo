@@ -1,4 +1,6 @@
 .*
+# eslint setup.
+!.eslintrc.yml
 data/*
 db/*
 cli/db/*
