@@ -2,6 +2,7 @@ import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection, genomeCollection } from '../../genomeCollection';
 import { Genes, GeneSchema } from '../../../genes/geneCollection';
+import { object } from 'prop-types';
 
 /**
  * Read the annotation file in gff3 format. Add to the gene collection of
@@ -82,13 +83,10 @@ class AnnotationProcessor {
    * returns {Array}
    */
   getCustomID = (ident, type) => {
-    if (!this.overwrite && typeof this.motif[type] !== 'undefined') {
+    if (typeof this.motif[type] !== 'undefined') {
       return { identifiant: ident, customID: ident.concat(this.motif[type]) };
-    } else if (typeof this.motif[type] !== 'undefined') {
-      return { identifiant: ident.concat(this.motif[type]), customID: undefined };
-    } else {
-      return { identifiant: ident, customID: undefined };
     }
+    return { identifiant: ident, customID: undefined };
   };
 
   /**
@@ -447,6 +445,69 @@ class AnnotationProcessor {
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
 
   /**
+   * @function
+   */
+  overwriteGene = () => {
+    // Store original ID and custom ID.
+    const overwriteID = {};
+
+    // Change identifiant, parents with the custom_id.
+    for (let i = 0; i < this.geneLevelHierarchy.subfeatures.length; i += 1) {
+      if (typeof this.geneLevelHierarchy.subfeatures[i].custom_id !== 'undefined') {
+        const identifiant = this.geneLevelHierarchy.subfeatures[i].ID;
+        const customID = this.geneLevelHierarchy.subfeatures[i].custom_id;
+
+        // Store old modification.
+        overwriteID[identifiant] = customID;
+
+        // Change identifant by the motif.
+        this.geneLevelHierarchy.subfeatures[i].ID = customID;
+
+        // Remove custom ID (give a undefined value not performed by mongodb).
+        this.geneLevelHierarchy.subfeatures[i].custom_id = undefined;
+      }
+      // Change parents by the motif.
+      if (typeof this.geneLevelHierarchy.subfeatures[i].parents !== 'undefined') {
+        const parentId = this.geneLevelHierarchy.subfeatures[i].parents[0];
+        if (typeof overwriteID[parentId] !== 'undefined') {
+          const newParentID = overwriteID[parentId];
+          this.geneLevelHierarchy.subfeatures[i].parents = [newParentID];
+        }
+      }
+    }
+
+    // Change children too.
+    const obj = Object.keys(this.geneLevelHierarchy);
+    obj.forEach((key) => {
+      // Top level (gene).
+      if (key === 'children') {
+        for (let y = 0; y < this.geneLevelHierarchy.children.length; y += 1) {
+          const childrenID = this.geneLevelHierarchy.children[y];
+          if (typeof overwriteID[childrenID] !== 'undefined') {
+            const newChildrenID = overwriteID[childrenID];
+            this.geneLevelHierarchy.children[y] = newChildrenID;
+          }
+        }
+      }
+      // subfeatures
+      if (key === 'subfeatures') {
+        for (let i = 0; i < this.geneLevelHierarchy.subfeatures.length; i += 1) {
+          if (typeof this.geneLevelHierarchy.subfeatures[i].children !== 'undefined') {
+            for (let y = 0; y < this.geneLevelHierarchy.subfeatures[i].children.length; y += 1) {
+              const childrenSubID = this.geneLevelHierarchy.subfeatures[i].children[y];
+              if (typeof overwriteID[childrenSubID] !== 'undefined') {
+                const newChildrenSubID = overwriteID[childrenSubID];
+                this.geneLevelHierarchy.subfeatures[i].children[y] = newChildrenSubID;
+              }
+            }
+          }
+        }
+      }
+    });
+    logger.log('finished ?');
+  };
+
+  /**
    * Read line by line the annotation file in gff3 format.
    * @function
    * @param {Array} line - The line to parse and tab split by Papa Parse.
@@ -507,8 +568,10 @@ class AnnotationProcessor {
 
           // If the overwrite parameter is true change in depth the data
           // (identifiers, parents and children). Takes more time because you
-          // have to go through the object again and modify it.
+          // have to go through the object again and modify it. (Function not
+          // recommended but available).
           if (this.overwrite) {
+            logger.log('coucou overwrite 1');
             this.overwriteGene();
           }
 
@@ -542,6 +605,11 @@ class AnnotationProcessor {
     // Check if it's validated by mongoDB schema.
     if (!this.isValidateGeneSchema()) {
       logger.error('There is something wrong with the gene collection schema !');
+    }
+
+    // If overwrite
+    if (this.overwrite) {
+      this.overwriteGene();
     }
 
     // Increment.
