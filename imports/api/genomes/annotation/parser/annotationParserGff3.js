@@ -17,10 +17,18 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessor {
-  constructor(filename, genomeID, verbose = true) {
+  constructor(filename, genomeID, overwrite = false, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
+
+    // Optionally add a pattern to a custom_id in the gene collection. (e.g:
+    // with the motif -P : BniB01g000050.2N.1 -> BniB01g000050.2N.1-P)
+    // this.type = type;
+    //this.motif = this.getMotif(motif);
+    this.motif = undefined;
+    this.overwrite = overwrite;
+    this.customID = undefined;
 
     // Number of insertion.
     this.nAnnotation = 0;
@@ -43,6 +51,45 @@ class AnnotationProcessor {
     this.IDtree = {};
     this.indexIDtree = 0;
   }
+
+  /**
+   * Builds an object for each pattern and type.
+   * @function
+   * @param {String} motif -
+   * @param {String} type -
+   * returns {Object|undefined}
+   */
+  createMotif(motif, type) {
+    const motifSplitted = motif.split(',');
+    const lengthMotif = motifSplitted.length;
+
+    const typeSplitted = type.split(',');
+    const lengthType = typeSplitted.length;
+
+    const fullMotif = {};
+    if (!lengthMotif === lengthType) {
+      throw new Error('Bad index between motif and type.');
+    }
+    for (let i = 0; i < lengthMotif; i += 1) {
+      fullMotif[typeSplitted[i].trim()] = motifSplitted[i].trim();
+    }
+    this.motif = fullMotif;
+  }
+
+  /**
+   *
+   * @function
+   * returns {Array}
+   */
+  getCustomID = (ident, type) => {
+    if (!this.overwrite && typeof this.motif[type] !== 'undefined') {
+      return { identifiant: ident, customID: ident.concat(this.motif[type]) };
+    } else if (typeof this.motif[type] !== 'undefined') {
+      return { identifiant: ident.concat(this.motif[type]), customID: undefined };
+    } else {
+      return { identifiant: ident, customID: undefined };
+    }
+  };
 
   /**
    * Function that returns the total number of insertions or updates in the
@@ -85,6 +132,7 @@ class AnnotationProcessor {
    * @returns {Array} The list of parent(s).
    */
   static getParents = (attributesGff) => {
+    logger.log('get parents ?');
     const attributesKeys = Object.keys(attributesGff);
     let parents = [];
     attributesKeys.forEach((key) => {
@@ -212,6 +260,10 @@ class AnnotationProcessor {
    * @param {Array} parents - The list of parents.
    */
   addChildren = (IDsubfeature, parents) => {
+    logger.log('IDsubfeature :', IDsubfeature);
+    logger.log('parents :', parents);
+    logger.log('this.IDtree :', this.IDtree);
+    logger.log('this.IDtree[parents[0]] :', this.IDtree[parents[0]]);
     // Find the parent with an algorithm between O(1) and O(log(n)).
     const indexFeature = this.IDtree[parents[0]];
     if (indexFeature === -1 && typeof indexFeature !== 'undefined') {
@@ -297,7 +349,9 @@ class AnnotationProcessor {
       }
 
       // Filter and add attributes to avoid duplication.
-      const attributesFiltered = this.constructor.filterAttributes(features.attributes);
+      const attributesFiltered = this.constructor.filterAttributes(
+        features.attributes,
+      );
       this.geneLevelHierarchy.attributes = attributesFiltered;
     } else {
       // Create an array if not exists for the subfeatures (exons, cds ...) of
@@ -305,6 +359,9 @@ class AnnotationProcessor {
       if (typeof this.geneLevelHierarchy.subfeatures === 'undefined') {
         this.geneLevelHierarchy.subfeatures = [];
       }
+
+      // Change type if called 'trancript' rather than mRNA
+      const typeAttr = this.constructor.formatTranscriptType(features.type);
 
       // Get all parents from the attributes field.
       const parentsAttributes = this.constructor.getParents(features.attributes);
@@ -325,21 +382,24 @@ class AnnotationProcessor {
         );
       }
 
+      const { identifiant, customID } = this.getCustomID(
+        features.ID,
+        features.type,
+      );
+
       // Complete IDtree.
-      this.setIDtree(false, features.ID);
+      this.setIDtree(false, identifiant);
 
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
-
-      // Change type if called 'trancript' rather than mRNA
-      const typeAttr = this.constructor.formatTranscriptType(features.type);
 
       // Get allowed phase with the correct type.
       const phaseAttr = this.constructor.getAllowedPhase(features.phase);
 
       // Add subfeatures.
       this.geneLevelHierarchy.subfeatures.push({
-        ID: features.ID,
+        ID: identifiant,
+        custom_id: customID,
         type: typeAttr,
         start: features.start,
         end: features.end,
@@ -444,6 +504,13 @@ class AnnotationProcessor {
 
           // Increment.
           this.nAnnotation += 1;
+
+          // If the overwrite parameter is true change in depth the data
+          // (identifiers, parents and children). Takes more time because you
+          // have to go through the object again and modify it.
+          if (this.overwrite) {
+            this.overwriteGene();
+          }
 
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy);

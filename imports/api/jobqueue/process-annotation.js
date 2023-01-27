@@ -23,9 +23,6 @@ jobQueue.processJobs(
     } = job.data;
     logger.log(`Adding annotation file "${fileName}" to genome "${genomeName}"`);
 
-    // Keed ID field or overwrite it.
-    const keepIdField = (keep === true ? keep : overwrite);
-
     logger.log('file :', fileName);
     logger.log('name :', genomeName);
     logger.log('motif :', motif);
@@ -34,7 +31,24 @@ jobQueue.processJobs(
     logger.log('overwrite :', overwrite);
     logger.log('verbose :', verbose);
 
-    const lineProcessor = new AnnotationProcessor(fileName, genomeId, verbose);
+    const lineProcessor = new AnnotationProcessor(
+      fileName,
+      genomeId,
+      overwrite,
+      verbose,
+    );
+
+    if (motif !== '' && type !== '') {
+      try {
+        logger.log('coucou 1');
+        lineProcessor.createMotif(motif, type);
+      } catch (err) {
+        job.fail();
+      }
+    }
+
+    logger.log('Le motif :', lineProcessor.motif);
+
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
     Papa.parse(fileHandle, {
@@ -46,6 +60,7 @@ jobQueue.processJobs(
       error(err) {
         logger.error(err);
         job.fail({ err });
+        callback();
       },
       step(line) {
         try {
@@ -53,6 +68,7 @@ jobQueue.processJobs(
         } catch (err) {
           logger.log(err);
           job.fail({ err });
+          callback();
         }
       },
       complete() {
@@ -63,6 +79,7 @@ jobQueue.processJobs(
         } catch (err) {
           logger.log(err);
           job.fail({ err });
+          callback();
         }
         callback();
       },

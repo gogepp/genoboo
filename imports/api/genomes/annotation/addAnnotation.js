@@ -75,10 +75,17 @@ const addAnnotation = new ValidatedMethod({
     job.priority('high').save();
 
     let { status } = job.doc;
-    logger.debug(`Job status: ${status}`);
+    logger.warn(`Job status: ${status}`);
     while (status !== 'completed') {
+      if (status === 'failed') {
+        break;
+      }
       const { doc } = job.refresh();
       status = doc.status;
+    }
+
+    if (status === 'failed') {
+      return { result: job.doc.result };
     }
 
     return { result: job.doc.result };
