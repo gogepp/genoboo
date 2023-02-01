@@ -2,7 +2,6 @@ import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection, genomeCollection } from '../../genomeCollection';
 import { Genes, GeneSchema } from '../../../genes/geneCollection';
-import { object } from 'prop-types';
 
 /**
  * Read the annotation file in gff3 format. Add to the gene collection of
@@ -26,7 +25,6 @@ class AnnotationProcessor {
     // Optionally add a pattern to a custom_id in the gene collection. (e.g:
     // with the motif -P : BniB01g000050.2N.1 -> BniB01g000050.2N.1-P)
     // this.type = type;
-    //this.motif = this.getMotif(motif);
     this.motif = undefined;
     this.overwrite = overwrite;
     this.customID = undefined;
@@ -48,17 +46,19 @@ class AnnotationProcessor {
     // Store the index (value) and the ID of the parents (key) of the gene and
     // the subfeatures in order to find the children of each one with an
     // algorithm between O(1) and O(log(n)) with dict[key] e.g
-    // (this.IDtree[parents[0]] in addChildren function).
-    this.IDtree = {};
-    this.indexIDtree = 0;
+    // (this.IdParents[parents[0]] in addChildren function).
+    this.IdParents = {};
+    this.indexIdParent = 0;
   }
 
   /**
-   * Builds an object for each pattern and type.
+   * Create an object for each motif/pattern and type.
    * @function
-   * @param {String} motif -
-   * @param {String} type -
-   * returns {Object|undefined}
+   * @param {String} motif - The motif(s)/pattern(s) indicated by the cli -m,
+   * --pattern parameter.
+   * @param {String} type - The type(s) indicated by the cli -t,
+   * --type parameter.
+   * returns {Object|undefined} e.g { mRNA: '-P', exon: '-e' }.
    */
   createMotif(motif, type) {
     const motifSplitted = motif.split(',');
@@ -68,8 +68,8 @@ class AnnotationProcessor {
     const lengthType = typeSplitted.length;
 
     const fullMotif = {};
-    if (!lengthMotif === lengthType) {
-      throw new Error('Bad index between motif and type.');
+    if (lengthMotif !== lengthType) {
+      throw new Error(`Bad index between motif : ${lengthMotif} and type ${lengthType}.`);
     }
     for (let i = 0; i < lengthMotif; i += 1) {
       fullMotif[typeSplitted[i].trim()] = motifSplitted[i].trim();
@@ -78,9 +78,14 @@ class AnnotationProcessor {
   }
 
   /**
-   *
+   * Return and concatenate motif/pattern if it exists on the identifier
+   * according to the type.
    * @function
-   * returns {Array}
+   * @param {String} ident - The identifier of the element (1st field of gff3).
+   * @param {String} type - The name of the element type (3rd field of gff3)
+   * (e.g: gene, mRNA, ...).
+   * returns {Object} - Returns the ID and the custom ID (mongoDB does not store
+   * undefined values)
    */
   getCustomID = (ident, type) => {
     if (typeof this.motif[type] !== 'undefined') {
@@ -115,7 +120,10 @@ class AnnotationProcessor {
       if (this.verbose) {
         logger.warn('The line does not have the gff3 ID attribute:');
       }
-      // const derivedId = `${attributes.Parent}_${type}_${start}_${end}`;
+      if (!Object.prototype.hasOwnProperty.call(attributesGff, 'Parent')) {
+        return attributesGff.Parent[0];
+      }
+      throw new Error('Impossible to give ID or Parent attribute.');
     }
     return attributesGff.ID[0];
   };
@@ -130,7 +138,6 @@ class AnnotationProcessor {
    * @returns {Array} The list of parent(s).
    */
   static getParents = (attributesGff) => {
-    logger.log('get parents ?');
     const attributesKeys = Object.keys(attributesGff);
     let parents = [];
     attributesKeys.forEach((key) => {
@@ -238,16 +245,16 @@ class AnnotationProcessor {
    * level), false if it is a sub feature.
    * @param {String} ID - The identifier.
    */
-  setIDtree = (isInit, ID) => {
+  setIdParents = (isInit, ID) => {
     if (isInit) {
       // Top level.
-      this.IDtree[ID] = -1;
+      this.IdParents[ID] = -1;
     } else {
       // subfeatures.
-      this.IDtree[ID] = this.indexIDtree;
+      this.IdParents[ID] = this.indexIdParent;
 
       // Increment the index.
-      this.indexIDtree += 1;
+      this.indexIdParent += 1;
     }
   };
 
@@ -258,12 +265,8 @@ class AnnotationProcessor {
    * @param {Array} parents - The list of parents.
    */
   addChildren = (IDsubfeature, parents) => {
-    logger.log('IDsubfeature :', IDsubfeature);
-    logger.log('parents :', parents);
-    logger.log('this.IDtree :', this.IDtree);
-    logger.log('this.IDtree[parents[0]] :', this.IDtree[parents[0]]);
     // Find the parent with an algorithm between O(1) and O(log(n)).
-    const indexFeature = this.IDtree[parents[0]];
+    const indexFeature = this.IdParents[parents[0]];
     if (indexFeature === -1 && typeof indexFeature !== 'undefined') {
       // top level.
       if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy, 'children')) {
@@ -282,7 +285,8 @@ class AnnotationProcessor {
   /**
    * Change type if called 'trancript' rather than mRNA.
    * @function
-   * @param {String} type - The type.
+   * @param {String} type - The name of the element type (3rd field of gff3)
+   * (e.g: gene, mRNA, ...).
    * @returns {String} Returns the type.
    */
   static formatTranscriptType(type) {
@@ -319,8 +323,8 @@ class AnnotationProcessor {
       const { attributes, phase, ...featuresWithoutAttributes } = features;
       this.geneLevelHierarchy = featuresWithoutAttributes;
 
-      // Init IDtree.
-      this.setIDtree(true, features.ID);
+      // Init IdParents.
+      this.setIdParents(true, features.ID);
 
       // Get raw sequence.
       this.findSequenceGenome(features.seqid, features.start, features.end);
@@ -333,7 +337,7 @@ class AnnotationProcessor {
         features.end,
       );
 
-      // Warning.
+      // Warning if sequence is empty.
       if (sequence === '' && this.verbose) {
         logger.warn(
           `Could not find sequence for gene ${features.ID} with seqid ${features.seqid} in the interval ${features.start} - ${features.end}.`
@@ -358,7 +362,7 @@ class AnnotationProcessor {
         this.geneLevelHierarchy.subfeatures = [];
       }
 
-      // Change type if called 'trancript' rather than mRNA
+      // Change type if called 'trancript' rather than mRNA.
       const typeAttr = this.constructor.formatTranscriptType(features.type);
 
       // Get all parents from the attributes field.
@@ -372,7 +376,7 @@ class AnnotationProcessor {
         features.end,
       );
 
-      // Warning.
+      // Warning if sequence is empty.
       if (sequence === '' && this.verbose) {
         logger.warn(
           `Could not find sequence for gene ${features.ID} with seqid ${features.seqid} in the interval ${features.start} - ${features.end}.`
@@ -385,8 +389,8 @@ class AnnotationProcessor {
         features.type,
       );
 
-      // Complete IDtree.
-      this.setIDtree(false, identifiant);
+      // Complete ID parents.
+      this.setIdParents(false, identifiant);
 
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
@@ -426,8 +430,7 @@ class AnnotationProcessor {
     try {
       GeneSchema.validate(geneWithoutId);
     } catch (err) {
-      logger.error(err);
-      return false;
+      throw new Error('There is something wrong with the gene collection schema');
     }
     return true;
   };
@@ -445,6 +448,12 @@ class AnnotationProcessor {
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
 
   /**
+   * When the cli -o or --overwrite parameter is activated it replaces the data
+   * (identifiers, parents and children) in depth without adding a custom_id
+   * field. This option is not recommended because it takes more time, it
+   * modifies in depth the data without having the possibility to find the
+   * history of the modifications. But the function is available when you know
+   * what you are doing.
    * @function
    */
   overwriteGene = () => {
@@ -504,7 +513,6 @@ class AnnotationProcessor {
         }
       }
     });
-    logger.log('finished ?');
   };
 
   /**
@@ -571,7 +579,6 @@ class AnnotationProcessor {
           // have to go through the object again and modify it. (Function not
           // recommended but available).
           if (this.overwrite) {
-            logger.log('coucou overwrite 1');
             this.overwriteGene();
           }
 
@@ -582,8 +589,8 @@ class AnnotationProcessor {
           this.geneLevelHierarchy = {};
           this.rawSequence = '';
           this.shiftSequence = 0;
-          this.IDtree = {};
-          this.indexIDtree = 0;
+          this.IdParents = {};
+          this.indexIdParent = 0;
 
           // Init new gene.
           this.initGeneHierarchy(features);
@@ -593,19 +600,18 @@ class AnnotationProcessor {
         this.addSubfeatures(features);
       }
     } else {
-      logger.warn(`${line} is not a correct gff line with 9 fields: ${line.length}`);
+      throw new Error(`${line} is not a correct gff line with 9 fields: ${line.length}`);
     }
   };
 
   /**
-   * Save the last gene annotation in the collection.
+   * Save the last gene annotation in the collection and execute all mongoDB
+   * operation bulks.
    * @function
    */
   lastAnnotation = () => {
     // Check if it's validated by mongoDB schema.
-    if (!this.isValidateGeneSchema()) {
-      logger.error('There is something wrong with the gene collection schema !');
-    }
+    this.isValidateGeneSchema();
 
     // If overwrite
     if (this.overwrite) {

@@ -85,7 +85,7 @@ const addAnnotation = new ValidatedMethod({
     }
 
     if (status === 'failed') {
-      return { result: job.doc.result };
+      return { jobStatus: 'failed' };
     }
 
     return { result: job.doc.result };

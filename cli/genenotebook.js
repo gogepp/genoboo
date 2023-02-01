@@ -61,7 +61,11 @@ class GeneNoteBookConnection {
             `Server method ${methodName} succesfully inserted ${nInserted} elements`
           );
         } else if (jobStatus) {
-          logger.log(`Job status: ${jobStatus}`);
+          if (jobStatus === 'failed') {
+            logger.error('The job failed, something went wrong! (Look at the logs for more details).');
+          } else {
+            logger.log(`Job status: ${jobStatus}`);
+          }
         } else {
           logger.error('Undefined server response');
         }

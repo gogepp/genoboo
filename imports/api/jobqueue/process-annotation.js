@@ -40,14 +40,14 @@ jobQueue.processJobs(
 
     if (motif !== '' && type !== '') {
       try {
-        logger.log('coucou 1');
         lineProcessor.createMotif(motif, type);
       } catch (err) {
-        job.fail();
+        logger.error(err);
+        job.fail({ err });
+        callback();
+        return;
       }
     }
-
-    logger.log('Le motif :', lineProcessor.motif);
 
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
 
@@ -57,29 +57,27 @@ jobQueue.processJobs(
       skipEmptyLines: true,
       comments: '#',
       fastMode: true,
-      error(err) {
-        logger.error(err);
-        job.fail({ err });
-        callback();
-      },
-      step(line) {
+      step(line, parser) {
         try {
           lineProcessor.parse(line.data);
         } catch (err) {
-          logger.log(err);
-          job.fail({ err });
-          callback();
+          logger.error(err);
+          // stop streaming.
+          parser.abort();
         }
       },
-      complete() {
-        try {
-          lineProcessor.lastAnnotation();
-          const nAnnotation = lineProcessor.getNumberAnnotation();
-          job.done({ nInserted: nAnnotation });
-        } catch (err) {
-          logger.log(err);
-          job.fail({ err });
-          callback();
+      complete(result) {
+        if (result.meta.aborted === true) {
+          job.fail();
+        } else {
+          try {
+            lineProcessor.lastAnnotation();
+            const nAnnotation = lineProcessor.getNumberAnnotation();
+            job.done({ nInserted: nAnnotation });
+          } catch (err) {
+            logger.error(err);
+            job.fail({ err });
+          }
         }
         callback();
       },
