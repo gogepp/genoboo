@@ -38,7 +38,7 @@ jobQueue.processJobs(
       verbose,
     );
 
-    if (motif !== '' && type !== '') {
+    if (motif !== undefined && type !== '') {
       try {
         lineProcessor.createMotif(motif, type);
       } catch (err) {

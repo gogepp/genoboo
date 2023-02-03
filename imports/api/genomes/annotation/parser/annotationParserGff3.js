@@ -79,7 +79,8 @@ class AnnotationProcessor {
 
   /**
    * Return and concatenate motif/pattern if it exists on the identifier
-   * according to the type.
+   * according to the type. By default mRNAs always have a custom_id to be
+   * referenced.
    * @function
    * @param {String} ident - The identifier of the element (1st field of gff3).
    * @param {String} type - The name of the element type (3rd field of gff3)
@@ -88,10 +89,13 @@ class AnnotationProcessor {
    * undefined values)
    */
   getCustomID = (ident, type) => {
-    if (typeof this.motif[type] !== 'undefined') {
+    if (typeof this.motif !== 'undefined' && typeof this.motif[type] !== 'undefined') {
       return { identifiant: ident, customID: ident.concat(this.motif[type]) };
+    } else if (type === 'mRNA') {
+      return { identifiant: ident, customID: ident.concat('-protein') };
+    } else {
+      return { identifiant: ident, customID: undefined };
     }
-    return { identifiant: ident, customID: undefined };
   };
 
   /**
@@ -386,7 +390,7 @@ class AnnotationProcessor {
 
       const { identifiant, customID } = this.getCustomID(
         features.ID,
-        features.type,
+        typeAttr,
       );
 
       // Complete ID parents.

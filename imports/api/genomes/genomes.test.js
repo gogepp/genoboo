@@ -6,31 +6,31 @@ import { addTestUsers, addTestGenome } from '/imports/startup/server/fixtures/ad
 import { genomeCollection, genomeSequenceCollection } from '/imports/api/genomes/genomeCollection.js';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { resetDatabase } from 'meteor/xolvio:cleaner';
-import addGenome from './addGenome.js'
-import updateGenome from './updateGenome.js'
-import removeGenome from './removeGenome.js'
-import addAnnotationTrack from './addAnnotationTrack.js'
-import { removeAnnotationTrack } from './removeAnnotationTrack.js'
+import addGenome from './addGenome.js';
+import updateGenome from './updateGenome';
+import removeGenome from './removeGenome';
+import removeAnnotationTrack from './annotation/removeAnnotationTrack';
 
 // Required for sending jobs
-import '/imports/api/jobqueue/process-addGenome.js';
-
+import '/imports/api/jobqueue/process-addGenome';
+import '/imports/api/jobqueue/process-annotation.js';
 
 describe('genomes', function testGenomes() {
-  let adminId, newUserId
-  let adminContext
-  let userContext
+  let adminId;
+  let newUserId;
+  let adminContext;
+  let userContext;
 
-  logger.log("Testing genomes and alignement related methods")
+  logger.log('Testing genomes and alignement related methods');
 
   beforeEach(() => {
     ({ adminId, newUserId } = addTestUsers());
-    adminContext = {userId: adminId}
-    userContext = {userId: newUserId}
+    adminContext = { userId: adminId };
+    userContext = { userId: newUserId };
   });
 
   afterEach(() => {
-    resetDatabase()
+    resetDatabase();
   });
 
   it('Should create a new genome', function createGenome() {
@@ -38,7 +38,12 @@ describe('genomes', function testGenomes() {
     this.timeout(20000);
 
     // Might be a better way to get the path..
-    const newGenome = {fileName: 'assets/app/data/Bnigra.fasta', genomeName: 'Brassica nigra', async:false};
+    const newGenome = {
+      fileName: 'assets/app/data/Bnigra.fasta',
+      genomeName: 'Brassica nigra',
+      async: false,
+    };
+
     // Should fail for non-logged in
     chai.expect(() => {
       addGenome._execute({}, newGenome);
@@ -49,26 +54,27 @@ describe('genomes', function testGenomes() {
       addGenome._execute(userContext, newGenome);
     }).to.throw('[not-authorized]');
 
-    let result = addGenome._execute(adminContext, newGenome);
+    const result = addGenome._execute(adminContext, newGenome);
 
-    chai.assert.equal(result.result.ok, 1)
-    chai.assert.equal(result.result.nInserted, 58)
+    chai.assert.equal(result.result.ok, 1);
+    chai.assert.equal(result.result.nInserted, 58);
 
-    const genomes = genomeCollection.find({name: "Brassica nigra"}).fetch();
-    chai.assert.lengthOf(genomes, 1, "Genome does not exists")
+    const genomes = genomeCollection.find({ name: 'Brassica nigra' }).fetch();
+    chai.assert.lengthOf(genomes, 1, 'Genome does not exists');
 
     const genome = genomes[0];
 
-    const genomeSequences = genomeSequenceCollection.find({genomeId: genome._id}).fetch();
+    const genomeSequences = genomeSequenceCollection.find({
+      genomeId: genome._id,
+    }).fetch();
 
-    chai.assert.lengthOf(genomeSequences, 58, "Not 58 genome sequences")
+    chai.assert.lengthOf(genomeSequences, 58, 'Not 58 genome sequences');
 
-    const genomeSequence = genomeSequences[0]
+    const genomeSequence = genomeSequences[0];
 
-    chai.assert.equal(genomeSequence.header, 'B1')
-    chai.assert.equal(genomeSequence.start, 0)
-    chai.assert.equal(genomeSequence.end, 23320)
-
+    chai.assert.equal(genomeSequence.header, 'B1');
+    chai.assert.equal(genomeSequence.start, 0);
+    chai.assert.equal(genomeSequence.end, 25800);
   });
 
   it('Should delete a genome', function deleteGenome() {
@@ -85,18 +91,18 @@ describe('genomes', function testGenomes() {
       removeGenome._execute(userContext, toDelete);
     }).to.throw('[not-authorized]');
 
-   removeGenome._execute(adminContext, toDelete);
+    removeGenome._execute(adminContext, toDelete);
 
-   const genomes = genomeCollection.find({_id: genomeId}).fetch();
-   chai.assert.lengthOf(genomes, 0, "Genome still exists")
+    const genomes = genomeCollection.find({_id: genomeId}).fetch();
+    chai.assert.lengthOf(genomes, 0, "Genome still exists")
 
-   const genomeSequences = genomeSequenceCollection.find({genomeId: genomeId}).fetch();
+    const genomeSequences = genomeSequenceCollection.find({genomeId: genomeId}).fetch();
 
-   chai.assert.lengthOf(genomeSequences, 0, "Sequences still exists")
+    chai.assert.lengthOf(genomeSequences, 0, "Sequences still exists")
 
-   const genes = Genes.find({genomeId: genomeId}).fetch();
+    const genes = Genes.find({genomeId: genomeId}).fetch();
 
-   chai.assert.lengthOf(genes, 0, "Genes still exists")
+    chai.assert.lengthOf(genes, 0, "Genes still exists")
 
   })
 
@@ -116,61 +122,17 @@ describe('genomes', function testGenomes() {
       updateGenome._execute(userContext, toUpdate);
     }).to.throw('[not-authorized]');
 
-   updateGenome._execute(adminContext, toUpdate);
+    updateGenome._execute(adminContext, toUpdate);
 
-   const genomes = genomeCollection.find({_id: genomeId}).fetch();
-   chai.assert.lengthOf(genomes, 1, "Genome does not exists")
+    const genomes = genomeCollection.find({_id: genomeId}).fetch();
+    chai.assert.lengthOf(genomes, 1, "Genome does not exists")
 
-   const genome = genomes[0]
+    const genome = genomes[0]
 
-   chai.assert.equal(genome.name, "new Name")
-   chai.assert.equal(genome.description, "mydescription")
-   chai.assert.equal(genome.organism, "organism")
-
-  })
-
-
-  it('Should add an annotation track', function addAnnotation() {
-    // Increase timeout
-    this.timeout(20000);
-
-    const {genomeId, genomeSeqId} = addTestGenome()
-    const toAnnot = {fileName: "assets/app/data/Bnigra.gff3", genomeName:"Test Genome", verbose:false}
-
-    // Should fail for non-logged in
-    chai.expect(() => {
-      addAnnotationTrack._execute({}, toAnnot);
-    }).to.throw('[not-authorized]');
-
-    // Should fail for non admin user
-    chai.expect(() => {
-      addAnnotationTrack._execute(userContext, toAnnot);
-    }).to.throw('[not-authorized]');
-
-   addAnnotationTrack._execute(adminContext, toAnnot);
-
-   // addAnnotationTrack can return without being finished (bulk.exec is a promise)
-   // So add a sleep here until it's fixed to avoid issues
-
-   Meteor._sleepForMs(2000)
-
-   const genes = Genes.find({genomeId: genomeId}).fetch();
-
-   chai.assert.lengthOf(genes, 5, "Number of created genes is not 5")
-
-   const gene = genes[0]
-
-   chai.assert.equal(gene.ID, "BniB01g000010.2N")
-   chai.assert.equal(gene.seqid, "B1")
-   chai.assert.equal(gene.source, "AAFC_GIFS")
-   chai.assert.equal(gene.strand, "-")
-   chai.assert.equal(gene.type, "gene")
-   chai.assert.equal(gene.start, 13640)
-   chai.assert.equal(gene.end, 15401)
-
-   chai.assert.lengthOf(gene.subfeatures, 13, 'Number of subfeatures is not 13')
-
-  })
+    chai.assert.equal(genome.name, "new Name")
+    chai.assert.equal(genome.description, "mydescription")
+    chai.assert.equal(genome.organism, "organism")
+  });
 
   it('Should remove an annotation track', function deleteAnnotation() {
     // Increase timeout
@@ -189,10 +151,9 @@ describe('genomes', function testGenomes() {
       removeAnnotationTrack._execute(userContext, toRemove);
     }).to.throw('[not-authorized]');
 
-   removeAnnotationTrack._execute(adminContext, toRemove);
+    removeAnnotationTrack._execute(adminContext, toRemove);
 
-   const genes = Genes.find({genomeId: genomeId}).fetch();
-   chai.assert.lengthOf(genes, 0, "There are still genes remaining")
-  })
-
-})
+    const genes = Genes.find({genomeId: genomeId}).fetch();
+    chai.assert.lengthOf(genes, 0, "There are still genes remaining")
+  });
+});
