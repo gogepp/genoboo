@@ -17,10 +17,14 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessor {
-  constructor(filename, genomeID, overwrite = false, verbose = true) {
+  constructor(filename, genomeID, re_protein=undefined, re_protein_capture=undefined, overwrite = false, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
+
+    // Regex options (only for mRNA).
+    this.re_protein = re_protein;
+    this.re_protein_capture = re_protein_capture;
 
     // Optionally add a pattern to a custom_id in the gene collection. (e.g:
     // with the motif -P : BniB01g000050.2N.1 -> BniB01g000050.2N.1-P)
@@ -92,6 +96,14 @@ class AnnotationProcessor {
     if (typeof this.motif !== 'undefined' && typeof this.motif[type] !== 'undefined') {
       return { identifiant: ident, customID: ident.concat(this.motif[type]) };
     } else if (type === 'mRNA') {
+      if (
+        typeof this.re_protein !== 'undefined'
+          && typeof this.re_protein_capture !== 'undefined'
+          && !!ident.match(this.re_protein_capture)
+      ) {
+        const result = ident.replace(new RegExp(this.re_protein_capture), this.re_protein);
+        return { identifiant: ident, customID: result };
+      }
       return { identifiant: ident, customID: ident.concat('-protein') };
     } else {
       return { identifiant: ident, customID: undefined };

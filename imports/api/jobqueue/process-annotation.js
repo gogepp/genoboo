@@ -15,7 +15,9 @@ jobQueue.processJobs(
       fileName,
       genomeName,
       genomeId,
-      motif,
+      suffix,
+      re_protein,
+      re_protein_capture,
       keep,
       overwrite,
       type,
@@ -25,7 +27,9 @@ jobQueue.processJobs(
 
     logger.log('file :', fileName);
     logger.log('name :', genomeName);
-    logger.log('motif :', motif);
+    logger.log('suffix :', suffix);
+    logger.log('re_protein :', re_protein);
+    logger.log('re_protein_capture', re_protein_capture);
     logger.log('type :', type);
     logger.log('keep :', keep);
     logger.log('overwrite :', overwrite);
@@ -34,19 +38,28 @@ jobQueue.processJobs(
     const lineProcessor = new AnnotationProcessor(
       fileName,
       genomeId,
+      re_protein,
+      re_protein_capture,
       overwrite,
       verbose,
     );
 
-    if (motif !== undefined && type !== '') {
+    if (suffix !== undefined && type !== '') {
       try {
-        lineProcessor.createMotif(motif, type);
+        lineProcessor.createMotif(suffix, type);
       } catch (err) {
         logger.error(err);
         job.fail({ err });
         callback();
         return;
       }
+    }
+
+    if (!fs.existsSync(fileName)) {
+      logger.error('The file cannot be found');
+      job.fail({ err: 'The file cannot be found !!' });
+      callback();
+      return;
     }
 
     const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });

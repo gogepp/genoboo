@@ -15,7 +15,15 @@ const addAnnotation = new ValidatedMethod({
     genomeName: {
       type: String,
     },
-    motif: {
+    suffix: {
+      type: String,
+      optional: true,
+    },
+    re_protein: {
+      type: String,
+      optional: true,
+    },
+    re_protein_capture: {
       type: String,
       optional: true,
     },
@@ -42,7 +50,7 @@ const addAnnotation = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, genomeName, motif, type, keep, overwrite, verbose,
+    fileName, genomeName, suffix, re_protein, re_protein_capture, type, keep, overwrite, verbose,
   }) {
     if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
       throw new Meteor.Error('not-authorized');
@@ -65,7 +73,9 @@ const addAnnotation = new ValidatedMethod({
         fileName,
         genomeName,
         genomeId,
-        motif,
+        suffix,
+        re_protein,
+        re_protein_capture,
         keep,
         overwrite,
         type,

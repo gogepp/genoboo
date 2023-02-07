@@ -300,8 +300,16 @@ addAnnotation
     'Reference genome name to which the annotation should be added.',
   )
   .option(
-    '-m, --motif <pattern>',
-    'The motif / pattern added to an identifier (gene, mRNA, exon ...) e.g: "MMUCEDO_000005-T1" with the motif "-protein": "MMUCEDO_000005-T1-protein".',
+    '-s, --suffix <pattern>',
+    'The suffix added to an identifier (gene, mRNA, exon ...) e.g: "MMUCEDO_000005-T1" with the suffix "-protein": "MMUCEDO_000005-T1-protein".',
+  )
+  .option(
+    '-r, --re_protein <pattern>',
+    'Replacement string for the protein name using capturing groups defined by --re_protein_capture.',
+  )
+  .option(
+    '-m, --re_protein_capture <pattern/regex>',
+    'Regular expression to capture groups in mRNA name to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$").',
   )
   .option(
     '-t, --type <type-annotation>',
@@ -334,7 +342,9 @@ addAnnotation
         password,
         port = 3000,
         name,
-        motif,
+        suffix,
+        re_protein,
+        re_protein_capture,
         type,
         keep,
         overwrite,
@@ -350,7 +360,7 @@ addAnnotation
 
       // Assign the correct boolean according to the parameters -k, --keep and -o, --overwrite.
       let keepParam = keep;
-      if (motif) {
+      if (suffix) {
         if (typeof keepParam === 'undefined') {
           if (overwrite) {
             keepParam = false;
@@ -367,19 +377,46 @@ addAnnotation
         }
       } else {
         if (typeof keepParam !== 'undefined' || overwrite !== false) {
-          console.error('Unknown motif / pattern.');
+          console.error('Unknown suffix / pattern.');
           addAnnotation.help();
         } else {
           keepParam = false;
         }
       }
 
+      console.log('name :', name);
+      console.log('re_protein :', re_protein);
+      console.log('re_protein_capture :', re_protein_capture);
+      let correctProteinCapture = undefined;
+      if (typeof re_protein !== 'undefined' && typeof re_protein_capture !== 'undefined') {
+        // Test if re_protein_capture is regex.
+        let isValid = true;
+        try {
+          RegExp(re_protein_capture);
+        } catch (e) {
+          isValid = false;
+        }
+
+        if (!isValid) {
+          console.error('Not a valid regular expression?');
+          addAnnotation.help();
+        } else {
+          correctProteinCapture = re_protein_capture;
+        }
+      }
+
+      console.log('re_protein_capture :', correctProteinCapture);
+      console.log('type test :', typeof /^(.*)$/);
+      console.log('type(re_protein_capture) :', typeof(correctProteinCapture));
+
       new GeneNoteBookConnection({ username, password, port }).call(
         'addAnnotation',
         {
           fileName,
           genomeName: name,
-          motif,
+          suffix,
+          re_protein,
+          re_protein_capture: correctProteinCapture,
           type,
           keep: keepParam,
           overwrite,
@@ -395,17 +432,21 @@ Basic usage:
 or
     genenotebook add annotation --name 'mucedo' annot.gff3 -u admin -p admin
 
-Use of motif/pattern:
-    genenotebook add annotation -n 'mucedo' --motif '-protein' annot.gff3 -u admin -p admin
+Use regex/pattern (only for protein):
+
+    genenotebook add annotation -n 'mucedo' --re_protein '$1-P' --re_protein_capture '^(.*)$' annot.gff3 -u admin -p admin
+
+Use of suffix/pattern:
+    genenotebook add annotation -n 'mucedo' --suffix '-protein' annot.gff3 -u admin -p admin
 
     # Specifying the type
-    genenotebook add annotation -n 'mucedo' --motif '-protein' --type 'mRNA' annot.gff3 -u admin -p admin
+    genenotebook add annotation -n 'mucedo' --suffix '-protein' --type 'mRNA' annot.gff3 -u admin -p admin
 
-    # Combine motifs/patterns with multiple types
-    genenotebook add annotation -n 'mucedo' --motif '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+    # Combine suffixs/patterns with multiple types
+    genenotebook add annotation -n 'mucedo' --suffix '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
 
-    # Overwrite the original ID field with the new motif/pattern.
-    genenotebook add annotation -n 'mucedo' --overwrite --motif '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+    # Overwrite the original ID field with the new suffix/pattern.
+    genenotebook add annotation -n 'mucedo' --overwrite --suffix '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
     `);
   })
   .exitOverride(customExitOverride(addAnnotation));
