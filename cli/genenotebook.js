@@ -384,9 +384,6 @@ addAnnotation
         }
       }
 
-      console.log('name :', name);
-      console.log('re_protein :', re_protein);
-      console.log('re_protein_capture :', re_protein_capture);
       let correctProteinCapture = undefined;
       if (typeof re_protein !== 'undefined' && typeof re_protein_capture !== 'undefined') {
         // Test if re_protein_capture is regex.
@@ -403,11 +400,12 @@ addAnnotation
         } else {
           correctProteinCapture = re_protein_capture;
         }
-      }
 
-      console.log('re_protein_capture :', correctProteinCapture);
-      console.log('type test :', typeof /^(.*)$/);
-      console.log('type(re_protein_capture) :', typeof(correctProteinCapture));
+        if (typeof suffix !== 'undefined' || type !== 'mRNA') {
+          console.error('The use of regular expressions for proteins should not be used with the -s, --suffix or -t, --type arguments.');
+          addAnnotation.help();
+        }
+      }
 
       new GeneNoteBookConnection({ username, password, port }).call(
         'addAnnotation',
@@ -432,7 +430,7 @@ Basic usage:
 or
     genenotebook add annotation --name 'mucedo' annot.gff3 -u admin -p admin
 
-Use regex/pattern (only for protein):
+Use regex/pattern (only for proteins):
 
     genenotebook add annotation -n 'mucedo' --re_protein '$1-P' --re_protein_capture '^(.*)$' annot.gff3 -u admin -p admin
 
