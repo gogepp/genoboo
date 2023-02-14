@@ -395,7 +395,7 @@ addAnnotation
         }
 
         if (!isValid) {
-          console.error('Not a valid regular expression?');
+          console.error('Not a valid regular expression ?');
           addAnnotation.help();
         } else {
           correctProteinCapture = re_protein_capture;
