@@ -13,7 +13,6 @@ import removeAnnotationTrack from './annotation/removeAnnotationTrack';
 
 // Required for sending jobs
 import '/imports/api/jobqueue/process-addGenome';
-import '/imports/api/jobqueue/process-annotation.js';
 
 describe('genomes', function testGenomes() {
   let adminId;
