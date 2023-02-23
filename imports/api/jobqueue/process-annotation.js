@@ -25,15 +25,17 @@ jobQueue.processJobs(
     } = job.data;
     logger.log(`Adding annotation file "${fileName}" to genome "${genomeName}"`);
 
-    logger.log('file :', fileName);
-    logger.log('name :', genomeName);
-    logger.log('suffix :', suffix);
-    logger.log('re_protein :', re_protein);
-    logger.log('re_protein_capture', re_protein_capture);
-    logger.log('type :', type);
-    logger.log('keep :', keep);
-    logger.log('overwrite :', overwrite);
-    logger.log('verbose :', verbose);
+    if(verbose){
+      logger.log('file :', fileName);
+      logger.log('name :', genomeName);
+      logger.log('suffix :', suffix);
+      logger.log('re_protein :', re_protein);
+      logger.log('re_protein_capture', re_protein_capture);
+      logger.log('type :', type);
+      logger.log('keep :', keep);
+      logger.log('overwrite :', overwrite);
+      logger.log('verbose :', verbose);
+    }
 
     const lineProcessor = new AnnotationProcessor(
       fileName,

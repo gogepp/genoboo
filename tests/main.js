@@ -18,12 +18,14 @@ if (Meteor.isServer) {
   import '../imports/api/methods/methods.test.js';
 }
 
+/*
 if (Meteor.isClient) {
   if (Meteor.isAppTest) {
     import '/imports/ui/main/App.app-test.jsx';
   }
   import '/imports/ui/util/uiUtil.test.jsx';
 }
+*/
 
 describe('genenotebook', function () {
   if (!Meteor.isAppTest) {

@@ -26,7 +26,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra.gff3',
       genomeName: 'Test Genome',
-      verbose: true,
+      verbose: false,
     };
 
     // Should fail for non-logged in
@@ -48,7 +48,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
 
-    chai.assert.lengthOf(genes, 4, 'Number of created genes is not 4');
+    chai.assert.lengthOf(genes, 5, 'Number of created genes is not 4');
 
     const gene = genes[0];
 

@@ -16,7 +16,7 @@ describe('util', function testUtils() {
           md5: ["b2a7416cb92565c004becb7510f46840"]
       }
       chai.assert.deepEqual(parsedVal, expected)
-  });
+    });
 
     it('Should print the reverse complement of a sequence', function testReverseComplement() {
       const testVal = "AAATTTGC"
@@ -43,6 +43,7 @@ describe('util', function testUtils() {
           const seq = getGeneSequences(gene)
           const expected =  [{
               ID: "BniB01g000010.2N.1",
+              custom_id: "BniB01g000010.2N.1-P",
               nucl: "AGTTTAGAATAC",
               prot: "SLEY"
           }]

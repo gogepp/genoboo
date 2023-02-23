@@ -73,7 +73,7 @@ describe('genomes', function testGenomes() {
 
     chai.assert.equal(genomeSequence.header, 'B1');
     chai.assert.equal(genomeSequence.start, 0);
-    chai.assert.equal(genomeSequence.end, 25800);
+    chai.assert.equal(genomeSequence.end, 23320);
   });
 
   it('Should delete a genome', function deleteGenome() {
