@@ -17,21 +17,17 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessor {
-  constructor(filename, genomeID, re_protein=undefined, re_protein_capture=undefined, overwrite = false, verbose = true) {
+  constructor(filename, genomeID, re_protein=undefined, re_protein_capture="^(.*?)$", attr_protein=undefined, overwrite = false, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
 
-    // Regex options (only for mRNA).
+    // Protein ID stuff
+    // Regex options .
     this.re_protein = re_protein;
     this.re_protein_capture = re_protein_capture;
-
-    // Optionally add a pattern to a custom_id in the gene collection. (e.g:
-    // with the motif -P : BniB01g000050.2N.1 -> BniB01g000050.2N.1-P)
-    // this.type = type;
-    this.motif = undefined;
-    this.overwrite = overwrite;
-    this.customID = undefined;
+    // Optional GFF attribute
+    this.attr_protein = attr_protein;
 
     // Number of insertion.
     this.nAnnotation = 0;
@@ -56,59 +52,39 @@ class AnnotationProcessor {
   }
 
   /**
-   * Create an object for each motif/pattern and type.
-   * @function
-   * @param {String} motif - The motif(s)/pattern(s) indicated by the cli -m,
-   * --pattern parameter.
-   * @param {String} type - The type(s) indicated by the cli -t,
-   * --type parameter.
-   * returns {Object|undefined} e.g { mRNA: '-P', exon: '-e' }.
-   */
-  createMotif(motif, type) {
-    const motifSplitted = motif.split(',');
-    const lengthMotif = motifSplitted.length;
-
-    const typeSplitted = type.split(',');
-    const lengthType = typeSplitted.length;
-
-    const fullMotif = {};
-    if (lengthMotif !== lengthType) {
-      throw new Error(`Bad index between motif : ${lengthMotif} and type ${lengthType}.`);
-    }
-    for (let i = 0; i < lengthMotif; i += 1) {
-      fullMotif[typeSplitted[i].trim()] = motifSplitted[i].trim();
-    }
-    this.motif = fullMotif;
-  }
-
-  /**
-   * Return and concatenate motif/pattern if it exists on the identifier
-   * according to the type. By default mRNAs always have a custom_id to be
-   * referenced.
+   * Get the protein ID from the element ID + user parameters
    * @function
    * @param {String} ident - The identifier of the element (1st field of gff3).
-   * @param {String} type - The name of the element type (3rd field of gff3)
-   * (e.g: gene, mRNA, ...).
-   * returns {Object} - Returns the ID and the custom ID (mongoDB does not store
+   * @param {Object} filteredAttr - Object of element attributes
+   * returns {Object} - Returns the ID and the protein ID (mongoDB does not store
    * undefined values)
    */
-  getCustomID = (ident, type) => {
-    if (typeof this.motif !== 'undefined' && typeof this.motif[type] !== 'undefined') {
-      return { identifiant: ident, customID: ident.concat(this.motif[type]) };
-    } else if (type === 'mRNA') {
-      if (
-        typeof this.re_protein !== 'undefined'
-          && typeof this.re_protein_capture !== 'undefined'
-          && !!ident.match(this.re_protein_capture)
-      ) {
-        const result = ident.replace(new RegExp(this.re_protein_capture), this.re_protein);
-        return { identifiant: ident, customID: result };
-      }
-      return { identifiant: ident, customID: ident.concat('-protein') };
-    } else {
-      return { identifiant: ident, customID: undefined };
+  getProteinID = (ident, filteredAttr) => {
+    if (
+      typeof this.re_protein !== 'undefined'
+        && typeof this.re_protein_capture !== 'undefined'
+        && !!ident.match(this.re_protein_capture)
+    ) {
+      const result = ident.replace(new RegExp(this.re_protein_capture), this.re_protein);
+      return { identifiant: ident, customID: result };
     }
+    if (typeof this.attr_protein !== 'undefined' && typeof filteredAttr[this.attr_protein] !== 'undefined'){
+        return { identifiant: ident, customID: filteredAttr[this.attr_protein] };
+    }
+
+    return { identifiant: ident, customID: ident.concat('-protein') };
   };
+
+  /**
+   * Return the value of the "attr_protein" of the CDS attribute
+   * @function
+   * @param {Object} filteredAttr - Object of element attributes
+   * returns {String} - Returns the ID if it exists
+   */
+  getCDSProtein = (filteredAttr) => {
+    return filteredAttr[this.attr_protein]
+  };
+
 
   /**
    * Function that returns the total number of insertions or updates in the
@@ -280,7 +256,7 @@ class AnnotationProcessor {
    * @param {String} IDsubfeature -The identifier.
    * @param {Array} parents - The list of parents.
    */
-  addChildren = (IDsubfeature, parents) => {
+  addChildren = (IDsubfeature, parents, overrideId=undefined) => {
     // Find the parent with an algorithm between O(1) and O(log(n)).
     const indexFeature = this.IdParents[parents[0]];
     if (indexFeature === -1 && typeof indexFeature !== 'undefined') {
@@ -291,6 +267,11 @@ class AnnotationProcessor {
       this.geneLevelHierarchy.children.push(IDsubfeature);
     } else {
       // subfeatures
+      //Override protein ID from the CDS attribute if relevant
+      if (typeof overrideId !== 'undefined' && this.geneLevelHierarchy.subfeatures[indexFeature].type === 'mRNA'){
+          this.geneLevelHierarchy.subfeatures[indexFeature].protein_id = overrideId
+      }
+
       if (!Object.prototype.hasOwnProperty.call(this.geneLevelHierarchy.subfeatures[indexFeature], 'children')) {
         this.geneLevelHierarchy.subfeatures[indexFeature].children = [];
       }
@@ -299,7 +280,7 @@ class AnnotationProcessor {
   };
 
   /**
-   * Change type if called 'trancript' rather than mRNA.
+   * Change type if called 'transcript' rather than mRNA.
    * @function
    * @param {String} type - The name of the element type (3rd field of gff3)
    * (e.g: gene, mRNA, ...).
@@ -400,10 +381,8 @@ class AnnotationProcessor {
         );
       }
 
-      const { identifiant, customID } = this.getCustomID(
-        features.ID,
-        typeAttr,
-      );
+      const identifiant = features.ID
+      let proteinID
 
       // Complete ID parents.
       this.setIdParents(false, identifiant);
@@ -411,13 +390,27 @@ class AnnotationProcessor {
       // Filter attributes (exclude ID, parents keys).
       const filteredAttr = this.constructor.filterAttributes(features.attributes);
 
+      if (typeAttr === 'mRNA'){
+        proteinID = this.getProteinID(
+          features.ID,
+          filteredAttr
+        );
+      }
+
+      let overrideProteinID
+      if (typeAttr === "CDS" && typeof this.attr_protein !== 'undefined'){
+          overrideProteinID = this.getCDSProtein(
+              filteredAttr
+          )
+      }
+
       // Get allowed phase with the correct type.
       const phaseAttr = this.constructor.getAllowedPhase(features.phase);
 
       // Add subfeatures.
       this.geneLevelHierarchy.subfeatures.push({
         ID: identifiant,
-        custom_id: customID,
+        protein_id: proteinID,
         type: typeAttr,
         start: features.start,
         end: features.end,
@@ -429,7 +422,7 @@ class AnnotationProcessor {
       });
 
       // Add children.
-      this.addChildren(features.ID, parentsAttributes);
+      this.addChildren(features.ID, parentsAttributes, overrideProteinID);
     }
   };
 
@@ -462,74 +455,6 @@ class AnnotationProcessor {
    * @function
    */
   addSubfeatures = (features) => this.completeGeneHierarchy(true, features);
-
-  /**
-   * When the cli -o or --overwrite parameter is activated it replaces the data
-   * (identifiers, parents and children) in depth without adding a custom_id
-   * field. This option is not recommended because it takes more time, it
-   * modifies in depth the data without having the possibility to find the
-   * history of the modifications. But the function is available when you know
-   * what you are doing.
-   * @function
-   */
-  overwriteGene = () => {
-    // Store original ID and custom ID.
-    const overwriteID = {};
-
-    // Change identifiant, parents with the custom_id.
-    for (let i = 0; i < this.geneLevelHierarchy.subfeatures.length; i += 1) {
-      if (typeof this.geneLevelHierarchy.subfeatures[i].custom_id !== 'undefined') {
-        const identifiant = this.geneLevelHierarchy.subfeatures[i].ID;
-        const customID = this.geneLevelHierarchy.subfeatures[i].custom_id;
-
-        // Store old modification.
-        overwriteID[identifiant] = customID;
-
-        // Change identifant by the motif.
-        this.geneLevelHierarchy.subfeatures[i].ID = customID;
-
-        // Remove custom ID (give a undefined value not performed by mongodb).
-        this.geneLevelHierarchy.subfeatures[i].custom_id = undefined;
-      }
-      // Change parents by the motif.
-      if (typeof this.geneLevelHierarchy.subfeatures[i].parents !== 'undefined') {
-        const parentId = this.geneLevelHierarchy.subfeatures[i].parents[0];
-        if (typeof overwriteID[parentId] !== 'undefined') {
-          const newParentID = overwriteID[parentId];
-          this.geneLevelHierarchy.subfeatures[i].parents = [newParentID];
-        }
-      }
-    }
-
-    // Change children too.
-    const obj = Object.keys(this.geneLevelHierarchy);
-    obj.forEach((key) => {
-      // Top level (gene).
-      if (key === 'children') {
-        for (let y = 0; y < this.geneLevelHierarchy.children.length; y += 1) {
-          const childrenID = this.geneLevelHierarchy.children[y];
-          if (typeof overwriteID[childrenID] !== 'undefined') {
-            const newChildrenID = overwriteID[childrenID];
-            this.geneLevelHierarchy.children[y] = newChildrenID;
-          }
-        }
-      }
-      // subfeatures
-      if (key === 'subfeatures') {
-        for (let i = 0; i < this.geneLevelHierarchy.subfeatures.length; i += 1) {
-          if (typeof this.geneLevelHierarchy.subfeatures[i].children !== 'undefined') {
-            for (let y = 0; y < this.geneLevelHierarchy.subfeatures[i].children.length; y += 1) {
-              const childrenSubID = this.geneLevelHierarchy.subfeatures[i].children[y];
-              if (typeof overwriteID[childrenSubID] !== 'undefined') {
-                const newChildrenSubID = overwriteID[childrenSubID];
-                this.geneLevelHierarchy.subfeatures[i].children[y] = newChildrenSubID;
-              }
-            }
-          }
-        }
-      }
-    });
-  };
 
   /**
    * Read line by line the annotation file in gff3 format.
@@ -590,14 +515,6 @@ class AnnotationProcessor {
           // Increment.
           this.nAnnotation += 1;
 
-          // If the overwrite parameter is true change in depth the data
-          // (identifiers, parents and children). Takes more time because you
-          // have to go through the object again and modify it. (Function not
-          // recommended but available).
-          if (this.overwrite) {
-            this.overwriteGene();
-          }
-
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy);
 
@@ -628,11 +545,6 @@ class AnnotationProcessor {
   lastAnnotation = () => {
     // Check if it's validated by mongoDB schema.
     this.isValidateGeneSchema();
-
-    // If overwrite
-    if (this.overwrite) {
-      this.overwriteGene();
-    }
 
     // Increment.
     this.nAnnotation += 1;

@@ -15,12 +15,9 @@ jobQueue.processJobs(
       fileName,
       genomeName,
       genomeId,
-      suffix,
       re_protein,
       re_protein_capture,
-      keep,
-      overwrite,
-      type,
+      attr_protein,
       verbose,
     } = job.data;
     logger.log(`Adding annotation file "${fileName}" to genome "${genomeName}"`);
@@ -28,12 +25,9 @@ jobQueue.processJobs(
     if(verbose){
       logger.log('file :', fileName);
       logger.log('name :', genomeName);
-      logger.log('suffix :', suffix);
       logger.log('re_protein :', re_protein);
       logger.log('re_protein_capture', re_protein_capture);
-      logger.log('type :', type);
-      logger.log('keep :', keep);
-      logger.log('overwrite :', overwrite);
+      logger.log('attr_protein', attr_protein);
       logger.log('verbose :', verbose);
     }
 
@@ -42,20 +36,9 @@ jobQueue.processJobs(
       genomeId,
       re_protein,
       re_protein_capture,
-      overwrite,
+      attr_protein,
       verbose,
     );
-
-    if (suffix !== undefined && type !== '') {
-      try {
-        lineProcessor.createMotif(suffix, type);
-      } catch (err) {
-        logger.error(err);
-        job.fail({ err });
-        callback();
-        return;
-      }
-    }
 
     if (!fs.existsSync(fileName)) {
       logger.error('The file cannot be found');

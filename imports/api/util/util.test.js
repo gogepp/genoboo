@@ -43,7 +43,7 @@ describe('util', function testUtils() {
           const seq = getGeneSequences(gene)
           const expected =  [{
               ID: "BniB01g000010.2N.1",
-              custom_id: "BniB01g000010.2N.1-P",
+              protein_id: "BniB01g000010.2N.1-P",
               nucl: "AGTTTAGAATAC",
               prot: "SLEY"
           }]

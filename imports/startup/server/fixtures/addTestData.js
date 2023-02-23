@@ -75,7 +75,7 @@ export function addTestGenome(annot=false) {
   let geneId
 
   if (annot) {
-    const subfeature = {ID: "BniB01g000010.2N.1", phase: '.', custom_id: "BniB01g000010.2N.1-P", type: 'mRNA', parents: ['BniB01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
+    const subfeature = {ID: "BniB01g000010.2N.1", phase: '.', protein_id: "BniB01g000010.2N.1-P", type: 'mRNA', parents: ['BniB01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
     const cds = {ID: "BniB01g000010.2N.1.cds1", phase: '.', type: 'CDS', parents: ['BniB01g000010.2N.1'], seq: 'GTATTCTAAACT', start:13641, end:13653, score: '.', attributes: {}}
 
     Genes.insert({

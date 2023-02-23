@@ -133,8 +133,8 @@ export default function SeqContainer({ gene, maxLength = 1200 }) {
   const sequences = getGeneSequences(gene);
   const sequence = find(sequences, { ID: selectedTranscript });
 
-  // Add custom_id if exists.
-  const headers = [sequence.ID, sequence.custom_id];
+  // Add protein_id if exists.
+  const headers = [sequence.ID, sequence.protein_id];
 
   return (
     <div id="sequence">

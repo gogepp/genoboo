@@ -48,7 +48,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
 
-    chai.assert.lengthOf(genes, 5, 'Number of created genes is not 4');
+    chai.assert.lengthOf(genes, 5, 'Number of created genes is not 5');
 
     const gene = genes[0];
 

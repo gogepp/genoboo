@@ -77,10 +77,10 @@ const SubfeatureSchema = new SimpleSchema(
       // denyUpdate: true,
       label: 'Unique subfeature ID',
     },
-    custom_id: {
+    protein_id: {
       type: String,
       optional: true,
-      label: 'Custom and optional ID',
+      label: 'Linked protein ID for mRNA',
     },
     phase: {
       type: SimpleSchema.oneOf(SimpleSchema.Integer, String),
@@ -177,7 +177,7 @@ const GeneSchema = new SimpleSchema(
     type: {
       type: String,
       allowedValues: ['gene'],
-      label: 
+      label:
         'Type of the top level annotation (currently only "gene" is allowed)',
     },
     strand: {

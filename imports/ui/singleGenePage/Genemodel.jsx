@@ -66,8 +66,8 @@ function XAxis({ scale, numTicks, transform, seqid }) {
   );
 }
 
-function IntervalInfo({ ID, custom_id, type, start, end, phase, attributes, seq }) {
-  const customHeader = [ID, custom_id];
+function IntervalInfo({ ID, protein_id, type, start, end, phase, attributes, seq }) {
+  const customHeader = [ID, protein_id];
 
   return (
     <div className="panel-body">
@@ -111,7 +111,7 @@ function IntervalInfo({ ID, custom_id, type, start, end, phase, attributes, seq 
 
 function Exon({
   genomeId,
-  custom_id,
+  protein_id,
   start,
   end,
   type,
@@ -153,7 +153,7 @@ function Exon({
         <IntervalInfo
           {...{
             ID,
-            custom_id,
+            protein_id,
             type,
             start,
             end,
@@ -171,9 +171,9 @@ function Transcript({ transcript, customHeader, exons, scale, strand, genomeId, 
   // put CDS exons last so they get drawn last and are placed on top
   exons.sort((exon1) => (exon1.type === 'CDS' ? 1 : -1));
 
-  const { start, end, ID, custom_id, attributes, seq, type } = transcript;
+  const { start, end, ID, protein_id, attributes, seq, type } = transcript;
 
-  const targetId = (typeof custom_id !== 'undefined'? custom_id : ID.replace(/\.|:/g, '_'));
+  const targetId = (typeof protein_id !== 'undefined'? protein_id : ID.replace(/\.|:/g, '_'));
 
   // flip start and end coordinates based on strand so that marker end is always drawn correctly
   const x1 = scale(strand === '+' ? start : end);
@@ -212,7 +212,7 @@ function Transcript({ transcript, customHeader, exons, scale, strand, genomeId, 
           <IntervalInfo
             {...{
               ID,
-              custom_id,
+              protein_id,
               type,
               start,
               end,
@@ -230,7 +230,7 @@ function Transcript({ transcript, customHeader, exons, scale, strand, genomeId, 
             genomeId,
             geneId,
             scale,
-            custom_id,
+            protein_id,
             ...exon,
           }}
         />
@@ -246,7 +246,7 @@ export function GenemodelGroup({ gene, transcripts, scale }) {
         const exons = gene.subfeatures.filter(
           ({ parents }) => parents.indexOf(transcript.ID) >= 0
         );
-        const { ID: geneId, custom_id: customHeader, strand, genomeId } = gene;
+        const { ID: geneId, protein_id: customHeader, strand, genomeId } = gene;
         return (
           <g
             key={transcript.ID}
