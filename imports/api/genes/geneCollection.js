@@ -77,6 +77,11 @@ const SubfeatureSchema = new SimpleSchema(
       // denyUpdate: true,
       label: 'Unique subfeature ID',
     },
+    custom_id: {
+      type: String,
+      optional: true,
+      label: 'Custom and optional ID',
+    },
     phase: {
       type: SimpleSchema.oneOf(SimpleSchema.Integer, String),
       allowedValues: [0, 1, 2, '.'],

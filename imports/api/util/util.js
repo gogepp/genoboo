@@ -189,6 +189,7 @@ const getGeneSequences = (gene) => {
       ID: transcript.ID,
       nucl: codingSeq,
       prot: codingPep,
+      custom_id: transcript.custom_id,
     };
   });
   return sequences;
