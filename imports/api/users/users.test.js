@@ -93,6 +93,7 @@ describe('users', function testUsers() {
       role: 'registered'
     }
 
+    // Check permission for non-logged
     chai.expect(() => {
       updateUserInfo._execute({}, newUserData);
     }).to.throw('[not-authorized]');
@@ -109,6 +110,7 @@ describe('users', function testUsers() {
 
     // Assert role was not changed by user
     chai.assert.isFalse(Roles.userIsInRole(newUserId, 'admin'))
+
     // Assert role was changed by admin
     updateUserInfo._execute(adminContext, newUserData);
     chai.assert.isTrue(Roles.userIsInRole(newUserId, 'admin'))
@@ -152,4 +154,3 @@ describe('users', function testUsers() {
     chai.assert.equal(username, "baseUser")
   });
 });
-

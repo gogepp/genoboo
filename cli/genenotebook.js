@@ -61,7 +61,11 @@ class GeneNoteBookConnection {
             `Server method ${methodName} succesfully inserted ${nInserted} elements`
           );
         } else if (jobStatus) {
-          logger.log(`Job status: ${jobStatus}`);
+          if (jobStatus === 'failed') {
+            logger.error('The job failed, something went wrong! (Look at the logs for more details).');
+          } else {
+            logger.log(`Job status: ${jobStatus}`);
+          }
         } else {
           logger.error('Undefined server response');
         }
@@ -285,39 +289,164 @@ const addAnnotation = add.command('annotation');
 
 addAnnotation
   .description(
-    'Add fasta formatted reference genome to a running GeneNoteBook server'
+    'Add fasta formatted reference genome to a running GeneNoteBook server',
   )
   .usage('[options] <annotation gff3 file>')
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
   .option(
-    '-n, --genome-name <name>',
-    'Reference genome name to which the annotation should be added'
+    '-n, --name <genome-name>',
+    'Reference genome name to which the annotation should be added.',
+  )
+  .option(
+    '-s, --suffix <pattern>',
+    'The suffix added to an identifier (gene, mRNA, exon ...) e.g: "MMUCEDO_000005-T1" with the suffix "-protein": "MMUCEDO_000005-T1-protein".',
+  )
+  .option(
+    '-r, --re_protein <pattern>',
+    'Replacement string for the protein name using capturing groups defined by --re_protein_capture.',
+  )
+  .option(
+    '-m, --re_protein_capture <pattern/regex>',
+    'Regular expression to capture groups in mRNA name to use in --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$").',
+  )
+  .option(
+    '-t, --type <type-annotation>',
+    'The type of the feature (e.g: gene, mRNA, exon ...). Can be combined e.g: --type "mRNA, exon".',
+    'mRNA',
+  )
+  .option(
+    '-k, --keep',
+    'Keep in the database the ID field (as written in the annotation file) and add with the pattern another reference field.',
+  )
+  .option(
+    '-o, --overwrite',
+    'Overwrite and replace the ID field with the new pattern. Loses the original identifier in the annotation file.',
+    false,
   )
   .option(
     '--port [port]',
-    'Port on which GeneNoteBook is running. Default: 3000'
+    'Port on which GeneNoteBook is running. Default: 3000',
   )
-  .option('-v, --verbose', 'Verbose warnings during GFF parsing')
+  .option(
+    '-v, --verbose',
+    'Verbose warnings during GFF parsing.',
+    false,
+  )
   .action(
     (
       file,
-      { username, password, genomeName, port = 3000, verbose = false }
+      {
+        username,
+        password,
+        port = 3000,
+        name,
+        suffix,
+        re_protein,
+        re_protein_capture,
+        type,
+        keep,
+        overwrite,
+        verbose,
+      },
     ) => {
       if (typeof file !== 'string') addAnnotation.help();
-      const fileName = path.resolve(file);
 
+      const fileName = path.resolve(file);
       if (!(fileName && username && password)) {
         addAnnotation.help();
       }
 
+      // Assign the correct boolean according to the parameters -k, --keep and -o, --overwrite.
+      let keepParam = keep;
+      if (suffix) {
+        if (typeof keepParam === 'undefined') {
+          if (overwrite) {
+            keepParam = false;
+          } else {
+            keepParam = true;
+          }
+        } else {
+          if (overwrite) {
+            console.error('You cannot use the two properties -k, --keep and -o, --overwrite together.');
+            addAnnotation.help();
+          } else {
+            keepParam = true;
+          }
+        }
+      } else {
+        if (typeof keepParam !== 'undefined' || overwrite !== false) {
+          console.error('Unknown suffix / pattern.');
+          addAnnotation.help();
+        } else {
+          keepParam = false;
+        }
+      }
+
+      let correctProteinCapture = undefined;
+      if (typeof re_protein !== 'undefined' && typeof re_protein_capture !== 'undefined') {
+        // Test if re_protein_capture is regex.
+        let isValid = true;
+        try {
+          RegExp(re_protein_capture);
+        } catch (e) {
+          isValid = false;
+        }
+
+        if (!isValid) {
+          console.error('Not a valid regular expression ?');
+          addAnnotation.help();
+        } else {
+          correctProteinCapture = re_protein_capture;
+        }
+
+        if (typeof suffix !== 'undefined' || type !== 'mRNA') {
+          console.error('The use of regular expressions for proteins should not be used with the -s, --suffix or -t, --type arguments.');
+          addAnnotation.help();
+        }
+      }
+
       new GeneNoteBookConnection({ username, password, port }).call(
-        'addAnnotationTrack',
-        { fileName, genomeName, verbose }
+        'addAnnotation',
+        {
+          fileName,
+          genomeName: name,
+          suffix,
+          re_protein,
+          re_protein_capture: correctProteinCapture,
+          type,
+          keep: keepParam,
+          overwrite,
+          verbose,
+        },
       );
-    }
+    },
   )
+  .on('--help', () => {
+    console.log(`
+Basic usage:
+    genenotebook add annotation -n 'mucedo' annot.gff3 -u admin -p admin
+or
+    genenotebook add annotation --name 'mucedo' annot.gff3 -u admin -p admin
+
+Use regex/pattern (only for proteins):
+
+    genenotebook add annotation -n 'mucedo' --re_protein '$1-P' --re_protein_capture '^(.*)$' annot.gff3 -u admin -p admin
+
+Use of suffix/pattern:
+    genenotebook add annotation -n 'mucedo' --suffix '-protein' annot.gff3 -u admin -p admin
+
+    # Specifying the type
+    genenotebook add annotation -n 'mucedo' --suffix '-protein' --type 'mRNA' annot.gff3 -u admin -p admin
+
+    # Combine suffixs/patterns with multiple types
+    genenotebook add annotation -n 'mucedo' --suffix '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+
+    # Overwrite the original ID field with the new suffix/pattern.
+    genenotebook add annotation -n 'mucedo' --overwrite --suffix '-protein, -exon' --type 'mRNA, exon' annot.gff3 -u admin -p admin
+    `);
+  })
   .exitOverride(customExitOverride(addAnnotation));
 
 // Add Diamond.
