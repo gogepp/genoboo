@@ -17,7 +17,7 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessor {
-  constructor(filename, genomeID, re_protein=undefined, re_protein_capture="^(.*?)$", attr_protein=undefined, overwrite = false, verbose = true) {
+  constructor(filename, genomeID, re_protein=undefined, re_protein_capture="^(.*?)$", attr_protein=undefined, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
@@ -56,7 +56,7 @@ class AnnotationProcessor {
    * @function
    * @param {String} ident - The identifier of the element (1st field of gff3).
    * @param {Object} filteredAttr - Object of element attributes
-   * returns {Object} - Returns the ID and the protein ID (mongoDB does not store
+   * returns {String} - Returns the ID and the protein ID (mongoDB does not store
    * undefined values)
    */
   getProteinID = (ident, filteredAttr) => {
@@ -66,13 +66,13 @@ class AnnotationProcessor {
         && !!ident.match(this.re_protein_capture)
     ) {
       const result = ident.replace(new RegExp(this.re_protein_capture), this.re_protein);
-      return { identifiant: ident, customID: result };
+      return result;
     }
     if (typeof this.attr_protein !== 'undefined' && typeof filteredAttr[this.attr_protein] !== 'undefined'){
-        return { identifiant: ident, customID: filteredAttr[this.attr_protein] };
+        return filteredAttr[this.attr_protein][0];
     }
 
-    return { identifiant: ident, customID: ident.concat('-protein') };
+    return ident.concat('-protein');
   };
 
   /**
@@ -82,7 +82,11 @@ class AnnotationProcessor {
    * returns {String} - Returns the ID if it exists
    */
   getCDSProtein = (filteredAttr) => {
-    return filteredAttr[this.attr_protein]
+    let proteinId
+    if (typeof filteredAttr[this.attr_protein] !== 'undefined'){
+    	proteinId = filteredAttr[this.attr_protein][0]
+    }
+    return proteinId
   };
 
 
