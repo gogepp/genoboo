@@ -258,6 +258,11 @@ addGenome
     'Reference genome name. Default: fasta file name'
   )
   .option(
+    '-p, --public',
+    'Set the genome public. Default: false',
+    false
+  )
+  .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
@@ -273,6 +278,7 @@ addGenome
     new GeneNoteBookConnection({ username, password, port }).call('addGenome', {
       genomeName,
       fileName,
+      public,
       async: false,
     });
   })

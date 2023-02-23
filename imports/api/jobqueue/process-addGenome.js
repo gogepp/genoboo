@@ -141,14 +141,14 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, genomeName, permission = 'admin' } = job.data;
+    const { fileName, genomeName, public, permission = 'admin' } = job.data;
     logger.log(`Inserting ${fileName} as ${genomeName}`);
     const genomeId = genomeCollection.insert({
       name: genomeName,
       permission,
       description: 'description',
       organism: 'organism',
-      isPublic: false,
+      isPublic: public,
     });
 
     const lineReader = readline.createInterface({

@@ -40,6 +40,7 @@ describe('genomes', function testGenomes() {
     const newGenome = {
       fileName: 'assets/app/data/Bnigra.fasta',
       genomeName: 'Brassica nigra',
+      public: true,
       async: false,
     };
 
@@ -62,6 +63,8 @@ describe('genomes', function testGenomes() {
     chai.assert.lengthOf(genomes, 1, 'Genome does not exists');
 
     const genome = genomes[0];
+
+    chai.assert.isTrue(genome.isPublic);
 
     const genomeSequences = genomeSequenceCollection.find({
       genomeId: genome._id,
