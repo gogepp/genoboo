@@ -49,7 +49,7 @@ describe('eggnog', function testEggnog() {
 
     chai.assert.equal(result.nInserted, 1)
 
-    const eggs = eggnogCollection.find({ query_name: 'BniB01g000010.2N.1' }).fetch();
+    const eggs = eggnogCollection.find({ query_name: 'BniB01g000010.2N.1-P' }).fetch();
 
     chai.assert.lengthOf(eggs, 1, 'No eggnog data found');
 

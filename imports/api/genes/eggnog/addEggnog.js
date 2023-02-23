@@ -115,7 +115,7 @@ class EggnogProcessor {
           // Eggnog already exists.
           const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName })._id;
           this.genesDb.update(
-            { 'subfeatures.ID': queryName },
+            { $or: [{'subfeatures.ID': queryName}, {'subfeatures.protein_id': queryName}] },
             { $set: { eggnogId: eggnogIdentifiant } },
           );
         }

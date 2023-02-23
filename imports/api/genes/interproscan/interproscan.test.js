@@ -31,7 +31,6 @@ describe('interproscan', function testInterproscan() {
     resetDatabase()
   });
 
-
   it('Should add an interproscan tsv file', function addTsvInterpro() {
     // Increase timeout
     this.timeout(20000);
@@ -106,8 +105,6 @@ describe('interproscan', function testInterproscan() {
     chai.assert.isDefined(gene.subfeatures[0].protein_domains, 'protein_domains key is undefined')
 
     const protein_domains = gene.subfeatures[0].protein_domains
-
-    logger.log(protein_domains)
 
     chai.assert.lengthOf(protein_domains, 2, "Did not find 2 protein domains")
 

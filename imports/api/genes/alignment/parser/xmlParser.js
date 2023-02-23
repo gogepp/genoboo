@@ -98,7 +98,7 @@ class XmlProcessor {
 
         await Promise.all(splitIterationQuery.map(async (iter) => {
           /** Chek if the queries exist in the genes collection. */
-          const subfeatureIsFound = await this.genesDb.findOne({ 'subfeatures.ID': iter });
+          const subfeatureIsFound = await this.genesDb.findOne({ $or: [{'subfeatures.ID': iter}, {'subfeatures.protein_id': iter}] });
           if (typeof subfeatureIsFound !== 'undefined' && subfeatureIsFound !== null) {
             /** Get the total query sequence length. */
             const queryLen = blastIteration[i]['iteration_query-len']

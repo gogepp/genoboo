@@ -100,7 +100,7 @@ describe('alignment', function testAlignment() {
 
     //Meteor._sleepForMs(10000);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
 
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
@@ -139,7 +139,7 @@ describe('alignment', function testAlignment() {
 
     let result = addSimilarSequence._execute(adminContext, diamondParams);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
     const seq = simSeq[0]
