@@ -258,7 +258,7 @@ addGenome
     'Reference genome name. Default: fasta file name'
   )
   .option(
-    '-p, --public',
+    '--public',
     'Set the genome public. Default: false',
     false
   )
@@ -266,7 +266,7 @@ addGenome
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, name, port = 3000 }) => {
+  .action((file, { username, password, name, port = 3000, public = false }) => {
     if (typeof file !== 'string') addGenome.help();
     const fileName = path.resolve(file);
 
@@ -375,8 +375,6 @@ addAnnotation
           re_protein,
           re_protein_capture: correctProteinCapture,
           attr_protein,
-          keep: keepParam,
-          overwrite,
           verbose,
         },
       );
