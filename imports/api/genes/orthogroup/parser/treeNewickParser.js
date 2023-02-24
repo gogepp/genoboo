@@ -136,6 +136,7 @@ class NewickProcessor {
           $or: [
             { ID: { $in: cleanGeneIds } },
             { 'subfeatures.ID': { $in: cleanGeneIds } },
+            { 'subfeatures.protein_id': { $in: cleanGeneIds } },
           ],
         },
       )
