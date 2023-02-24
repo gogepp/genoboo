@@ -32,7 +32,7 @@ describe('transcriptomes', function testTranscriptomes() {
   });
 
 
-  it('Should add a transcriptome file', function testAddTranscriptome() {
+  it('Should add a transcriptome file', async function testAddTranscriptome() {
     // Increase timeout
     this.timeout(20000);
 
@@ -56,7 +56,7 @@ describe('transcriptomes', function testTranscriptomes() {
       addTranscriptome._execute(userContext, transcriParams);
     }).to.throw('[not-authorized]');
 
-    let result = addTranscriptome._execute(adminContext, transcriParams);
+    let result = await addTranscriptome._execute(adminContext, transcriParams);
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 

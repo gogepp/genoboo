@@ -5,6 +5,8 @@ import {
   parseAttributeString, debugParseAttributeString, DBXREF_REGEX,
 } from '/imports/api/util/util.js';
 
+import { Genes } from '/imports/api/genes/geneCollection.js';
+
 const logAttributeError = ({
   lineNumber, line, attributeString, error,
 }) => {
@@ -92,7 +94,8 @@ class ParseGff3File extends InterproscanProcessor {
           }
 
           dbUpdate.$addToSet['subfeatures.$.protein_domains'] = proteinDomain;
-          this.bulkOp.find({ 'subfeatures.ID': seqId }).update(dbUpdate);
+          // Wow, I hate this query, but it seems to be the only way to use a positional operator with an $or clause
+          this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": seqId}, {"ID": seqId}]} }}).update(dbUpdate);
         }
       }
     }

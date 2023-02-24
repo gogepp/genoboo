@@ -54,8 +54,9 @@ class ParseTsvFile extends InterproscanProcessor {
       };
     }
 
-    dbUpdate.$addToSet['subfeatures.$.protein_domains'] = proteinDomain;
-    this.bulkOp.find({ 'subfeatures.ID': seqId }).update(dbUpdate);
+    dbUpdate.$addToSet['subfeatures.$[].protein_domains'] = proteinDomain;
+    // Wow, I hate this query, but it seems to be the only way to use a positional operator with an $or clause
+    this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": seqId}, {"ID": seqId}]} }}).update(dbUpdate);
   };
 }
 
