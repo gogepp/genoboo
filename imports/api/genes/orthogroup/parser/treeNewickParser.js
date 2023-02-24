@@ -92,6 +92,7 @@ class NewickProcessor {
    * @param {Array} genesids - The gene list.
    * @return {Array} The list of genes without their prefixes.
    */
+
   removePrefixGeneId = async (prefixes, genesids) => {
     return new Promise((resolve, reject) => {
       try {
@@ -135,6 +136,7 @@ class NewickProcessor {
           $or: [
             { ID: { $in: cleanGeneIds } },
             { 'subfeatures.ID': { $in: cleanGeneIds } },
+            { 'subfeatures.protein_id': { $in: cleanGeneIds } },
           ],
         },
       )
@@ -169,7 +171,7 @@ class NewickProcessor {
       );
 
       // Increment orthogroups.
-      const nInsertUpdate = (typeof documentOrthogroup.result !== 'undefined' ? documentOrthogroup.result.ok : 0);
+      const nInsertUpdate = (typeof documentOrthogroup.upsertedCount !== 'undefined' ? documentOrthogroup.upsertedCount : 0);
       this.nOrthogroups += nInsertUpdate;
 
       // Update or insert orthogroupsId in genes collection.

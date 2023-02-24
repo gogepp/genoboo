@@ -13,8 +13,8 @@ import './transcriptomes/updateReplicaGroup.js';
 import './genomes/addGenome.js';
 import './genomes/updateGenome.js';
 import './genomes/removeGenome.js';
-import './genomes/addAnnotationTrack.js';
-import './genomes/removeAnnotationTrack.js';
+import './genomes/annotation/removeAnnotationTrack.js';
+import './genomes/annotation/addAnnotation.js';
 
 import './genes/interproscan.js';
 import './genes/addInterproscan.js';
@@ -47,6 +47,7 @@ import './methods/list.js';
 import './methods/getVersion.js';
 
 // import the following so that jobs can start running
+import './jobqueue/process-annotation.js';
 import './jobqueue/process-interproscan.js';
 import './jobqueue/process-makeBlastDb.js';
 import './jobqueue/process-blast.js';

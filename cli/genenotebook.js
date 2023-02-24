@@ -61,7 +61,11 @@ class GeneNoteBookConnection {
             `Server method ${methodName} succesfully inserted ${nInserted} elements`
           );
         } else if (jobStatus) {
-          logger.log(`Job status: ${jobStatus}`);
+          if (jobStatus === 'failed') {
+            logger.error('The job failed, something went wrong! (Look at the logs for more details).');
+          } else {
+            logger.log(`Job status: ${jobStatus}`);
+          }
         } else {
           logger.error('Undefined server response');
         }
@@ -219,7 +223,7 @@ program
   )
   .option(
     '--db-cache-size-gb [cache size (GB)]',
-    `Cache size for MongoDB in GB. Default is max(0.6*maxRAM - 1, 1GB). 
+    `Cache size for MongoDB in GB. Default is max(0.6*maxRAM - 1, 1GB).
     Specify a lower value if your mongodb daemon is using to much RAM`
   )
   .option(
@@ -254,10 +258,15 @@ addGenome
     'Reference genome name. Default: fasta file name'
   )
   .option(
+    '--public',
+    'Set the genome public. Default: false',
+    false
+  )
+  .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, name, port = 3000 }) => {
+  .action((file, { username, password, name, port = 3000, public = false }) => {
     if (typeof file !== 'string') addGenome.help();
     const fileName = path.resolve(file);
 
@@ -269,6 +278,7 @@ addGenome
     new GeneNoteBookConnection({ username, password, port }).call('addGenome', {
       genomeName,
       fileName,
+      public,
       async: false,
     });
   })
@@ -285,39 +295,103 @@ const addAnnotation = add.command('annotation');
 
 addAnnotation
   .description(
-    'Add fasta formatted reference genome to a running GeneNoteBook server'
+    'Add fasta formatted reference genome to a running GeneNoteBook server',
   )
   .usage('[options] <annotation gff3 file>')
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
   .option(
-    '-n, --genome-name <name>',
-    'Reference genome name to which the annotation should be added'
+    '-n, --name <genome-name>',
+    'Reference genome name to which the annotation should be added.',
+  )
+  .option(
+    '-r, --re_protein <pattern>',
+    'Replacement string for the protein name using capturing groups defined by --re_protein_capture. Make sure to use JS-style groups ($1 for group 1)',
+  )
+  .option(
+    '-m, --re_protein_capture <pattern/regex>',
+    'Regular expression to capture groups in mRNA name to use with --re_protein (e.g. "^(.*?)-R([A-Z]+)$", default="^(.*?)$").',
+    '^(.*?)$'
+  )
+  .option(
+    '-a, --attr_protein <attribute_protein>',
+    'Optional GFF attribute name to get the protein id from the mRNA or CDS',
   )
   .option(
     '--port [port]',
-    'Port on which GeneNoteBook is running. Default: 3000'
+    'Port on which GeneNoteBook is running. Default: 3000',
   )
-  .option('-v, --verbose', 'Verbose warnings during GFF parsing')
+  .option(
+    '-v, --verbose',
+    'Verbose warnings during GFF parsing.',
+    false,
+  )
   .action(
     (
       file,
-      { username, password, genomeName, port = 3000, verbose = false }
+      {
+        username,
+        password,
+        port = 3000,
+        name,
+        re_protein,
+        re_protein_capture,
+        attr_protein,
+        verbose,
+      },
     ) => {
       if (typeof file !== 'string') addAnnotation.help();
-      const fileName = path.resolve(file);
 
+      const fileName = path.resolve(file);
       if (!(fileName && username && password)) {
         addAnnotation.help();
       }
 
+      let correctProteinCapture = undefined;
+      if (typeof re_protein !== 'undefined' && typeof re_protein_capture !== 'undefined') {
+        // Test if re_protein_capture is regex.
+        let isValid = true;
+        try {
+          RegExp(re_protein_capture);
+        } catch (e) {
+          isValid = false;
+        }
+
+        if (!isValid) {
+          console.error('Not a valid regular expression ?');
+          addAnnotation.help();
+        } else {
+          correctProteinCapture = re_protein_capture;
+        }
+
+      }
+
       new GeneNoteBookConnection({ username, password, port }).call(
-        'addAnnotationTrack',
-        { fileName, genomeName, verbose }
+        'addAnnotation',
+        {
+          fileName,
+          genomeName: name,
+          re_protein,
+          re_protein_capture: correctProteinCapture,
+          attr_protein,
+          verbose,
+        },
       );
-    }
+    },
   )
+  .on('--help', () => {
+    console.log(`
+Basic usage:
+    genenotebook add annotation -n 'mucedo' annot.gff3 -u admin -p admin
+or
+    genenotebook add annotation --name 'mucedo' annot.gff3 -u admin -p admin
+
+Use regex/pattern (only for proteins):
+
+    genenotebook add annotation -n 'mucedo' --re_protein '$1-P' --re_protein_capture '^(.*)$' annot.gff3 -u admin -p admin
+    `);
+  })
   .exitOverride(customExitOverride(addAnnotation));
 
 // Add Diamond.
@@ -873,7 +947,7 @@ addUser
           lastName ||
           role
         ) {
-          logger.error(`Bulk file operation is mutually exclusive with specifying 
+          logger.error(`Bulk file operation is mutually exclusive with specifying
           individual account information`);
           addUser.help();
         }

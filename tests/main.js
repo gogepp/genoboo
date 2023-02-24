@@ -5,14 +5,27 @@ import chai from 'chai';
 
 if (Meteor.isServer) {
   import '../imports/api/util/util.test.js';
+  import '../imports/api/users/users.test.js';
+  import '../imports/api/genomes/genomes.test.js';
+  import '../imports/api/genomes/annotation/addAnnotation.test';
+  import '../imports/api/genes/alignment/alignment.test.js';
+  import '../imports/api/genes/eggnog/eggnog.test.js';
+  import '../imports/api/genes/orthogroup/orthogroups.test.js';
+  import '../imports/api/genes/interproscan/interproscan.test.js';
+  import '../imports/api/transcriptomes/transcriptomes.test.js';
+  import '../imports/api/genes/download/download.test.js';
+  import '../imports/api/genes/genes.test.js';
+  import '../imports/api/methods/methods.test.js';
 }
 
+/*
 if (Meteor.isClient) {
   if (Meteor.isAppTest) {
     import '/imports/ui/main/App.app-test.jsx';
   }
   import '/imports/ui/util/uiUtil.test.jsx';
 }
+*/
 
 describe('genenotebook', function () {
   if (!Meteor.isAppTest) {
@@ -22,5 +35,4 @@ describe('genenotebook', function () {
       chai.assert.strictEqual(name, 'genenotebook');
     });
   }
-  it('does something else');
 });

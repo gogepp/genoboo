@@ -11,6 +11,18 @@ class EggnogProcessor {
   constructor() {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
+    this.nEggnog = 0;
+  }
+
+  /**
+   * Function that returns the total number of insertions or updates in the
+   * eggnog collection.
+   * @function
+   * @return {Number} Return the total number of insertions or updates of
+   * eggnog.
+   */
+  getNumberEggnog() {
+    return this.nEggnog;
   }
 
   parse = (line) => {
@@ -83,6 +95,9 @@ class EggnogProcessor {
       );
 
       if (typeof subfeatureIsFound !== 'undefined') {
+        // Increment eggnog.
+        this.nEggnog += 1;
+
         // Update or insert if no matching documents were found.
         const documentEggnog = eggnogCollection.upsert(
           { query_name: queryName }, // selector.
@@ -100,7 +115,7 @@ class EggnogProcessor {
           // Eggnog already exists.
           const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName })._id;
           this.genesDb.update(
-            { 'subfeatures.ID': queryName },
+            { $or: [{'subfeatures.ID': queryName}, {'subfeatures.protein_id': queryName}] },
             { $set: { eggnogId: eggnogIdentifiant } },
           );
         }
@@ -130,7 +145,7 @@ const addEggnog = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
 
-    console.log('file :', { fileName });
+    logger.log('file :', { fileName });
     const job = new Job(jobQueue, 'addEggnog', { fileName });
     const jobId = job.priority('high').save();
 

@@ -24,33 +24,34 @@ jobQueue.processJobs(
     const { size: fileSize } = await fs.promises.stat(fileName);
     let processedBytes = 0;
     let processedLines = 0;
+    let nEggnog = 0;
 
-    rl.on('line', async (line) => {
+    for await (const line of rl) {
       processedBytes += line.length + 1; // also count \n
       processedLines += 1;
+
       if ((processedLines % 100) === 0) {
-        await job.progress(processedBytes, fileSize, { echo: true },
-          (err) => { if (err) logger.error(err); });
+        await job.progress(
+          processedBytes,
+          fileSize,
+          { echo: true },
+          (err) => {
+            if (err) logger.error(err);
+          },
+        );
       }
+
       try {
-        lineProcessor.parse(line);
+        await lineProcessor.parse(line);
+        nEggnog = lineProcessor.getNumberEggnog();
       } catch (err) {
         logger.error(err);
         job.fail({ err });
         callback();
       }
-    });
-
-    // Occurs when all lines are read.
-    rl.on('close', async () => {
-      try {
-        logger.log('File reading finished');
-        job.done();
-      } catch (err) {
-        logger.error(err);
-        job.fail({ err });
-      }
-      callback();
-    });
+    }
+    logger.log(`Inserted ${nEggnog} EggNog`);
+    job.done({ nInserted: nEggnog });
+    callback();
   },
 );
