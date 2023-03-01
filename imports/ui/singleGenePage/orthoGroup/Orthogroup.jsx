@@ -3,7 +3,9 @@ import { orthogroupCollection } from '/imports/api/genes/orthogroup/orthogroupCo
 import { withTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import { Tree } from 'react-bio-viz';
+import { PhyloTree } from 'react-bio-viz';
+import { css } from "@emotion/css";
+
 import {
   branch,
   compose,
@@ -52,14 +54,50 @@ function Header() {
 }
 
 function Orthogroup({ orthogroup, showHeader = false }) {
+
+  function leafTextComponent({ node, fontSize = 11 }){
+    const {
+      data: { name, geneId },
+      x,
+    } = node;
+
+    let val = name
+
+    if (geneId) {
+      val = <a href={geneId}>{name}</a>
+    }
+
+    return (
+      <text x={0} y={0} className={css({fontFamily: 'sans-serif', fontSize: `${fontSize}`, color: 'red' })}>
+        {val}
+      </text>
+    )
+  }
+
+ function leafColorComponent(node){
+   const {
+     data: { name, genomeId },
+     x,
+   } = node;
+
+   let val = "unknown"
+   if (genomeId){:
+     val = orthogroup.genomes[genomeId]
+   }
+
+   return val
+ }
+
   return (
     <div id="orthogroup">
       {showHeader && <Header />}
-      <Tree
+      <PhyloTree
         tree={orthogroup.tree}
         height={orthogroup.size * 15}
         cladogram
         shadeBranchBySupport={false}
+        leafTextComponent={leafTextComponent}
+        colorFunction={leafColorComponent}
       />
     </div>
   );
