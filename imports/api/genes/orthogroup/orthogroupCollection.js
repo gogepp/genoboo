@@ -24,7 +24,7 @@ const orthogroupSchema = new SimpleSchema({
   },
   genomes: {
     type: Object,
-    label: 'Dict of genomes in the orthogroups, and gene count for each'
+    label: 'Dict of genomes in the orthogroups, with name and gene count for each'
   },
 });
 

@@ -79,7 +79,7 @@ class NewickProcessor {
                tree.name = token;
                nNodes += 1;
                if (token.length > 0) {
-                 {gene, geneName} = await this.getGeneId(prefixes, token)
+                 ({gene, geneName} = await this.getGeneId(prefixes, token))
                  if ( gene ){
                    genomes[gene.genomeId] = genomes[gene.genomeId] ? genomes[gene.genomeId] + 1 : 1
                    geneIds.push(gene.ID);
@@ -140,6 +140,7 @@ class NewickProcessor {
        } catch (err) {
          reject(err);
        }
+     })
    }
   /**
    * Parse the newick file.
@@ -148,6 +149,7 @@ class NewickProcessor {
    * @param {Array} prefixes - The list of OrthoFinder prefixes.
    */
   parse = async (newick, prefixes) => {
+    try {
     // Read raw file.
     const treeNewick = fs.readFileSync(newick, 'utf8');
 
@@ -157,12 +159,13 @@ class NewickProcessor {
     // Remove duplicate value.
     const rmDuplicateGeneIDs = geneIds.filter((v, i, a) => a.indexOf(v) === i);
 
-    const genomeArray = genomes.keys()
+    const genomeArray = Object.keys(genomes)
+
     const genomeDict = {"unknown": {name: "unknown", count: unknown}}
 
     if (genomeArray.length !== 0){
       genomeCollection
-        .find({ _id: { $in: [...orthogroupGenomeIds] }})
+        .find({ _id: { $in: genomeArray }})
         .forEach((genome) => {
           genomeDict[genome._id] = {name: genome.name, count: genomes[genome._id]}
         });
@@ -221,11 +224,15 @@ class NewickProcessor {
             upsert: true,
           },
         );
+
       }
     } else {
       logger.warn(
         'Orthogroup consists exclusively of genes not in the database',
       );
+    }
+    } catch(err){
+      logger.log(err)
     }
   };
 }

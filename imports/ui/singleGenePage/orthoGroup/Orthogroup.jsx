@@ -5,6 +5,18 @@ import { Meteor } from 'meteor/meteor';
 import React from 'react';
 import { PhyloTree } from 'react-bio-viz';
 import { css } from "@emotion/css";
+import randomColor from "randomcolor";
+import { PieChart } from 'react-minimal-pie-chart';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
 import {
   branch,
@@ -12,6 +24,17 @@ import {
   isLoading,
   Loading,
 } from '/imports/ui/util/uiUtil.jsx';
+
+import './orthogroup.scss'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function hasNoOrthogroup({ orthogroup }) {
   return typeof orthogroup === 'undefined';
@@ -81,12 +104,40 @@ function Orthogroup({ orthogroup, showHeader = false }) {
    } = node;
 
    let val = "unknown"
-   if (genomeId){:
-     val = orthogroup.genomes[genomeId]
+   if (genomeId){
+     val = orthogroup.genomes[genomeId].name
    }
 
    return val
  }
+
+  let barData = {
+    labels: ["Gene count in tree"],
+    datasets: []
+  }
+
+  let totalGenes = 0
+
+  Object.values(orthogroup.genomes).map( genome => {
+    barData.datasets.push({
+      maxBarThickness: 100,
+      data:[genome.count],
+      label: genome.name == "unknown" ? "Unregistered genome": genome.name,
+      backgroundColor: [randomColor({seed: genome.name})]
+    })
+    totalGenes += genome.count
+  })
+
+  let options = {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Tree composition (' + totalGenes + ' genes)',
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: true
+  }
 
   return (
     <div id="orthogroup">
@@ -99,6 +150,9 @@ function Orthogroup({ orthogroup, showHeader = false }) {
         leafTextComponent={leafTextComponent}
         colorFunction={leafColorComponent}
       />
+      <div class="chart-container">
+      <Bar data={barData} options={options}/>
+      </div>
     </div>
   );
 }
