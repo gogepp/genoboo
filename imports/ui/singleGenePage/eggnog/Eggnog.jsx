@@ -558,7 +558,6 @@ function Pfams({ family }) {
           >
             { val }
           </a>
-          <PfamsApi id={val} />
         </div>
       );
     })
@@ -571,7 +570,6 @@ function Pfams({ family }) {
         >
           { family }
         </a>
-        <PfamsApi id={family} />
       </div>
     ));
 

@@ -6,7 +6,6 @@ import React from 'react';
 import { PhyloTree } from 'react-bio-viz';
 import { css } from "@emotion/css";
 import randomColor from "randomcolor";
-import { PieChart } from 'react-minimal-pie-chart';
 import { Bar } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
