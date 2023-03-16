@@ -37,7 +37,7 @@ describe('orthogroups', function testOrthogroups() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    const {genomeId} = addTestGenome(annot=true)
 
     const orthoGroupsParams = {
       folderName: 'assets/app/data/orthogroups/',
@@ -69,6 +69,9 @@ describe('orthogroups', function testOrthogroups() {
     chai.assert.lengthOf(orthos, 1, "No orthogroup data found")
 
     const ortho = orthos[0]
+
+    chai.assert.deepEqual(ortho.genomes["unknown"], { name: 'unknown', count: 56 })
+    chai.assert.deepEqual(ortho.genomes[genomeId], { name: 'Test Genome', count: 1 })
 
     chai.assert.sameMembers(ortho.geneIds, ['BniB01g000010.2N'])
     chai.assert.equal(ortho.size, 84.5)
