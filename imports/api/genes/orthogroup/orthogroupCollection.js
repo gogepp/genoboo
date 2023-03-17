@@ -22,6 +22,10 @@ const orthogroupSchema = new SimpleSchema({
     type: Number,
     label: 'Orthogroup size',
   },
+  genomes: {
+    type: Object,
+    label: 'Dict of genomes in the orthogroups, with name and gene count for each'
+  },
 });
 
 const orthogroupCollection = new Mongo.Collection('orthogroups');

@@ -1,5 +1,6 @@
 import { orthogroupCollection } from '/imports/api/genes/orthogroup/orthogroupCollection.js';
 import { Genes } from '/imports/api/genes/geneCollection.js';
+import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
 import logger from '/imports/api/util/logger.js';
 import fs from 'fs';
 
@@ -33,55 +34,75 @@ class NewickProcessor {
    * @function
    * @param {String} newickFile - The tree in newick format (e.g
    * (((Citrus_sinensis_PAC-18136225:0.464796,(Ano...).
+   * @param {Array} prefixes - Array of prefixes
    * @return {Object} Return the tree.
    * @return {Array} Return the root name and the name of each leaf node.
    * @return {Number} Return the tree size.
+   * @return {Object} Return genome id with the gene count.
+   * @return {Number} Return number of unidentified genes.
    */
-  parseNewick = (newickFile) => {
-    // Adapted from Jason Davies https://github.com/jasondavies/newick.js
-    const ancestors = [];
-    const tokens = newickFile.split(/\s*(;|\(|\)|,|:)\s*/);
-    const geneIds = [];
-    let tree = {};
-    let subtree = {};
-    let nNodes = 0;
-    tokens.forEach((token, tokenIndex) => {
-      switch (token) {
-        case '(': // new subtree (children of current tree)
-          subtree = {};
-          tree.children = [subtree];
-          ancestors.push(tree);
-          tree = subtree;
-          break;
-        case ',': // another branch
-          subtree = {};
-          ancestors[ancestors.length - 1].children.push(subtree);
-          tree = subtree;
-          break;
-        case ')': // optional name next
-          tree = ancestors.pop();
-          break;
-        case ':': // optional length next
-          break;
-        default:
-          const previousToken = tokens[tokenIndex - 1];
-          if (previousToken === '(' || previousToken === ')' || previousToken === ',') {
-            tree.name = token;
-            nNodes += 1;
-            if (token.length > 0) {
-              geneIds.push(token);
-            }
-          } else if (previousToken === ':') {
-            tree.branchLength = parseFloat(token);
-          }
-      }
-    });
-    return {
-      tree,
-      geneIds,
-      treeSize: 0.5 * (nNodes + 1), // geneIds.length
-    };
-  };
+   parseNewick = async (newickFile, prefixes) => {
+       // Adapted from Jason Davies https://github.com/jasondavies/newick.js
+       const ancestors = [];
+       const tokens = newickFile.split(/\s*(;|\(|\)|,|:)\s*/);
+       const geneIds = [];
+       const genomes = {}
+       let tree = {};
+       let subtree = {};
+       let nNodes = 0;
+       let unknown = 0
+
+       for (let tokenIndex=0; tokenIndex<tokens.length; tokenIndex++) {
+         let gene
+         let geneName
+         let token = tokens[tokenIndex];
+         switch (token) {
+           case '(': // new subtree (children of current tree)
+             subtree = {};
+             tree.children = [subtree];
+             ancestors.push(tree);
+             tree = subtree;
+             break;
+           case ',': // another branch
+             subtree = {};
+             ancestors[ancestors.length - 1].children.push(subtree);
+             tree = subtree;
+             break;
+           case ')': // optional name next
+             tree = ancestors.pop();
+             break;
+           case ':': // optional length next
+             break;
+           default:
+             const previousToken = tokens[tokenIndex - 1];
+             if (previousToken === '(' || previousToken === ')' || previousToken === ',') {
+               tree.name = token;
+               nNodes += 1;
+               if (token.length > 0) {
+                 ({gene, geneName} = await this.getGeneId(prefixes, token))
+                 if ( gene ){
+                   genomes[gene.genomeId] = genomes[gene.genomeId] ? genomes[gene.genomeId] + 1 : 1
+                   geneIds.push(gene.ID);
+                   tree.genomeId = gene.genomeId
+                   tree.geneId = gene.ID
+                 } else {
+                   unknown += 1
+                 }
+                 tree.name = geneName;
+               }
+             } else if (previousToken === ':') {
+               tree.branchLength = parseFloat(token);
+             }
+         }
+       };
+       return {
+         tree,
+         geneIds,
+         treeSize: 0.5 * (nNodes + 1), // geneIds.length
+         genomes,
+         unknown
+       };
+     };
 
   /**
    * Function that removes the prefixes of orthofinders on the genes of the tree
@@ -93,26 +114,34 @@ class NewickProcessor {
    * @return {Array} The list of genes without their prefixes.
    */
 
-  removePrefixGeneId = async (prefixes, genesids) => {
-    return new Promise((resolve, reject) => {
-      try {
-        const myArray = genesids.map((el) => {
-          for (const i in prefixes) {
-            if (el.includes(prefixes[i])) {
-              const underscorePrefix = prefixes[i].concat('_');
-              const removePrefix = el.replace(underscorePrefix, '');
-              return removePrefix;
-            }
-          }
-          return el;
-        });
-        resolve(myArray);
-      } catch (err) {
-        reject(err);
-      }
-    });
-  };
-
+   getGeneId = async (prefixes, geneid) => {
+     return new Promise((resolve, reject) => {
+       let geneName = geneid
+       try {
+         if (prefixes){
+           for (const i in prefixes) {
+             if (geneid.includes(prefixes[i])) {
+               const underscorePrefix = prefixes[i].concat('_');
+               geneName = geneid.replace(underscorePrefix, '');
+             }
+           }
+         }
+         const gene = Genes
+           .findOne(
+             {
+               $or: [
+                 { ID: geneName },
+                 { 'subfeatures.ID': geneName },
+                 { 'subfeatures.protein_id': geneName },
+               ],
+             },
+           )
+         resolve({gene, geneName})
+       } catch (err) {
+         reject(err);
+       }
+     })
+   }
   /**
    * Parse the newick file.
    * @function
@@ -120,37 +149,27 @@ class NewickProcessor {
    * @param {Array} prefixes - The list of OrthoFinder prefixes.
    */
   parse = async (newick, prefixes) => {
+    try {
     // Read raw file.
     const treeNewick = fs.readFileSync(newick, 'utf8');
 
     // Parse the tree.
-    const { tree, treeSize, geneIds } = this.parseNewick(treeNewick);
-
-    // Remove OrthoFinder prefixes.
-    const cleanGeneIds = (prefixes ? await this.removePrefixGeneId(prefixes, geneIds) : geneIds);
-
-    // Seach for the genes and subfeatures.
-    const orthogroupGenes = await this.genesDb
-      .find(
-        {
-          $or: [
-            { ID: { $in: cleanGeneIds } },
-            { 'subfeatures.ID': { $in: cleanGeneIds } },
-            { 'subfeatures.protein_id': { $in: cleanGeneIds } },
-          ],
-        },
-      )
-      .toArray();
-
-    /**
-     * We assume that 1 gene = 1 transcript = 1 tree. We go back to the gene
-     * identifier when a subfeature is found.
-     * (e.g subfeature.ID="orange1.1g044641m.v1.1" -> ID="orange1.1g044641m.g.v1.1").
-     */
-    const orthogroupGeneIds = orthogroupGenes.map(({ ID }) => ID);
+    const { tree, treeSize, geneIds, genomes, unknown } = await this.parseNewick(treeNewick, prefixes);
 
     // Remove duplicate value.
-    const rmDuplicateGeneIDs = orthogroupGeneIds.filter((v, i, a) => a.indexOf(v) === i);
+    const rmDuplicateGeneIDs = geneIds.filter((v, i, a) => a.indexOf(v) === i);
+
+    const genomeArray = Object.keys(genomes)
+
+    const genomeDict = {"unknown": {name: "unknown", count: unknown}}
+
+    if (genomeArray.length !== 0){
+      genomeCollection
+        .find({ _id: { $in: genomeArray }})
+        .forEach((genome) => {
+          genomeDict[genome._id] = {name: genome.name, count: genomes[genome._id]}
+        });
+    }
 
     // Add the orthogroups and link them to their genes.
     if (rmDuplicateGeneIDs.length !== 0) {
@@ -162,6 +181,7 @@ class NewickProcessor {
             geneIds: rmDuplicateGeneIDs,
             tree: tree,
             size: treeSize,
+            genomes: genomeDict
           },
         },
         { // Options
@@ -204,11 +224,15 @@ class NewickProcessor {
             upsert: true,
           },
         );
+
       }
     } else {
       logger.warn(
         'Orthogroup consists exclusively of genes not in the database',
       );
+    }
+    } catch(err){
+      logger.log(err)
     }
   };
 }
