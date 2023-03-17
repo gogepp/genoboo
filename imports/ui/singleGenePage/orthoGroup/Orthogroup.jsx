@@ -103,7 +103,7 @@ function Orthogroup({ orthogroup, showHeader = false }) {
    } = node;
 
    let val = "unknown"
-   if (genomeId){
+   if (genomeId && orthogroup.genomes && orthogroup.genomes[genomeId]){
      val = orthogroup.genomes[genomeId].name
    }
 
