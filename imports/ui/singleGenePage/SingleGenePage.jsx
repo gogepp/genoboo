@@ -56,7 +56,7 @@ function genomeDataTracker({ gene, genomeDataCache }) {
   const { genomeId } = gene;
   let genome;
   let genomeSub;
-  if (hasOwnProperty(genomeDataCache, genomeId)) {
+  if (hasOwnProperty(genomeDataCache, genomeId) && typeof genomeDataCache[genomeId] !== 'undefined') {
     genome = genomeDataCache[genomeId];
   } else {
     genomeSub = Meteor.subscribe('genomes');

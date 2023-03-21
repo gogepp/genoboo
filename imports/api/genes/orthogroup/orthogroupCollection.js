@@ -2,9 +2,9 @@ import { Mongo } from 'meteor/mongo';
 import SimpleSchema from 'simpl-schema';
 
 const orthogroupSchema = new SimpleSchema({
-  ID: {
+  name: {
     type: String,
-    label: 'OrthoFinder has automatically rooted the gene in tree for us.',
+    label: 'Orthogroup name (based on file name)',
   },
   geneIds: {
     type: Array,
@@ -15,7 +15,8 @@ const orthogroupSchema = new SimpleSchema({
     label: 'Gene ID string',
   },
   tree: {
-    type: String,
+    type: Object,
+    blackbox: true,
     label: 'Newick formatted phylogenetic tree',
   },
   size: {
@@ -24,6 +25,7 @@ const orthogroupSchema = new SimpleSchema({
   },
   genomes: {
     type: Object,
+    blackbox: true,
     label: 'Dict of genomes in the orthogroups, with name and gene count for each'
   },
 });

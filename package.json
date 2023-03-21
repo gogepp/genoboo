@@ -1,8 +1,8 @@
 {
-  "name": "genenotebook",
-  "version": "0.3.2_0",
-  "repository": "https://github.com/genenotebook/genenotebook",
-  "description": "A portable website for browsing and querying genome sequences and annotations",
+  "name": "genoboo",
+  "version": "0.4.0",
+  "repository": "https://github.com/gogepp/genoboo",
+  "description": "A portable website for browsing and querying genome sequences and annotations. Forked from genenotebook",
   "license": "AGPL-3.0",
   "scripts": {
     "preinstall": "meteor help || curl https://install.meteor.com/ | sh",

@@ -118,6 +118,22 @@ const SubfeatureSchema = new SimpleSchema(
 // Extend the subfeature schema with base subfeatures.
 SubfeatureSchema.extend(IntervalBaseSchema);
 
+// Basic schema to store orthgroup information on the gene
+const OrthogroupSchema = new SimpleSchema(
+  {
+    id: {
+      type: String,
+      index: true,
+      label: 'Orthogroup DB identifier (_id in orthogroup collection)',
+    },
+    name: {
+      type: String,
+      index: true,
+      label: 'Orthogroup name',
+    },
+  }
+)
+
 const GeneSchema = new SimpleSchema(
   {
     ID: {
@@ -154,11 +170,11 @@ const GeneSchema = new SimpleSchema(
       index: true,
       label: 'Reference genome DB identifier (_id in genome collection)',
     },
-    orthogroupId: {
-      type: String,
+    orthogroup: {
+      type: OrthogroupSchema,
       index: true,
       optional: true,
-      label: 'Orthogroup DB identifier (_id in orthogroup collection)',
+      label: 'Orthogroup information',
     },
     eggnogId: {
       type: String,

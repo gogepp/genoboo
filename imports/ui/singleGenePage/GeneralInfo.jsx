@@ -226,7 +226,7 @@ function GeneInfo({
   gene, genome, attributeNames, editHistory,
 }) {
   const {
-    seqid, start, end, strand, source, orthogroupId,
+    seqid, start, end, strand, source, orthogroup,
   } = gene;
   const currentVersion = editHistory[0];
 
@@ -374,10 +374,10 @@ function GeneInfo({
               <td>Source</td>
               <td>{source}</td>
             </tr>
-            {orthogroupId && (
+            {orthogroup && (
               <tr>
                 <td>Orthogroup</td>
-                <td>{orthogroupId}</td>
+                <td>{orthogroup.name}</td>
               </tr>
             )}
             {attributes

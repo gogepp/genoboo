@@ -52,8 +52,8 @@ function HitLine({
         {!loading && gene.attributes.Name ? (
           <Badge label="Name" value={gene.attributes.Name} color="is-success" />
         ) : null}
-        {!loading && gene.orthogroupId ? (
-          <Badge label="Orthogroup" value={gene.orthogroupId} color="is-warning" />
+        {!loading && gene.orthogroup ? (
+          <Badge label="Orthogroup" value={gene.orthogroup.name} color="is-warning" />
         ) : null}
         <Badge
           label="E-value"

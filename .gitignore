@@ -8,4 +8,4 @@ tests/testdata/*
 api-docs
 node_modules
 production_settings.json
-genenotebook_v*
+genoboo_v*

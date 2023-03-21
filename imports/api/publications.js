@@ -183,7 +183,7 @@ Meteor.publish({
     return diamond;
   },
   orthogroups(ID) {
-    return orthogroupCollection.find({ _id: new Mongo.ObjectID(ID) });
+    return orthogroupCollection.find({ _id: ID });
   },
   editHistory() {
     if (!this.userId) {

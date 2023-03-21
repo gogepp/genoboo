@@ -56,15 +56,15 @@ describe('orthogroups', function testOrthogroups() {
       addOrthogroupTrees._execute(userContext, orthoGroupsParams);
     }).to.throw('[not-authorized]');
 
-
     let result = addOrthogroupTrees._execute(adminContext, orthoGroupsParams);
 
     const gene = Genes.findOne({ID: "BniB01g000010.2N"})
 
-    chai.assert.isDefined(gene.orthogroups, 'orthogroups key is undefined')
+    chai.assert.isDefined(gene.orthogroup, 'orthogroup key is undefined')
 
-    const orthoId = gene.orthogroups._str
-    const orthos = orthogroupCollection.find({_id: new Mongo.ObjectID(orthoId)}).fetch();
+    const orthoId = gene.orthogroup.id
+
+    const orthos = orthogroupCollection.find({_id: orthoId}).fetch();
 
     chai.assert.lengthOf(orthos, 1, "No orthogroup data found")
 
@@ -75,7 +75,7 @@ describe('orthogroups', function testOrthogroups() {
 
     chai.assert.sameMembers(ortho.geneIds, ['BniB01g000010.2N'])
     chai.assert.equal(ortho.size, 84.5)
-
+    chai.assert.equal(ortho.name, 'OG0000001')
   });
 
 })

@@ -53,7 +53,7 @@ function NoOrthogroup({ showHeader }) {
 }
 
 function orthogroupDataTracker({ gene, ...props }) {
-  const orthogroupId = (typeof gene.orthogroups === 'undefined' ? undefined : gene.orthogroups._str);
+  const orthogroupId = (typeof gene.orthogroup === 'undefined' ? undefined : gene.orthogroup.id);
   const orthogroupSub = Meteor.subscribe('orthogroups', orthogroupId);
   const loading = !orthogroupSub.ready();
   const orthogroup = (typeof orthogroupId === 'undefined' ? undefined : orthogroupCollection.findOne({}));
@@ -118,12 +118,14 @@ function Orthogroup({ orthogroup, showHeader = false }) {
   let totalGenes = 0
 
   Object.values(orthogroup.genomes).map( genome => {
-    barData.datasets.push({
-      maxBarThickness: 100,
-      data:[genome.count],
-      label: genome.name == "unknown" ? "Unregistered genome": genome.name,
-      backgroundColor: [randomColor({seed: genome.name})]
-    })
+    if (genome.count > 0){
+      barData.datasets.push({
+        maxBarThickness: 100,
+        data:[genome.count],
+        label: genome.name == "unknown" ? "Unregistered genome": genome.name,
+        backgroundColor: [randomColor({seed: genome.name})]
+      })
+    }
     totalGenes += genome.count
   })
 
@@ -141,6 +143,7 @@ function Orthogroup({ orthogroup, showHeader = false }) {
   return (
     <div id="orthogroup">
       {showHeader && <Header />}
+      <b>{orthogroup.name}</b>
       <PhyloTree
         tree={orthogroup.tree}
         height={orthogroup.size * 15}
