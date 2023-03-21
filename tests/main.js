@@ -32,7 +32,7 @@ describe('genenotebook', function () {
     it('package.json has correct name', async function () {
       console.log('import package.json');
       const { name } = await import('../package.json');
-      chai.assert.strictEqual(name, 'genenotebook');
+      chai.assert.strictEqual(name, 'genoboo');
     });
   }
 });

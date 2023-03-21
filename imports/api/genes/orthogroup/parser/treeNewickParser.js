@@ -3,6 +3,7 @@ import { Genes } from '/imports/api/genes/geneCollection.js';
 import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
 import logger from '/imports/api/util/logger.js';
 import fs from 'fs';
+import path from 'path'
 
 /**
  * Read the newick trees, remove the prefixes from OrthoFinder and add the
