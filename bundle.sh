@@ -4,7 +4,7 @@ set -eox pipefail
 
 VERSION=$(jq -r '.version' package.json)
 
-BUNDLE_NAME="genenotebook_v$VERSION"
+BUNDLE_NAME="genoboo_v$VERSION"
 
 if [ -d $BUNDLE_NAME ]
 then
@@ -26,5 +26,5 @@ popd
 cp -r cli/* $BUNDLE_NAME
 jq ".version = $(jq .version package.json)" cli/package.json > \
   $BUNDLE_NAME/package.json
-cp -r tests/testdata.tgz $BUNDLE_NAME 
-cp -r LICENSE $BUNDLE_NAME 
+cp -r tests/testdata.tgz $BUNDLE_NAME
+cp -r LICENSE $BUNDLE_NAME

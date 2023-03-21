@@ -153,6 +153,11 @@ class NewickProcessor {
     // Read raw file.
     const treeNewick = fs.readFileSync(newick, 'utf8');
 
+    let name = path.parse(newick).name
+    if (name.endsWith('_tree')){
+      name = name.replace('_tree', '')
+    }
+
     // Parse the tree.
     const { tree, treeSize, geneIds, genomes, unknown } = await this.parseNewick(treeNewick, prefixes);
 
@@ -173,11 +178,12 @@ class NewickProcessor {
 
     // Add the orthogroups and link them to their genes.
     if (rmDuplicateGeneIDs.length !== 0) {
-      const documentOrthogroup = await orthogroupCollection.rawCollection().update(
+      const documentOrthogroup = await orthogroupCollection.update(
         { geneIds: { $in: rmDuplicateGeneIDs } }, // Selector.
         {
           $set: // Modifier.
           {
+            name: name,
             geneIds: rmDuplicateGeneIDs,
             tree: tree,
             size: treeSize,
@@ -191,41 +197,25 @@ class NewickProcessor {
       );
 
       // Increment orthogroups.
-      const nInsertUpdate = (typeof documentOrthogroup.upsertedCount !== 'undefined' ? documentOrthogroup.upsertedCount : 0);
-      this.nOrthogroups += nInsertUpdate;
+      this.nOrthogroups += documentOrthogroup;
 
-      // Update or insert orthogroupsId in genes collection.
-      if (typeof documentOrthogroup.insertedId !== 'undefined') {
-        this.genesDb.update(
-          { ID: { $in: rmDuplicateGeneIDs } }, // Selector.
+      const orthogroupIdentifiant = orthogroupCollection.findOne({ tree: tree })._id;
+      this.genesDb.update(
+        { ID: { $in: rmDuplicateGeneIDs } },
+        {
+          $set: // Modifier.
           {
-            $set: // Modifier.
-            {
-              orthogroups: documentOrthogroup.insertedId,
-            },
+            orthogroup: {
+              id: orthogroupIdentifiant,
+              name: name
+            }
           },
-          { // Options.
-            multi: true,
-            upsert: true,
-          },
-        );
-      } else {
-        const orthogroupIdentifiant = orthogroupCollection.findOne({ tree: tree })._id;
-        this.genesDb.update(
-          { ID: { $in: rmDuplicateGeneIDs } },
-          {
-            $set: // Modifier.
-            {
-              orthogroups: orthogroupIdentifiant,
-            },
-          },
-          { // Options.
-            multi: true,
-            upsert: true,
-          },
-        );
-
-      }
+        },
+        { // Options.
+          multi: true,
+          upsert: true,
+        },
+      );
     } else {
       logger.warn(
         'Orthogroup consists exclusively of genes not in the database',

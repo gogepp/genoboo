@@ -53,7 +53,7 @@ function NoOrthogroup({ showHeader }) {
 }
 
 function orthogroupDataTracker({ gene, ...props }) {
-  const orthogroupId = (typeof gene.orthogroups === 'undefined' ? undefined : gene.orthogroups._str);
+  const orthogroupId = (typeof gene.orthogroup === 'undefined' ? undefined : gene.orthogroup.id);
   const orthogroupSub = Meteor.subscribe('orthogroups', orthogroupId);
   const loading = !orthogroupSub.ready();
   const orthogroup = (typeof orthogroupId === 'undefined' ? undefined : orthogroupCollection.findOne({}));

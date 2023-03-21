@@ -1,15 +1,39 @@
-# GeneNoteBook Changelog
+# Genoboo Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
-## [Unreleased]
+## Unreleased (0.4.0)
+
+### Added
+
+- Add support for custom protein ids when integrating annotation
+- Add tests from the API side
+
+### Changed
+
+- Forked Genenotebook to Genoboo
+- Rewrote orthogroup integration (for better protein management + include orthogroup name)
+  - (Not compatible with previous version: need to re-integrate orthogroups)
+- Added Bar Plot for orthogroup content
+
+# Removed
+
+- API calls for PFAM in Eggnog display (pfam is deprecated)
+
+### Fixed
+
+- Various UI issues
+
+## [0.3.2] 2022-11-04
 
 ### Added
 
 - Support for additional InterproScan file formats (tsv, gff, xml)
+- EggNog annotations
+- BLAST/diamond alignment reading/visualizing
 
 ## [0.3.1] 2021-01-28
 

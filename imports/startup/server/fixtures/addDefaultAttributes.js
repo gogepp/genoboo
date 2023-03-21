@@ -17,11 +17,7 @@ const PERMANENT_ATTRIBUTES = [
   },
   {
     name: 'Orthogroup',
-    query: 'orthogroupId',
-  },
-  {
-    name: 'Protein domains',
-    query: 'subfeatures.protein_domains',
+    query: 'orthogroup.name',
   },
   {
     name: 'Gene ID',

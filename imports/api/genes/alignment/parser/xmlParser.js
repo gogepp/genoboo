@@ -212,4 +212,3 @@ class XmlProcessor {
 }
 
 export default XmlProcessor;
-
