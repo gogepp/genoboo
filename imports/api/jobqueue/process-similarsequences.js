@@ -50,7 +50,7 @@ jobQueue.processJobs(
 
       const lineProcessor = new PairwiseProcessor(program, algorithm, matrix, database);
 
-      for await (const line of rl) {
+      for await (const line of lineReader) {
           try {
             await lineProcessor.parse(line);
           } catch (error) {

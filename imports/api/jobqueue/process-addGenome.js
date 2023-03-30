@@ -164,7 +164,7 @@ jobQueue.processJobs(
 
     const lineProcessor = new LineProcessor({ genomeId, permission });
 
-    for await (const line of rl) {
+    for await (const line of lineReader) {
       processedBytes += line.length + 1; // also count \n
       processedLines += 1;
       if ((processedLines % 10000) === 0) {
