@@ -48,21 +48,18 @@ jobQueue.processJobs(
         job.fail({ err });
         callback();
       }
-    });
+    };
 
-    // Occurs when all lines are read.
-    rl.on('close', async () => {
-      try {
-        logger.log('File reading finished');
-        const { nMatched } = await lineProcessor.finalize();
-        const nInserted = nMatched;
-        logger.log(`Matched to ${nMatched} protein domain(s)`);
-        job.done({ nInserted });
-      } catch (err) {
-        logger.error(err);
-        job.fail({ err });
-      }
-      callback();
-    });
+    try {
+      logger.log('File reading finished');
+      const { nMatched } = await lineProcessor.finalize();
+      const nInserted = nMatched;
+      logger.log(`Matched to ${nMatched} protein domain(s)`);
+      job.done({ nInserted });
+    } catch (err) {
+      logger.error(err);
+      job.fail({ err });
+    }
+    callback();
   },
 );

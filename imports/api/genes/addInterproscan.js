@@ -15,7 +15,12 @@ class InterproscanProcessor {
     this.bulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
   }
 
-  finalize = () => this.bulkOp.execute();
+  finalize = () => {
+    if (this.bulkOp.length > 0){
+      return this.bulkOp.execute();
+    }
+    return { nMatched: 0 }
+  }
 }
 
 /**
@@ -47,12 +52,11 @@ const addInterproscan = new ValidatedMethod({
     // Continue with synchronous processing
     let { status } = job.doc;
     logger.debug(`Job status: ${status}`);
-    while (status !== 'completed') {
+    while ((status !== 'completed') && (status !== 'failed')) {
       const { doc } = job.refresh();
       status = doc.status;
     }
-
-    return { result: job.doc.result };
+    return { result: job.doc.result, jobStatus: status};
   },
 });
 
