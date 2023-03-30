@@ -84,7 +84,7 @@ const makeBlastDbJobTracker = ({ genomeId, isEditing }) => {
     status: { $ne: 'completed' },
   });
   // logger.log(job);
-  const hasJob = typeof job !== 'undefined' && job.status !== 'completed';
+  const hasJob = typeof job !== 'undefined' && job.status !== 'completed' && job.status !== 'failed';
   return {
     job,
     hasJob,

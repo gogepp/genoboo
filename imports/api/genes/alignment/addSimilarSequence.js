@@ -68,12 +68,11 @@ const addSimilarSequence = new ValidatedMethod({
 
     let { status } = job.doc;
     logger.debug(`Job status: ${status}`);
-    while (status !== 'completed') {
+    while ((status !== 'completed') && (status !== 'failed')) {
       const { doc } = job.refresh();
       status = doc.status;
     }
-
-    return { result: job.doc.result };
+    return { result: job.doc.result, jobStatus: status};
   },
 });
 
