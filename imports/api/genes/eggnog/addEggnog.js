@@ -110,7 +110,7 @@ class EggnogProcessor {
         // Update eggnogId in genes database.
         if (typeof documentEggnog.insertedId !== 'undefined') {
           // Eggnog _id is created.
-          this.genesDb.update({
+          return this.genesDb.update({
               $or: [
                 { 'subfeatures.ID': queryName },
                 { 'subfeatures.protein_id': queryName },
@@ -120,7 +120,7 @@ class EggnogProcessor {
         } else {
           // Eggnog already exists.
           const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName })._id;
-          this.genesDb.update(
+          return this.genesDb.update(
             { $or: [{'subfeatures.ID': queryName}, {'subfeatures.protein_id': queryName}] },
             { $set: { eggnogId: eggnogIdentifiant } },
           );

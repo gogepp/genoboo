@@ -34,7 +34,7 @@ jobQueue.processJobs(
 
     let lineNbr = 0;
 
-    rl.on('line', async (line) => {
+    for await (const line of rl) {
       lineNbr += 1;
 
       if (lineNbr % 10000 === 0) {
@@ -42,7 +42,7 @@ jobQueue.processJobs(
       }
 
       try {
-        lineProcessor.parse(line);
+        await lineProcessor.parse(line);
       } catch (err) {
         logger.error(err);
         job.fail({ err });
