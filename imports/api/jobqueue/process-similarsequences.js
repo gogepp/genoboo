@@ -50,27 +50,25 @@ jobQueue.processJobs(
 
       const lineProcessor = new PairwiseProcessor(program, algorithm, matrix, database);
 
-      lineReader.on('line', async (line) => {
-        try {
-          lineProcessor.parse(line);
-        } catch (error) {
-          logger.error(error);
-          job.fail({ error });
-          callback();
-        }
-      });
+      for await (const line of lineReader) {
+          try {
+            await lineProcessor.parse(line);
+          } catch (error) {
+            logger.error(error);
+            job.fail({ error });
+            callback();
+          }
+      };
 
-      lineReader.on('close', async () => {
-        try {
+      try {
           logger.log('File reading finished, start bulk insert');
           const { ok, writeErrors, nInserted, nUpserted } = await lineProcessor.lastPairwise();
           job.done({ ok, writeErrors, nInserted: nInserted + nUpserted });
-        } catch (error) {
+      } catch (error) {
           logger.error(error);
           job.fail({ error });
-        }
-        callback();
-      });
+      }
+      callback();
     }
   },
 );

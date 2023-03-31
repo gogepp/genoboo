@@ -78,7 +78,12 @@ const parseKallistoTsv = ({
           });
         }
       });
-      const bulkOpResult = bulkOp.execute();
+      let bulkOpResult
+      if (bulkOp.length > 0) {
+        bulkOpResult = bulkOp.execute();
+      } else {
+        bulkOpResult = { ok: "", writeErrors: "", nInserted: 0 };
+      }
       resolve(bulkOpResult);
     },
   });
