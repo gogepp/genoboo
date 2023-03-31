@@ -206,6 +206,8 @@ class XmlProcessor {
       }
       if (this.similarSeqBulkOp.length > 0) {
         return this.similarSeqBulkOp.execute();
+      } else {
+        return { ok:"", writeErrors:"", nInserted:0, nUpserted: 0 }
       }
     }
   };

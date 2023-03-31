@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.1] 2023-03-31
+
+### Fixed
+
+- Fixed several async issues when loading data (interproscan, genome, alignment) (issue with 'on' on LineReader)
+- Improper management of errors in CLI (process left hanging)
+- Better management of bulkOp when empty
+
 ## [0.4.0] 2023-03-21
 
 ### Added
