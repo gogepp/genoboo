@@ -116,7 +116,7 @@ class AnnotationProcessor {
       if (this.verbose) {
         logger.warn('The line does not have the gff3 ID attribute:');
       }
-      if (!Object.prototype.hasOwnProperty.call(attributesGff, 'Parent')) {
+      if (Object.prototype.hasOwnProperty.call(attributesGff, 'Parent')) {
         return attributesGff.Parent[0];
       }
       throw new Error('Impossible to give ID or Parent attribute.');

@@ -90,7 +90,7 @@ class EggnogProcessor {
 
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
-      const subfeatureIsFound = this.genesDb.findOne({
+      const subfeatureIsFound = Genes.findOne({
           $or: [
             { 'subfeatures.ID': queryName },
             { 'subfeatures.protein_id': queryName },
