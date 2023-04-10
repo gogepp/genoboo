@@ -116,7 +116,7 @@ class AnnotationProcessor {
       if (this.verbose) {
         logger.warn('The line does not have the gff3 ID attribute:');
       }
-      if (!Object.prototype.hasOwnProperty.call(attributesGff, 'Parent')) {
+      if (Object.prototype.hasOwnProperty.call(attributesGff, 'Parent')) {
         return attributesGff.Parent[0];
       }
       throw new Error('Impossible to give ID or Parent attribute.');
@@ -419,7 +419,7 @@ class AnnotationProcessor {
         start: features.start,
         end: features.end,
         phase: phaseAttr,
-        score: features.score,
+        score: features.score.toString(),
         parents: parentsAttributes,
         attributes: filteredAttr,
         seq: sequence,
@@ -499,7 +499,7 @@ class AnnotationProcessor {
         type: typeGff,
         start: Number(startGff),
         end: Number(endGff),
-        score: _scoreGff,
+        score: _scoreGff.toString(),
         strand: strandGff,
         phase: phaseGff,
         attributes: attributesGff,
