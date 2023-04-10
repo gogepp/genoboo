@@ -32,6 +32,9 @@ class XmlProcessor {
     if (Array.isArray(obj)){
       return obj
     }
+    if (typeof obj == 'undefined'){
+      return []
+    }
     return [obj]
   }
 

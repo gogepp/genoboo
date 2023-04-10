@@ -13,6 +13,10 @@ import { Meteor } from 'meteor/meteor';
 class InterproscanProcessor {
   constructor() {
     this.bulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
+    this.currentProt = ""
+    this.currentContent = []
+    this.currentDB = []
+    this.currentOnto = []
   }
 
   finalize = () => {
@@ -20,6 +24,15 @@ class InterproscanProcessor {
       return this.bulkOp.execute();
     }
     return { nMatched: 0 }
+  }
+
+  addToBulk = () => {
+    let dbUpdate = {$addToSet: {
+      'subfeatures.$[subfeature].protein_domains': {$each: this.currentContent},
+      'attributes.Dbxref': {$each: this.currentDB},
+      'attributes.Ontology_term': {$each: this.currentOnto}
+    }}
+    this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": this.currentProt}, {"ID": this.currentProt}]} }}).update(dbUpdate);
   }
 }
 

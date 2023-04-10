@@ -21,14 +21,23 @@ class ParseTsvFile extends InterproscanProcessor {
       pathwaysAnnotations, // Dbxref (gff3)
     ] = line.split('\t');
 
-    const dbUpdate = { $addToSet: {} };
+    // Finish bulk is protein changes
+    if (seqid !== this.currentProt){
+      if (seqid !== ""){
+        this.addToBulk()
+      }
+      this.currentProt = seqid
+      this.currentContent = []
+      this.currentDB = []
+      this.currentOnto = []
+    }
 
     const proteinDomain = {
       start, end: stop, source: analysis, score, name: signatureAccession,
     };
 
-    const ontologyTerm = (goAnnotation === undefined ? '' : goAnnotation.split('|'));
-    const Dbxref = (pathwaysAnnotations === undefined ? '' : pathwaysAnnotations.split('|'));
+    const ontologyTerm = (goAnnotation === undefined ? [] : goAnnotation.split('|'));
+    const Dbxref = [];
 
     if (interproAccession.length && interproAccession !== '-') {
       const interproscanLabel = ''.concat('InterPro:', interproAccession);
@@ -42,21 +51,16 @@ class ParseTsvFile extends InterproscanProcessor {
       proteinDomain.signature_desc = signatureDescription;
     }
 
-    if (Dbxref.length && Dbxref !== '-') {
+    if (Dbxref.length && Dbxref !== ['-']) {
       proteinDomain.Dbxref = Dbxref;
-      dbUpdate.$addToSet['attributes.Dbxref'] = { $each: Dbxref };
+      this.currentDB = this.currentDB.concat(Dbxref)
     }
 
     if (ontologyTerm.length && ontologyTerm !== '-') {
       proteinDomain.Ontology_term = ontologyTerm;
-      dbUpdate.$addToSet['attributes.Ontology_term'] = {
-        $each: ontologyTerm,
-      };
+      this.currentOnto = this.currentOnto.concat(ontologyTerm)
     }
-
-    dbUpdate.$addToSet['subfeatures.$[].protein_domains'] = proteinDomain;
-    // Wow, I hate this query, but it seems to be the only way to use a positional operator with an $or clause
-    this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": seqId}, {"ID": seqId}]} }}).update(dbUpdate);
+    this.currentContent.push(proteinDomain)
   };
 }
 
