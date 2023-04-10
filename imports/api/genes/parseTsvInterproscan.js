@@ -1,4 +1,5 @@
 import { InterproscanProcessor } from '/imports/api/genes/addInterproscan.js';
+import { Genes } from '/imports/api/genes/geneCollection.js';
 import logger from '/imports/api/util/logger.js';
 
 class ParseTsvFile extends InterproscanProcessor {
@@ -26,10 +27,21 @@ class ParseTsvFile extends InterproscanProcessor {
       if (seqid !== ""){
         this.addToBulk()
       }
+
       this.currentProt = seqid
+      this.currentGene = ""
+      gene = Genes.findOne({ $or: [{'subfeatures.ID': seqid}, {'subfeatures.protein_id': seqid}] });
+      if (typeof gene !== "undefined"){
+        this.currentGene = gene.ID
+      }
+
       this.currentContent = []
       this.currentDB = []
       this.currentOnto = []
+    }
+
+    if (this.currentGene == ""){
+      return
     }
 
     const proteinDomain = {

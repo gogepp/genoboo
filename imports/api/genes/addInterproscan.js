@@ -1,6 +1,7 @@
 import jobQueue, { Job } from '/imports/api/jobqueue/jobqueue.js';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { Genes } from '/imports/api/genes/geneCollection.js';
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
 import logger from '/imports/api/util/logger.js';
 import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
@@ -12,8 +13,9 @@ import { Meteor } from 'meteor/meteor';
  */
 class InterproscanProcessor {
   constructor() {
-    this.bulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
+    this.bulkOp = interproscanCollection.rawCollection().initializeUnorderedBulkOp();
     this.currentProt = ""
+    this.currentGene = ""
     this.currentContent = []
     this.currentDB = []
     this.currentOnto = []
@@ -27,12 +29,20 @@ class InterproscanProcessor {
   }
 
   addToBulk = () => {
-    let dbUpdate = {$addToSet: {
-      'subfeatures.$[subfeature].protein_domains': {$each: this.currentContent},
-      'attributes.Dbxref': {$each: this.currentDB},
-      'attributes.Ontology_term': {$each: this.currentOnto}
-    }}
-    this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": this.currentProt}, {"ID": this.currentProt}]} }}).update(dbUpdate);
+    this.bulkOp.find({
+      geneId: this.currentGene,
+    }).upsert().update(
+      {
+        $set: {
+          geneId: this.currentGene,
+          protein_domains: this.currentConten
+        },
+      },
+      {
+        upsert: false,
+        multi: true,
+      },
+    );
   }
 }
 

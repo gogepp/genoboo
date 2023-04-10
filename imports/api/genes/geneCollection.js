@@ -80,6 +80,7 @@ const SubfeatureSchema = new SimpleSchema(
     protein_id: {
       type: String,
       optional: true,
+      index: true,
       label: 'Linked protein ID for mRNA',
     },
     phase: {
