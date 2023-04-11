@@ -18,6 +18,6 @@ const interproscanSchema = new SimpleSchema({
   },
 });
 
-const interproscanCollection = new Mongo.Collection('alignment');
+const interproscanCollection = new Mongo.Collection('interproscan');
 
 export { interproscanCollection, interproscanSchema };

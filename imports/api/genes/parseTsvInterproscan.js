@@ -23,14 +23,14 @@ class ParseTsvFile extends InterproscanProcessor {
     ] = line.split('\t');
 
     // Finish bulk is protein changes
-    if (seqid !== this.currentProt){
-      if (seqid !== ""){
+    if (seqId !== this.currentProt){
+      if (seqId !== ""){
         this.addToBulk()
       }
 
-      this.currentProt = seqid
+      this.currentProt = seqId
       this.currentGene = ""
-      gene = Genes.findOne({ $or: [{'subfeatures.ID': seqid}, {'subfeatures.protein_id': seqid}] });
+      let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
       if (typeof gene !== "undefined"){
         this.currentGene = gene.ID
       }
@@ -68,7 +68,7 @@ class ParseTsvFile extends InterproscanProcessor {
       this.currentDB = this.currentDB.concat(Dbxref)
     }
 
-    if (ontologyTerm.length && ontologyTerm !== '-') {
+    if (ontologyTerm.length && ontologyTerm !== ['-']) {
       proteinDomain.Ontology_term = ontologyTerm;
       this.currentOnto = this.currentOnto.concat(ontologyTerm)
     }

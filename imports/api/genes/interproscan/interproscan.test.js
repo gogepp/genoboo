@@ -7,6 +7,7 @@ import { addTestUsers, addTestGenome } from '/imports/startup/server/fixtures/ad
 import { genomeCollection, genomeSequenceCollection } from '/imports/api/genomes/genomeCollection.js';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { resetDatabase } from 'meteor/xolvio:cleaner';
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
 
 import addInterproscan from '../addInterproscan.js';
 
@@ -58,9 +59,13 @@ describe('interproscan', function testInterproscan() {
 
     const gene = Genes.findOne({ID: "BniB01g000010.2N"})
 
-    chai.assert.isDefined(gene.subfeatures[0].protein_domains, 'protein_domains key is undefined')
+    chai.assert.deepEqual(gene.attributes.Dbxref, [ 'InterPro:1236' ])
+    chai.assert.deepEqual(gene.attributes.Ontology_term, [ 'GO:1238' ])
 
-    const protein_domains = gene.subfeatures[0].protein_domains
+    const interpros = interproscanCollection.find({geneId: "BniB01g000010.2N"}).fetch();
+    chai.assert.lengthOf(interpros, 1, "No Interpro document found")
+
+    const protein_domains = interpros[0].protein_domains
 
     chai.assert.lengthOf(protein_domains, 2, "Did not find 2 protein domains")
 
@@ -71,7 +76,7 @@ describe('interproscan', function testInterproscan() {
     chai.assert.equal(firstProtein.source, 'Gene3D')
     chai.assert.equal(firstProtein.score, '1.2E-59')
     chai.assert.equal(firstProtein.name, 'G3DSA:1.10.510.10')
-    chai.assert.equal(firstProtein.interproId, 'Unintegrated signature')
+    chai.assert.equal(firstProtein.interproId, '1236')
 
   });
 

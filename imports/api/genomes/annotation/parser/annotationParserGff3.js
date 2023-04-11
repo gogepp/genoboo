@@ -519,6 +519,16 @@ class AnnotationProcessor {
           // Increment.
           this.nAnnotation += 1;
 
+	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+            if(typeof children.protein_id === 'undefined'){
+              return []
+            } else {
+              return children.protein_id
+            }
+          })
+
+          this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
+
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy);
 
@@ -552,6 +562,17 @@ class AnnotationProcessor {
 
     // Increment.
     this.nAnnotation += 1;
+
+    // Add protein_id to gene children
+    const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+      if(typeof children.protein_id === 'undefined'){
+        return []
+      } else {
+        return children.protein_id
+      }
+    })
+
+    this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
 
     // Add to bulk operation.
     this.geneBulkOperation.insert(this.geneLevelHierarchy);

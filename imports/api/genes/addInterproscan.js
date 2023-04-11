@@ -14,6 +14,7 @@ import { Meteor } from 'meteor/meteor';
 class InterproscanProcessor {
   constructor() {
     this.bulkOp = interproscanCollection.rawCollection().initializeUnorderedBulkOp();
+    this.geneBulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
     this.currentProt = ""
     this.currentGene = ""
     this.currentContent = []
@@ -22,8 +23,21 @@ class InterproscanProcessor {
   }
 
   finalize = () => {
+    // Add last bulk
+    if (this.currentProt !== ""){
+      this.addToBulk()
+    }
+
     if (this.bulkOp.length > 0){
       return this.bulkOp.execute();
+    }
+    return { nMatched: 0 }
+  }
+
+  updateGenes = () => {
+    // Update genes with dbxref and Ontology
+    if (this.geneBulkOp.length > 0){
+      return this.geneBulkOp.execute();
     }
     return { nMatched: 0 }
   }
@@ -35,7 +49,7 @@ class InterproscanProcessor {
       {
         $set: {
           geneId: this.currentGene,
-          protein_domains: this.currentConten
+          protein_domains: this.currentContent
         },
       },
       {
@@ -43,6 +57,15 @@ class InterproscanProcessor {
         multi: true,
       },
     );
+
+    if (this.currentDB != [] || this.currentOnto != []){
+      this.geneBulkOp.find({ID: this.currentGene}).update({
+        $addToSet: {
+          'attributes.Ontology_term': { $each: this.currentOnto },
+          'attributes.Dbxref': { $each: this.currentDB }
+        }
+      });
+    }
   }
 }
 
