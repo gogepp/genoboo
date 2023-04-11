@@ -48,7 +48,28 @@ class ParseGff3File extends InterproscanProcessor {
       if (this.isProteinMatch(type)) {
         const attributes = this.parseAllAttributes(attributeString);
         if (attributes) {
-          const dbUpdate = { $addToSet: {} };
+
+          // Add to bulk if protein changes
+          if (seqId !== this.currentProt){
+            if (seqId !== ""){
+              this.addToBulk()
+            }
+
+            this.currentProt = seqId
+            this.currentGene = ""
+            let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
+            if (typeof gene !== "undefined"){
+              this.currentGene = gene.ID
+            }
+
+            this.currentContent = []
+            this.currentDB = []
+            this.currentOnto = []
+          }
+
+          if (this.currentGene == ""){
+            return
+          }
 
           const {
             Name,
@@ -83,17 +104,15 @@ class ParseGff3File extends InterproscanProcessor {
 
           if (Dbxref.length) {
             proteinDomain.Dbxref = Dbxref;
-            dbUpdate.$addToSet['attributes.Dbxref'] = { $each: Dbxref };
+            this.currentDB = this.currentDB.concat(Dbxref)
           }
 
           if (OntologyTerm.length) {
             proteinDomain.Ontology_term = OntologyTerm;
-            dbUpdate.$addToSet['attributes.Ontology_term'] = {
-              $each: OntologyTerm,
-            };
+            this.currentOnto = this.currentOnto.concat(OntologyTerm)
           }
-          dbUpdate.$addToSet['subfeatures.$[subfeature].protein_domains'] = proteinDomain;
-          this.bulkOp.find({}).arrayFilters([{ $or: [{"subfeature.protein_id": seqId}, {"subfeature.ID": seqId}]}]).update(dbUpdate);
+
+          this.currentContent.push(proteinDomain)
         }
       }
     }

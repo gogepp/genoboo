@@ -6,6 +6,10 @@ const interproscanSchema = new SimpleSchema({
     type: String,
     label: 'Linked gene ID',
   },
+  proteinId: {
+    type: String,
+    label: 'Linked protein ID',
+  },
   protein_domains: {
     type: Array,
     label: 'Interproscan protein domains',

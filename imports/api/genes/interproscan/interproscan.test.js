@@ -105,11 +105,10 @@ describe('interproscan', function testInterproscan() {
 
     let result = addInterproscan._execute(adminContext, interproParams);
 
-    const gene = Genes.findOne({ID: "BniB01g000010.2N"})
+    const interpros = interproscanCollection.find({geneId: "BniB01g000010.2N"}).fetch();
+    chai.assert.lengthOf(interpros, 1, "No Interpro document found")
 
-    chai.assert.isDefined(gene.subfeatures[0].protein_domains, 'protein_domains key is undefined')
-
-    const protein_domains = gene.subfeatures[0].protein_domains
+    const protein_domains = interpros[0].protein_domains
 
     chai.assert.lengthOf(protein_domains, 2, "Did not find 2 protein domains")
 

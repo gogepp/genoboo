@@ -5,6 +5,8 @@ import { groupBy } from 'lodash';
 import ReactResizeDetector from 'react-resize-detector';
 import randomColor from 'randomcolor';
 
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
+import { withTracker } from 'meteor/react-meteor-data';
 import { getGeneSequences } from '/imports/api/util/util.js';
 
 import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
@@ -80,96 +82,6 @@ function XAxis({
     </g>
   );
 }
-
-/*
-function DomainPopover({
-  showPopover, targetId, togglePopover, ...domain
-}) {
-  const {
-    start, end, score, name, Dbxref = [], Ontology_term = [],
-    signature_desc, source,
-  } = domain;
-  return (
-    <Popover
-      placement="top"
-      isOpen={showPopover}
-      target={targetId}
-      toggle={togglePopover}
-    >
-      <PopoverHeader>
-        {source}
-        {' '}
-        <small className="text-muted">{ name }</small>
-      </PopoverHeader>
-      <PopoverBody className="px-0 py-0">
-        <div className="table-responive">
-          <table className="table table-hover">
-            <tbody>
-              {
-              signature_desc
-              && (
-              <tr>
-                <td>Signature description</td>
-                <td>{signature_desc}</td>
-              </tr>
-              )
-            }
-              <tr>
-                <td>Coordinates</td>
-                <td>
-                  {`${start}..${end}`}
-                </td>
-              </tr>
-              <tr>
-                <td>Score</td>
-                <td>{score}</td>
-              </tr>
-              {
-              Dbxref.length > 0
-              && (
-              <tr>
-                <td>Dbxref</td>
-                <td>
-                  <ul>
-                    {
-                      Dbxref.map((xref) => (
-                        <li key={xref}>
-                          { xref }
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </td>
-              </tr>
-              )
-            }
-              {
-              Ontology_term.length > 0
-              && (
-              <tr>
-                <td>Ontology term</td>
-                <td>
-                  <ul>
-                    {
-                      Ontology_term.map((term) => (
-                        <li key={term}>
-                          { term }
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </td>
-              </tr>
-              )
-            }
-            </tbody>
-          </table>
-        </div>
-      </PopoverBody>
-    </Popover>
-  );
-}
-*/
 
 function ProteinDomain({
   interproId, start, end, name, domainIndex, scale, Dbxref = [], Ontology_term = [], signature_desc, source, score,
@@ -338,11 +250,8 @@ function sortGroups(groupA, groupB) {
   return startA - startB;
 }
 
-function hasNoProteinDomains({ gene }) {
-  const transcripts = gene.subfeatures.filter((sub) => sub.type === 'mRNA');
-  const proteinDomains = transcripts.filter((transcript) => typeof transcript.protein_domains !== 'undefined');
-
-  return proteinDomains.length === 0;
+function hasNoProteinDomains({ proteinDomains }) {
+  return typeof proteinDomains === 'undefined';
 }
 
 function Header() {
@@ -367,7 +276,29 @@ function NoProteinDomains({ showHeader }) {
   );
 }
 
+function InterproDataTracker({ gene }) {
+  const interproSub = Meteor.subscribe('interpro');
+  const loading = !interproSub.ready();
+
+  /**
+   * iteration_query in the alignment collection can take the value of a gene
+   * identifier or be a child of the gene.
+   */
+  const proteinDomains = (
+    typeof gene.ID === 'undefined'
+      ? undefined
+      : interproscanCollection.find({geneId: gene.ID})
+  );
+
+  return {
+    loading,
+    gene,
+    proteinDomains,
+  };
+}
+
 function ProteinDomains({
+  proteinDomains,
   gene,
   showHeader = false,
   resizable = false,
@@ -377,26 +308,47 @@ function ProteinDomains({
 
   // get sequence to determine length
   const sequences = getGeneSequences(gene);
-  // interproscan results should be on transcripts
-  const transcripts = gene.subfeatures.filter((sub) => sub.type == 'mRNA');
-  // pick transcript with annotated protein domains
-  const transcript = transcripts.filter((tr) => (
-    typeof tr.protein_domains !== 'undefined'))[0];
-  const transcriptSequence = sequences.filter((seq) => seq.ID === transcript.ID)[0];
-  const transcriptSize = transcriptSequence.prot.length;
 
-  const interproGroups = Object.entries(groupBy(transcript.protein_domains,
-    'interproId')).sort(sortGroups);
-  const totalGroups = interproGroups.length;
-  const totalDomains = 0;
-  /*
-  const sortedDomains = interproGroups.map((domainGroup) => {
-    const [interproId, domains] = domainGroup;
-    const sourceGroups = Object.entries(groupBy(domains, 'name'));
-    totalDomains += sourceGroups.length;
-    return sourceGroups;
-  });
-  */
+  let totalGroups = 0;
+  let totalProteins = 0;
+  let currentTranslate = 0
+
+  let content = proteinDomains.map(domain => {
+    totalProteins += 1
+    let domainCount = 0
+    let size = sequences.filter((seq) => (seq.ID === domain.proteinId || seq.proteinId === domain.proteinId))[0].prot.length;
+    let interproGroups = Object.entries(groupBy(domain.protein_domains,
+      'interproId')).sort(sortGroups);
+    totalGroups += interproGroups.length;
+    let proteinContent = interproGroups.map((interproGroup, index) => {
+      const [interproId, domains] = interproGroup;
+      const sourceGroups = groupBy(domains, 'name');
+      const yTransform = ((index + 1) * 30) + (domainCount * 10);
+      const transform = `translate(0,${yTransform})`;
+      domainCount += Object.entries(sourceGroups).length;
+      return (
+        <InterproGroup
+          key={interproId}
+          interproId={interproId}
+          sourceGroups={sourceGroups}
+          transform={transform}
+          scale={scale}
+        />
+      );
+    })
+
+    let data =  (
+      <>
+      <XAxis scale={scale} numTicks={5} transform="translate(0,{10 + currentTranslate})" seqid={domain.protein_id}/>
+      <g className="domains" transform="translate(0,{40 + currentTranslate})">
+      {proteinContent}
+      </g>
+      </>
+    )
+
+    currentTranslate = (totalGroups * 30) + (40 * totalProteins);
+    return data
+  })
 
   const margin = {
     top: 10,
@@ -411,43 +363,17 @@ function ProteinDomains({
   };
 
   const svgWidth = width - margin.left - margin.right;
-  const svgHeight = (totalGroups * 30) + (totalDomains * 10)
-    + margin.top + margin.bottom + 40;
+  const svgHeight = (totalGroups * 30)
+    + margin.top + margin.bottom + (40 * totalProteins);
   const scale = scaleLinear()
     .domain([0, transcriptSize])
     .range([0, svgWidth]);
-  let domainCount = 0;
   return (
     <>
       { showHeader && <Header /> }
       <div className="card protein-domains">
         <svg width={svgWidth} height={svgHeight} style={style}>
-          <XAxis
-            scale={scale}
-            numTicks={5}
-            transform="translate(0,10)"
-            seqid={transcript.ID}
-          />
-          <g className="domains" transform="translate(0,40)">
-            {
-              interproGroups.map((interproGroup, index) => {
-                const [interproId, domains] = interproGroup;
-                const sourceGroups = groupBy(domains, 'name');
-                const yTransform = ((index + 1) * 30) + (domainCount * 10);
-                const transform = `translate(0,${yTransform})`;
-                domainCount += Object.entries(sourceGroups).length;
-                return (
-                  <InterproGroup
-                    key={interproId}
-                    interproId={interproId}
-                    sourceGroups={sourceGroups}
-                    transform={transform}
-                    scale={scale}
-                  />
-                );
-              })
-            }
-          </g>
+          {content}
         </svg>
         {resizable && (
           <ReactResizeDetector
@@ -461,5 +387,6 @@ function ProteinDomains({
 }
 
 export default compose(
+  withTracker(InterproDataTracker),
   branch(hasNoProteinDomains, NoProteinDomains),
 )(ProteinDomains);

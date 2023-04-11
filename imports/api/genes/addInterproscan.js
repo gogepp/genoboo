@@ -43,20 +43,23 @@ class InterproscanProcessor {
   }
 
   addToBulk = () => {
-    this.bulkOp.find({
-      geneId: this.currentGene,
-    }).upsert().update(
-      {
-        $set: {
-          geneId: this.currentGene,
-          protein_domains: this.currentContent
+    if (this.currentContent.length > 0){
+      this.bulkOp.find({
+        geneId: this.currentGene,
+      }).upsert().update(
+        {
+          $set: {
+            geneId: this.currentGene,
+            proteinId: this.currentProt,
+            protein_domains: this.currentContent
+          },
         },
-      },
-      {
-        upsert: false,
-        multi: true,
-      },
-    );
+        {
+          upsert: false,
+          multi: true,
+        },
+      );
+    }
 
     if (this.currentDB != [] || this.currentOnto != []){
       this.geneBulkOp.find({ID: this.currentGene}).update({
