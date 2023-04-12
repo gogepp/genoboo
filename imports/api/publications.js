@@ -175,16 +175,23 @@ Meteor.publish({
       $or: [{ permission: { $in: roles } }, { isPublic: true }],
     });
   },
-  eggnog() {
-    const eggnog = eggnogCollection.find({});
+  eggnog(query) {
+    const eggnog = eggnogCollection.find({_id: query});
     return eggnog;
   },
-  alignment(query) {
-    const diamond = similarSequencesCollection.find({ iteration_query: query });
+  alignment(gene) {
+    const diamond = similarSequencesCollection.find(
+      {
+        $or: [
+          { iteration_query: gene.ID },
+          { iteration_query: { $in: gene.children } },
+        ],
+      },
+    );
     return diamond;
   },
-  interpro(){
-    return interproscanCollection.find({})
+  interpro(query){
+    return interproscanCollection.find({geneId: query})
   },
   orthogroups(ID) {
     return orthogroupCollection.find({ _id: ID });

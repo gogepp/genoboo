@@ -34,11 +34,10 @@ function NoEggnog({ showHeader }) {
 }
 
 function eggnogDataTracker({ gene }) {
-  const eggnogId = Genes.findOne({ ID: gene.ID }).eggnogId;
-
-  const eggnogSub = Meteor.subscribe('eggnog');
+  const eggnogSub = Meteor.subscribe('eggnog', gene.eggnogId);
   const loading = !eggnogSub.ready();
-  const eggnog = eggnogCollection.findOne({ _id: eggnogId });
+  const eggnog = eggnogCollection.findOne({});
+  console.log(eggnog)
 
   return {
     loading,

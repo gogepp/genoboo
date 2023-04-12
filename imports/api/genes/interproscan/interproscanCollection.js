@@ -4,6 +4,7 @@ import { Mongo } from 'meteor/mongo';
 const interproscanSchema = new SimpleSchema({
   geneId: {
     type: String,
+    index: true,
     label: 'Linked gene ID',
   },
   proteinId: {

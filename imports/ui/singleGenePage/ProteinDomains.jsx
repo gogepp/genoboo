@@ -277,18 +277,10 @@ function NoProteinDomains({ showHeader }) {
 }
 
 function InterproDataTracker({ gene }) {
-  const interproSub = Meteor.subscribe('interpro');
+  const interproSub = Meteor.subscribe('interpro', gene.ID);
   const loading = !interproSub.ready();
 
-  /**
-   * iteration_query in the alignment collection can take the value of a gene
-   * identifier or be a child of the gene.
-   */
-  const proteinDomains = (
-    typeof gene.ID === 'undefined'
-      ? undefined
-      : interproscanCollection.find({geneId: gene.ID})
-  );
+  const proteinDomains = interproscanCollection.find({}).fetch()
 
   return {
     loading,
@@ -312,43 +304,7 @@ function ProteinDomains({
   let totalGroups = 0;
   let totalProteins = 0;
   let currentTranslate = 0
-
-  let content = proteinDomains.map(domain => {
-    totalProteins += 1
-    let domainCount = 0
-    let size = sequences.filter((seq) => (seq.ID === domain.proteinId || seq.proteinId === domain.proteinId))[0].prot.length;
-    let interproGroups = Object.entries(groupBy(domain.protein_domains,
-      'interproId')).sort(sortGroups);
-    totalGroups += interproGroups.length;
-    let proteinContent = interproGroups.map((interproGroup, index) => {
-      const [interproId, domains] = interproGroup;
-      const sourceGroups = groupBy(domains, 'name');
-      const yTransform = ((index + 1) * 30) + (domainCount * 10);
-      const transform = `translate(0,${yTransform})`;
-      domainCount += Object.entries(sourceGroups).length;
-      return (
-        <InterproGroup
-          key={interproId}
-          interproId={interproId}
-          sourceGroups={sourceGroups}
-          transform={transform}
-          scale={scale}
-        />
-      );
-    })
-
-    let data =  (
-      <>
-      <XAxis scale={scale} numTicks={5} transform="translate(0,{10 + currentTranslate})" seqid={domain.protein_id}/>
-      <g className="domains" transform="translate(0,{40 + currentTranslate})">
-      {proteinContent}
-      </g>
-      </>
-    )
-
-    currentTranslate = (totalGroups * 30) + (40 * totalProteins);
-    return data
-  })
+  let maxTranscriptSize = 0
 
   const margin = {
     top: 10,
@@ -363,11 +319,59 @@ function ProteinDomains({
   };
 
   const svgWidth = width - margin.left - margin.right;
+
+  let content = proteinDomains.map(domain => {
+
+    totalProteins += 1
+    let domainCount = 0
+
+    let seq = sequences.filter((seq) => (seq.ID === domain.proteinId || seq.protein_id === domain.proteinId))[0]
+    let size = seq.prot.length;
+    const scale = scaleLinear()
+      .domain([0, size])
+      .range([0, svgWidth]);
+
+    let interproGroups = Object.entries(groupBy(domain.protein_domains,
+      'interproId')).sort(sortGroups);
+    totalGroups += interproGroups.length;
+
+    let proteinContent = interproGroups.map((interproGroup, index) => {
+      const [interproId, domains] = interproGroup;
+      const sourceGroups = groupBy(domains, 'name');
+      const yTransform = ((index + 1) * 30) + (domainCount * 10);
+      const transform = `translate(0,${yTransform})`;
+
+      domainCount += Object.entries(sourceGroups).length;
+
+      return (
+        <InterproGroup
+          key={interproId}
+          interproId={interproId}
+          sourceGroups={sourceGroups}
+          transform={transform}
+          scale={scale}
+        />
+      );
+    })
+
+    let axisTransform = `translate(0,${10 + currentTranslate})`     
+    let gTransform = `translate(0,${40 + currentTranslate})`
+
+    let data = (
+      <>
+      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.protein_id}/>
+      <g className="domains" transform={gTransform}>
+      {proteinContent}
+      </g>
+      </>
+    )
+
+    currentTranslate = (totalGroups * 30) + (40 * totalProteins);
+    return data
+  })
+
   const svgHeight = (totalGroups * 30)
     + margin.top + margin.bottom + (40 * totalProteins);
-  const scale = scaleLinear()
-    .domain([0, transcriptSize])
-    .range([0, svgWidth]);
   return (
     <>
       { showHeader && <Header /> }
