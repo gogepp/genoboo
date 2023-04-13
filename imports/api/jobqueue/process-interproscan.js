@@ -52,9 +52,11 @@ jobQueue.processJobs(
 
     try {
       logger.log('File reading finished');
-      const { nMatched } = await lineProcessor.finalize();
-      const nInserted = nMatched;
-      logger.log(`Matched to ${nMatched} protein domain(s)`);
+      const { nUpserted } = await lineProcessor.finalize();
+      const nInserted = nUpserted;
+      logger.log(`Matched to ${nInserted} protein domain(s)`);
+      logger.log("Updating related genes")
+      await lineProcessor.updateGenes()
       job.done({ nInserted });
     } catch (err) {
       logger.error(err);

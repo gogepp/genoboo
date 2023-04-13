@@ -5,12 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
-## [0.4.2] 2023-04-07
+## [0.4.2] 2023-04-13
 
 ### Fixed
 
-- Fixed an issue with annotations files
+- Fixed an issue with annotations files (numerical score values)
 - Fixed eggnog integration
+- Fixed an issue with publications (stopped loading all interpro / eggnog data)
+- Fixed an issue with blast xml loader
+
+### Changed
+
+- Moved Interpro data to dedicated collection
+- Allow multiple blast / interpro results for the same gene (one for each protein)
+- Removed wrong link for Unintegrated interpro data
+- Disabled Kegg api call (for now)
+- Only integrate Interpro & GO DBxref for now
 
 ## [0.4.1] 2023-03-31
 

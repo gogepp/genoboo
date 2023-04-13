@@ -101,10 +101,10 @@ function NoGenomes() {
         <article className="message is-info" role="alert">
           <div className="message-body">
             No public genomes are available.&nbsp;
-            <Link to="/login">
+            {/*<Link to="/login">
               Sign in
             </Link>
-            &nbsp;to access private data.
+            &nbsp;to access private data.*/}
           </div>
         </article>
       )
@@ -136,6 +136,7 @@ function LandingPage() {
           !Meteor.userId()
           && (
           <div className="buttons are-small" role="group">
+            {/*
             <Link to="/register" className="button is-success">
               <span className="icon-user-add" aria-hidden="true" />
               &nbsp;Create account
@@ -144,6 +145,7 @@ function LandingPage() {
               <span className="icon-login" aria-hidden="true" />
               &nbsp;Sign in
             </Link>
+            */}
             <a href="http://genenotebook.github.io/" className="button is-dark is-outlined">
               <span className="icon-github" aria-hidden="true" />
               &nbsp;About GeneNotebook

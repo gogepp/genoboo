@@ -62,11 +62,13 @@ const LoggedInButtonWithTracker = withTracker(adminTracker)(LoggedInButton);
 function LoggedOutButton() {
   return (
     <div className="navbar-item">
+      {/*
       <Link to="/login" className="button is-small is-link" id="signin">
         <span className="icon-login" aria-hidden="true" />
       &nbsp;Sign in
       </Link>
-    </div>
+     */}
+    </div> 
   );
 }
 

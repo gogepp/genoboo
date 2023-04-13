@@ -82,11 +82,11 @@ class AnnotationProcessor {
    * returns {String} - Returns the ID if it exists
    */
   getCDSProtein = (filteredAttr) => {
-    let proteinId
+    let protein_id
     if (typeof filteredAttr[this.attr_protein] !== 'undefined'){
-    	proteinId = filteredAttr[this.attr_protein][0]
+    	protein_id = filteredAttr[this.attr_protein][0]
     }
-    return proteinId
+    return protein_id
   };
 
 
@@ -419,7 +419,7 @@ class AnnotationProcessor {
         start: features.start,
         end: features.end,
         phase: phaseAttr,
-        score: features.score,
+        score: features.score.toString(),
         parents: parentsAttributes,
         attributes: filteredAttr,
         seq: sequence,
@@ -499,7 +499,7 @@ class AnnotationProcessor {
         type: typeGff,
         start: Number(startGff),
         end: Number(endGff),
-        score: _scoreGff,
+        score: _scoreGff.toString(),
         strand: strandGff,
         phase: phaseGff,
         attributes: attributesGff,
@@ -518,6 +518,16 @@ class AnnotationProcessor {
 
           // Increment.
           this.nAnnotation += 1;
+
+	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+            if(typeof children.protein_id === 'undefined'){
+              return []
+            } else {
+              return children.protein_id
+            }
+          })
+
+          this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
 
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy);
@@ -552,6 +562,17 @@ class AnnotationProcessor {
 
     // Increment.
     this.nAnnotation += 1;
+
+    // Add protein_id to gene children
+    const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+      if(typeof children.protein_id === 'undefined'){
+        return []
+      } else {
+        return children.protein_id
+      }
+    })
+
+    this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
 
     // Add to bulk operation.
     this.geneBulkOperation.insert(this.geneLevelHierarchy);

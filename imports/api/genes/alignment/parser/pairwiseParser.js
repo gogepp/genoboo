@@ -68,6 +68,7 @@ class PairwiseProcessor {
           /** Update or insert pairwise. */
           this.similarSeqBulkOp.find({
             iteration_query: this.pairWise.iteration_query,
+            protein_id: this.pairWise.iteration_query
           }).upsert().update(
             {
               $set: {
@@ -76,6 +77,7 @@ class PairwiseProcessor {
                 matrix_ref: this.matrix,
                 database_ref: this.database,
                 iteration_query: this.pairWise.iteration_query,
+                protein_id: this.pairWise.iteration_query,
                 query_len: this.pairWise.query_length,
                 iteration_hits: this.pairWise.iteration_hits,
               },
@@ -359,6 +361,7 @@ class PairwiseProcessor {
 
     this.similarSeqBulkOp.find({
       iteration_query: this.pairWise.iteration_query,
+      protein_id: this.pairWise.iteration_query
     }).upsert().update(
       {
         $set: {
@@ -367,6 +370,7 @@ class PairwiseProcessor {
           matrix_ref: this.matrix,
           database_ref: this.database,
           iteration_query: this.pairWise.iteration_query,
+          protein_id: this.pairWise.iteration_query,
           query_len: this.pairWise.query_length,
           iteration_hits: this.pairWise.iteration_hits,
         },
