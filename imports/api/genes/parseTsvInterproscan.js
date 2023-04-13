@@ -51,7 +51,7 @@ class ParseTsvFile extends InterproscanProcessor {
     const ontologyTerm = (goAnnotation === undefined ? [] : goAnnotation.split('|'));
     const Dbxref = [];
 
-    if (interproAccession.length && interproAccession !== '-') {
+    if (interproAccession.length && interproAccession.toString() !== '-') {
       const interproscanLabel = ''.concat('InterPro:', interproAccession);
       Dbxref.unshift(interproscanLabel);
       proteinDomain.interproId = interproAccession;
@@ -68,7 +68,7 @@ class ParseTsvFile extends InterproscanProcessor {
       this.currentDB = this.currentDB.concat(Dbxref)
     }
 
-    if (ontologyTerm.length && ontologyTerm !== ['-']) {
+    if (ontologyTerm.length && ontologyTerm.toString() !== '-') {
       proteinDomain.Ontology_term = ontologyTerm;
       this.currentOnto = this.currentOnto.concat(ontologyTerm)
     }

@@ -82,11 +82,11 @@ class AnnotationProcessor {
    * returns {String} - Returns the ID if it exists
    */
   getCDSProtein = (filteredAttr) => {
-    let proteinId
+    let protein_id
     if (typeof filteredAttr[this.attr_protein] !== 'undefined'){
-    	proteinId = filteredAttr[this.attr_protein][0]
+    	protein_id = filteredAttr[this.attr_protein][0]
     }
-    return proteinId
+    return protein_id
   };
 
 

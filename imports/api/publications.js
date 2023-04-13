@@ -191,7 +191,7 @@ Meteor.publish({
     return diamond;
   },
   interpro(query){
-    return interproscanCollection.find({geneId: query})
+    return interproscanCollection.find({gene_id: query})
   },
   orthogroups(ID) {
     return orthogroupCollection.find({ _id: ID });

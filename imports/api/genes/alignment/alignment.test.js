@@ -65,6 +65,7 @@ describe('alignment', function testAlignment() {
     const seq = simSeq[0]
 
     chai.assert.equal(seq.algorithm_ref, 'blastx')
+    chai.assert.equal(seq.protein_id, 'BniB01g000010.2N.1-P')
     chai.assert.equal(seq.database_ref, 'nr')
     chai.assert.equal(seq.program_ref, 'diamond')
     chai.assert.equal(seq.query_len, 420)

@@ -334,7 +334,7 @@ function ProteinDomains({
     totalProteins += 1
     let domainCount = 0
 
-    let seq = sequences.filter((seq) => (seq.ID === domain.proteinId || seq.protein_id === domain.proteinId))[0]
+    let seq = sequences.filter((seq) => (seq.ID === domain.protein_id || seq.protein_id === domain.protein_id))[0]
     let size = seq.prot.length;
     const scale = scaleLinear()
       .domain([0, size])
@@ -368,7 +368,7 @@ function ProteinDomains({
 
     let data = (
       <>
-      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.proteinId}/>
+      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.protein_id}/>
       <g className="domains" transform={gTransform}>
       {proteinContent}
       </g>

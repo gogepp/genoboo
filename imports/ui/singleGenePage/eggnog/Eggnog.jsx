@@ -378,7 +378,6 @@ function Kegg({ database, query }) {
           >
             {ID}
           </a>
-          <KeggApi database={database} query={ID} />
         </div>
       );
     })
@@ -391,7 +390,6 @@ function Kegg({ database, query }) {
         >
           {query}
         </a>
-        <KeggApi database={database} query={query} />
       </div>
     ));
 

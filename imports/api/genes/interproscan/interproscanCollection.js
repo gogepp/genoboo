@@ -2,12 +2,12 @@ import SimpleSchema from 'simpl-schema';
 import { Mongo } from 'meteor/mongo';
 
 const interproscanSchema = new SimpleSchema({
-  geneId: {
+  gene_id: {
     type: String,
     index: true,
     label: 'Linked gene ID',
   },
-  proteinId: {
+  protein_id: {
     type: String,
     label: 'Linked protein ID',
   },

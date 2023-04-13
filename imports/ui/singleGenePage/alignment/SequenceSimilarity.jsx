@@ -44,7 +44,7 @@ function SequenceSimilarityDataTracker({ gene }) {
   const alignmentSub = Meteor.subscribe('alignment', gene);
   const loading = !alignmentSub.ready();
 
-  const similarSequences = similarSequencesCollection.findOne({})
+  const similarSequences = similarSequencesCollection.find().fetch()
 
   return {
     loading,
@@ -619,11 +619,14 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
 }
 
 function SequenceSimilarity({ showHeader = false, similarSequences }) {
+  content = similarSequences.map(similar => {
+    return (<GlobalInformation querySequences={similar} />)
+  })
   return (
     <>
       {showHeader && <Header />}
       <div>
-        <GlobalInformation querySequences={similarSequences} />
+        {content}
       </div>
     </>
   );
