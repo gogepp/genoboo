@@ -40,7 +40,7 @@ function XAxis({
         y="0"
         dy="5"
         textAnchor="left"
-        fontSize="11"
+        fontSize="10"
       >
         {seqid}
       </text>
@@ -192,6 +192,23 @@ function InterproGroup({
     });
   });
   const description = [...descriptions].sort((a, b) => b.length - a.length)[0];
+  let content = interproId
+  if (interproId !== 'Unintegrated signature'){
+    content = (
+      <>
+      <a
+        href={`https://www.ebi.ac.uk/interpro/entry/${interproId}`}
+        style={{ fontSize: '.7rem' }}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {interproId}
+      </a>
+      {` ${description}`}
+      </>
+    )
+  }
+
   return (
     <g transform={transform}>
       <foreignObject width={xMax} height="25" x="0" y="-22">
@@ -205,15 +222,7 @@ function InterproGroup({
           wordBreak: 'break-all',
         }}
         >
-          <a
-            href={`https://www.ebi.ac.uk/interpro/entry/${interproId}`}
-            style={{ fontSize: '.7rem' }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {interproId}
-          </a>
-          { interproId !== 'Unintegrated signature' && ` ${description}`}
+          { content }
         </p>
       </foreignObject>
       {
@@ -354,24 +363,24 @@ function ProteinDomains({
       );
     })
 
-    let axisTransform = `translate(0,${10 + currentTranslate})`     
+    let axisTransform = `translate(0,${15 + currentTranslate})`     
     let gTransform = `translate(0,${40 + currentTranslate})`
 
     let data = (
       <>
-      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.protein_id}/>
+      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.proteinId}/>
       <g className="domains" transform={gTransform}>
       {proteinContent}
       </g>
       </>
     )
 
-    currentTranslate = (totalGroups * 30) + (40 * totalProteins);
+    currentTranslate += ((interproGroups.length + 1 ) * 30) + (domainCount * 10);
     return data
   })
 
-  const svgHeight = (totalGroups * 30)
-    + margin.top + margin.bottom + (40 * totalProteins);
+  const svgHeight = currentTranslate + margin.top + margin.bottom;
+
   return (
     <>
       { showHeader && <Header /> }
