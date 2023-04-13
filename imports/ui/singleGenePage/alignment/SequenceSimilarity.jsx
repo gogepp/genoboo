@@ -565,6 +565,12 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
               </th>
             </tr>
             <tr>
+               <td>Query :</td>
+              <td>
+                {querySequences.protein_id && <p>{querySequences.protein_id}</p>} 
+              </td>
+            </tr>
+            <tr>
               <td>Algorithm :</td>
               <td>
                 {
@@ -619,7 +625,7 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
 }
 
 function SequenceSimilarity({ showHeader = false, similarSequences }) {
-  content = similarSequences.map(similar => {
+  let content = similarSequences.map(similar => {
     return (<GlobalInformation querySequences={similar} />)
   })
   return (
