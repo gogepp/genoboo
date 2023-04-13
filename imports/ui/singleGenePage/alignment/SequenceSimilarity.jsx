@@ -41,28 +41,10 @@ function NoSequenceSimilarity({ showHeader }) {
 }
 
 function SequenceSimilarityDataTracker({ gene }) {
-  const queryGenes = Genes.findOne({ ID: gene.ID });
-  const geneChildren = queryGenes.children;
-
-  const alignmentSub = Meteor.subscribe('alignment');
+  const alignmentSub = Meteor.subscribe('alignment', gene);
   const loading = !alignmentSub.ready();
 
-  /**
-   * iteration_query in the alignment collection can take the value of a gene
-   * identifier or be a child of the gene.
-   */
-  const similarSequences = (
-    typeof queryGenes.ID === 'undefined'
-      ? undefined
-      : similarSequencesCollection.findOne(
-        {
-          $or: [
-            { iteration_query: queryGenes.ID },
-            { iteration_query: { $in: geneChildren } },
-          ],
-        },
-      )
-  );
+  const similarSequences = similarSequencesCollection.find().fetch()
 
   return {
     loading,
@@ -583,6 +565,12 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
               </th>
             </tr>
             <tr>
+               <td>Query :</td>
+              <td>
+                {querySequences.protein_id && <p>{querySequences.protein_id}</p>} 
+              </td>
+            </tr>
+            <tr>
               <td>Algorithm :</td>
               <td>
                 {
@@ -637,11 +625,14 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
 }
 
 function SequenceSimilarity({ showHeader = false, similarSequences }) {
+  let content = similarSequences.map(similar => {
+    return (<GlobalInformation querySequences={similar} />)
+  })
   return (
     <>
       {showHeader && <Header />}
       <div>
-        <GlobalInformation querySequences={similarSequences} />
+        {content}
       </div>
     </>
   );

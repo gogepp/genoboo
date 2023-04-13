@@ -1,4 +1,5 @@
 import { InterproscanProcessor } from '/imports/api/genes/addInterproscan.js';
+import { Genes } from '/imports/api/genes/geneCollection.js';
 import logger from '/imports/api/util/logger.js';
 
 class ParseTsvFile extends InterproscanProcessor {
@@ -21,16 +22,36 @@ class ParseTsvFile extends InterproscanProcessor {
       pathwaysAnnotations, // Dbxref (gff3)
     ] = line.split('\t');
 
-    const dbUpdate = { $addToSet: {} };
+    // Add to bulk if protein changes
+    if (seqId !== this.currentProt){
+      if (seqId !== ""){
+        this.addToBulk()
+      }
+
+      this.currentProt = seqId
+      this.currentGene = ""
+      let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
+      if (typeof gene !== "undefined"){
+        this.currentGene = gene.ID
+      }
+
+      this.currentContent = []
+      this.currentDB = []
+      this.currentOnto = []
+    }
+
+    if (this.currentGene == ""){
+      return
+    }
 
     const proteinDomain = {
       start, end: stop, source: analysis, score, name: signatureAccession,
     };
 
-    const ontologyTerm = (goAnnotation === undefined ? '' : goAnnotation.split('|'));
-    const Dbxref = (pathwaysAnnotations === undefined ? '' : pathwaysAnnotations.split('|'));
+    const ontologyTerm = (goAnnotation === undefined ? [] : goAnnotation.split('|'));
+    const Dbxref = [];
 
-    if (interproAccession.length && interproAccession !== '-') {
+    if (interproAccession.length && interproAccession.toString() !== '-') {
       const interproscanLabel = ''.concat('InterPro:', interproAccession);
       Dbxref.unshift(interproscanLabel);
       proteinDomain.interproId = interproAccession;
@@ -42,21 +63,16 @@ class ParseTsvFile extends InterproscanProcessor {
       proteinDomain.signature_desc = signatureDescription;
     }
 
-    if (Dbxref.length && Dbxref !== '-') {
+    if (Dbxref.length && Dbxref !== ['-']) {
       proteinDomain.Dbxref = Dbxref;
-      dbUpdate.$addToSet['attributes.Dbxref'] = { $each: Dbxref };
+      this.currentDB = this.currentDB.concat(Dbxref)
     }
 
-    if (ontologyTerm.length && ontologyTerm !== '-') {
+    if (ontologyTerm.length && ontologyTerm.toString() !== '-') {
       proteinDomain.Ontology_term = ontologyTerm;
-      dbUpdate.$addToSet['attributes.Ontology_term'] = {
-        $each: ontologyTerm,
-      };
+      this.currentOnto = this.currentOnto.concat(ontologyTerm)
     }
-
-    dbUpdate.$addToSet['subfeatures.$[].protein_domains'] = proteinDomain;
-    // Wow, I hate this query, but it seems to be the only way to use a positional operator with an $or clause
-    this.bulkOp.find({ subfeatures: { $elemMatch: { $or: [{"protein_id": seqId}, {"ID": seqId}]} }}).update(dbUpdate);
+    this.currentContent.push(proteinDomain)
   };
 }
 

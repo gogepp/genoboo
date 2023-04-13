@@ -32,6 +32,9 @@ class XmlProcessor {
     if (Array.isArray(obj)){
       return obj
     }
+    if (typeof obj == 'undefined'){
+      return []
+    }
     return [obj]
   }
 
@@ -182,6 +185,7 @@ class XmlProcessor {
             /** Mongo bulk-operation. */
             this.similarSeqBulkOp.find({
               iteration_query: geneIdentifier,
+              protein_id: iter
             }).upsert().update(
               {
                 $set: {
@@ -190,6 +194,7 @@ class XmlProcessor {
                   matrix_ref: this.matrix,
                   database_ref: this.database,
                   iteration_query: geneIdentifier,
+                  protein_id: iter,
                   query_len: queryLen,
                   iteration_hits: iterations,
                 },

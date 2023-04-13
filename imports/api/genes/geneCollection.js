@@ -80,6 +80,7 @@ const SubfeatureSchema = new SimpleSchema(
     protein_id: {
       type: String,
       optional: true,
+      index: true,
       label: 'Linked protein ID for mRNA',
     },
     phase: {
@@ -98,16 +99,6 @@ const SubfeatureSchema = new SimpleSchema(
     },
     'parents.$': {
       type: String,
-    },
-    protein_domains: {
-      type: Array,
-      label: 'Interproscan protein domains',
-      optional: true,
-    },
-    'protein_domains.$': {
-      type: Object,
-      label: 'Interproscan protein domain',
-      blackbox: true,
     },
   },
   {

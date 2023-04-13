@@ -9,6 +9,7 @@ import { attributeCollection } from '/imports/api/genes/attributeCollection.js';
 import { dbxrefCollection } from '/imports/api/genes/dbxrefCollection.js';
 import { EditHistory } from '/imports/api/genes/edithistory_collection.js';
 import { eggnogCollection } from '/imports/api/genes/eggnog/eggnogCollection.js';
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
 import { similarSequencesCollection } from '/imports/api/genes/alignment/similarSequenceCollection.js';
 // orthogroups
 import { orthogroupCollection } from '/imports/api/genes/orthogroup/orthogroupCollection.js';
@@ -174,13 +175,23 @@ Meteor.publish({
       $or: [{ permission: { $in: roles } }, { isPublic: true }],
     });
   },
-  eggnog() {
-    const eggnog = eggnogCollection.find({});
+  eggnog(query) {
+    const eggnog = eggnogCollection.find({_id: query});
     return eggnog;
   },
-  alignment(query) {
-    const diamond = similarSequencesCollection.find({ iteration_query: query });
+  alignment(gene) {
+    const diamond = similarSequencesCollection.find(
+      {
+        $or: [
+          { iteration_query: gene.ID },
+          { iteration_query: { $in: gene.children } },
+        ],
+      },
+    );
     return diamond;
+  },
+  interpro(query){
+    return interproscanCollection.find({gene_id: query})
   },
   orthogroups(ID) {
     return orthogroupCollection.find({ _id: ID });

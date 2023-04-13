@@ -1,6 +1,7 @@
 import jobQueue, { Job } from '/imports/api/jobqueue/jobqueue.js';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { Genes } from '/imports/api/genes/geneCollection.js';
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
 import logger from '/imports/api/util/logger.js';
 import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
@@ -12,14 +13,63 @@ import { Meteor } from 'meteor/meteor';
  */
 class InterproscanProcessor {
   constructor() {
-    this.bulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
+    this.bulkOp = interproscanCollection.rawCollection().initializeUnorderedBulkOp();
+    this.geneBulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
+    this.currentProt = ""
+    this.currentGene = ""
+    this.currentContent = []
+    this.currentDB = []
+    this.currentOnto = []
   }
 
   finalize = () => {
+    // Add last bulk
+    if (this.currentProt !== ""){
+      this.addToBulk()
+    }
+
     if (this.bulkOp.length > 0){
       return this.bulkOp.execute();
     }
     return { nMatched: 0 }
+  }
+
+  updateGenes = () => {
+    // Update genes with dbxref and Ontology
+    if (this.geneBulkOp.length > 0){
+      return this.geneBulkOp.execute();
+    }
+    return { nMatched: 0 }
+  }
+
+  addToBulk = () => {
+    if (this.currentContent.length > 0){
+      this.bulkOp.find({
+        gene_id: this.currentGene,
+        protein_id: this.currentProt,
+      }).upsert().update(
+        {
+          $set: {
+            gene_id: this.currentGene,
+            protein_id: this.currentProt,
+            protein_domains: this.currentContent
+          },
+        },
+        {
+          upsert: false,
+          multi: true,
+        },
+      );
+    }
+
+    if (this.currentDB != [] || this.currentOnto != []){
+      this.geneBulkOp.find({ID: this.currentGene}).update({
+        $addToSet: {
+          'attributes.Ontology_term': { $each: this.currentOnto },
+          'attributes.Dbxref': { $each: this.currentDB }
+        }
+      });
+    }
   }
 }
 
