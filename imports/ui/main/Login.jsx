@@ -109,12 +109,14 @@ export default function Login({ location }) {
                     Sign in
                   </button>
                 </div>
-
+                
+                { ! Meteor.settings.public.disable_user_registration === true && (
                 <footer className="card-footer">
                   <Link to="/register" id="new-account">
                     Create new account
                   </Link>
                 </footer>
+                )}
               </div>
             </div>
           </form>
