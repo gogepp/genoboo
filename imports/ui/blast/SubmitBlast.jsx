@@ -366,12 +366,12 @@ function SubmitBlast({ genomes }) {
     return <Redirect to={{ pathname: redirect, from: 'blast' }} />;
   }
 
-  
+
   if (Meteor.settings.public.disable_blast === true || Meteor.settings.public.blast_link){
     let blastLink
     if (Meteor.settings.public.blast_link){
       blastLink = (
-        <p>You can access an external blast interface <a href={Meteor.settings.public.blast_link} target="_blank">here</a></p>
+        <p>You can access an external blast interface <a href={Meteor.settings.public.blast_link} target="_blank" style={{color: "#485fc7"}}>here</a></p>
       )
     }
     return (
