@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* eslint-disable no-underscore-dangle, no-console */
 
+const fs = require('fs');
 const commander = require('commander');
 const { Tail } = require('tail');
 const { spawn, execFileSync } = require('child_process');
@@ -151,6 +152,7 @@ function startMongoDaemon(
 
 async function startGeneNoteBook(cmd) {
   const {
+    config,
     port,
     rootUrl,
     mongoUrl,
@@ -160,10 +162,21 @@ async function startGeneNoteBook(cmd) {
     dbCacheSizeGB,
     storagePath
   } = cmd.opts();
+
   const PORT = parseInt(port, 10) || 3000;
   const ROOT_URL = rootUrl || `http://localhost:${PORT}`;
   const STORAGE_PATH = storagePath || 'assets/app/uploads';
   const opts = { PORT, ROOT_URL, GNB_VERSION: pkginfo.version, STORAGE_PATH };
+
+  if (config && fs.existsSync(config)) {
+    try {
+      const METEOR_SETTINGS = fs.readFileSync(config, 'utf8');
+      Object.assign(opts, { METEOR_SETTINGS });
+   } catch (error) {
+      logger.error(`Cannot read ${config}: `)
+      logger.error(error)
+   }
+  }
 
   if (mongoUrl) {
     if (dbPath) {
@@ -200,6 +213,10 @@ program
   .command('run')
   .description('Run a GeneNoteBook server')
   .usage('[options]')
+  .option(
+    '--config [config]',
+    'Path to an optional json config file. To be available client-side, options must be under a "public" key.'
+  )
   .option(
     '--port [port]',
     'Web server port on which to serve GeneNoteBook. Default: 3000'

@@ -17,6 +17,15 @@ import {
 
 import './proteinDomains.scss';
 
+
+function Loading() {
+  return <div>Loading...</div>;
+}
+
+function isLoading({ loading }) {
+  return loading;
+}
+
 function XAxis({
   scale, numTicks, transform, seqid,
 }) {
@@ -259,8 +268,8 @@ function sortGroups(groupA, groupB) {
   return startA - startB;
 }
 
-function hasNoProteinDomains({ proteinDomains }) {
-  return typeof proteinDomains === 'undefined';
+function hasNoProteinDomains({ proteinDomains, gene }) {
+  return typeof proteinDomains === 'undefined' || proteinDomains.length == 0 || proteinDomains.filter(domain => domain.gene_id === gene.ID).length == 0;
 }
 
 function Header() {
@@ -329,7 +338,7 @@ function ProteinDomains({
 
   const svgWidth = width - margin.left - margin.right;
 
-  let content = proteinDomains.map(domain => {
+  let content = proteinDomains.filter(domain => domain.gene_id === gene.ID).map(domain => {
 
     totalProteins += 1
     let domainCount = 0
@@ -401,5 +410,6 @@ function ProteinDomains({
 
 export default compose(
   withTracker(InterproDataTracker),
+  branch(isLoading, Loading),
   branch(hasNoProteinDomains, NoProteinDomains),
 )(ProteinDomains);

@@ -366,7 +366,38 @@ function SubmitBlast({ genomes }) {
     return <Redirect to={{ pathname: redirect, from: 'blast' }} />;
   }
 
+
+  if (Meteor.settings.public.disable_blast === true || Meteor.settings.public.blast_link){
+    let blastLink
+    if (Meteor.settings.public.blast_link){
+      blastLink = (
+        <p>You can access an external blast interface <a href={Meteor.settings.public.blast_link} target="_blank" style={{color: "#485fc7"}}>here</a></p>
+      )
+    }
+    return (
+      <div className="hero is-small is-light is-bold">
+      <div className="hero-body">
+        <form className="container" id="blast">
+          <header className="has-background-light">
+            <h4 className="title is-size-4 has-text-weight-light">
+              BLAST search
+            </h4>
+          </header>
+          <div className="card">
+            <div className="card-content">
+              <p> GeneNoteBook blast interface is currently disabled. </p>
+              {blastLink}
+            </div>
+          </div>
+        </form>
+      </div>
+      </div>
+    )
+  }
+
   return (
+    <div className="hero is-small is-light is-bold">
+    <div className="hero-body">
     <form className="container" id="blast">
       <div className="card">
         <header className="has-background-light">
@@ -408,6 +439,8 @@ function SubmitBlast({ genomes }) {
         </div>
       </div>
     </form>
+    </div>
+    </div>
   );
 }
 

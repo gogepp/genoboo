@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.3] 2023-05-02
+
+### Fixed
+
+- Fixed Protein domains view in gene list
+- Removed remaining console.log in Eggnog
+- Fixed display for blast/diamond when there is no data
+- Fixed typo in Show more / Show less for diamond
+- Fixed async annotation add
+
+### Added
+
+- Added back config file option at startup (see config.json.template)
+- Added config option to disable login (and registration) (*disable_user_login* key)
+- Added config option to disable registrations (*disable_user_registration* key)
+- Added config option to hide blast link (*disable_blast* key)
+- Added config option to redirect blast link to custom external link (*blast_link* key)
+
 ## [0.4.2] 2023-04-13
 
 ### Fixed
