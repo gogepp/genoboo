@@ -553,6 +553,28 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
     .domain([0, length])
     .range([margin.left, width - margin.right - 140]);
 
+  let hitContent = (
+    <div className="diamond-body-empty">
+      <p>No hits selected for this query</p>
+    </div>
+  )
+
+  if (querySequences.iteration_hits.length > 0){
+    hitContent = (
+      <div className="diamond-body">
+        <div>
+          <div id="top-bar-sequence">
+            <TopBarSequence length={length} scale={scale} />
+          </div>
+          <div>
+            <HitsCoverLines query={querySequences} scale={scale} height={height} />
+          </div>
+        </div>
+        <ReactResizeDetector handleWidth onResize={(w) => setWidth(w)} />
+      </div>
+    )
+  }
+
   return (
     <div className="card">
 
@@ -607,19 +629,7 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
           </tbody>
         </table>
       </div>
-
-      <div className="diamond-body">
-        <div>
-          <div id="top-bar-sequence">
-            <TopBarSequence length={length} scale={scale} />
-          </div>
-          <div>
-            <HitsCoverLines query={querySequences} scale={scale} height={height} />
-          </div>
-        </div>
-        <ReactResizeDetector handleWidth onResize={(w) => setWidth(w)} />
-      </div>
-
+      {hitContent}
     </div>
   );
 }

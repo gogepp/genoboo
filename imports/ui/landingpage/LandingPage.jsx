@@ -124,7 +124,7 @@ const withConditionalRendering = compose(
 const StatsWithDataTracker = withConditionalRendering(Stats);
 
 function LandingPage() {
-  const block = Meteor.settings.public.hide_blast ? 6 : 4
+  const block = Meteor.settings.public.disable_blast ? 6 : 4
 
   let blastLink = (
     <Link to="/blast" className="button is-light is-link is-fullwidth">
@@ -246,7 +246,7 @@ function LandingPage() {
               </div>
             </div>
 
-           {!Meteor.settings.public.hide_blast && (
+           {!Meteor.settings.public.disable_blast && (
 
             <div className={"column is-" + block}>
               <div className="card">

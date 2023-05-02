@@ -124,7 +124,7 @@ function NavBar() {
           <NavLink id="gene-link" to="/genes" className="navbar-item" activeClassName="active">
             Genes
           </NavLink>
-          {! Meteor.settings.public.hide_blast && (
+          {! Meteor.settings.public.disable_blast && (
             blastLink
           )}
           <SearchBar />
