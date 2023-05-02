@@ -62,12 +62,12 @@ const LoggedInButtonWithTracker = withTracker(adminTracker)(LoggedInButton);
 function LoggedOutButton() {
   return (
     <div className="navbar-item">
-      {/*
+      {! Meteor.settings.public.disable_user_login === true && (
       <Link to="/login" className="button is-small is-link" id="signin">
         <span className="icon-login" aria-hidden="true" />
       &nbsp;Sign in
       </Link>
-     */}
+     )}
     </div> 
   );
 }
@@ -83,6 +83,17 @@ function NavBar() {
   const [show, setShow] = useState(false);
   const activeText = show ? 'is-active' : '';
   const urlPrefix = Meteor.absoluteUrl();
+
+  let blastLink = (
+    <NavLink to="/blast" className="navbar-item" activeClassName="active">
+      Blast
+    </NavLink>
+  )
+ 
+  if (Meteor.settings.public.blast_link){
+    blastLink = (<a target="_blank" href={Meteor.settings.public.blast_link} className="navbar-item" activeClassName="active">Blast</a>)
+  }
+
   return (
     <nav className="navbar is-white" role="navigation">
       <div className="navbar-brand">
@@ -113,9 +124,9 @@ function NavBar() {
           <NavLink id="gene-link" to="/genes" className="navbar-item" activeClassName="active">
             Genes
           </NavLink>
-          <NavLink to="/blast" className="navbar-item" activeClassName="active">
-            Blast
-          </NavLink>
+          {! Meteor.settings.public.hide_blast && (
+            blastLink
+          )}
           <SearchBar />
         </div>
         <div className="navbar-end">

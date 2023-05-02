@@ -24,7 +24,7 @@ function Header() {
 }
 
 function hasNoSequenceSimilarity({ similarSequences }) {
-  return typeof similarSequences === 'undefined';
+  return typeof similarSequences === 'undefined' || similarSequences.length == 0;
 }
 
 function NoSequenceSimilarity({ showHeader }) {
@@ -118,7 +118,7 @@ function DescriptionLimited({ description }) {
     }
   }, [openDesc]);
 
-  const buttonText = openDesc ? 'Show less' : 'Show more ...';
+  const buttonText = openDesc ? 'Show more' : 'Show less ...';
 
   return (
     <>

@@ -20,6 +20,10 @@ Accounts.onCreateUser((options, user) => {
   return user;
 });
 
+Accounts.validateLoginAttempt(attempt => {
+  return !Meteor.settings.public.disable_user_login === true
+})
+
 Accounts.onLogout(({ user }) => {
   logger.debug('logout', { user });
   if (user) {
@@ -45,4 +49,8 @@ Meteor.users.allow({
     }
     return false;
   },
+});
+
+Accounts.config({
+    forbidClientAccountCreation: Meteor.settings.public.disable_user_registration === true
 });
