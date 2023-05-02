@@ -64,12 +64,12 @@ jobQueue.processJobs(
           parser.abort();
         }
       },
-      complete(result) {
+      complete: async function(result) {
         if (result.meta.aborted === true) {
           job.fail();
         } else {
           try {
-            lineProcessor.lastAnnotation();
+            await lineProcessor.lastAnnotation();
             const nAnnotation = lineProcessor.getNumberAnnotation();
             job.done({ nInserted: nAnnotation });
           } catch (err) {

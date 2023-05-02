@@ -37,7 +37,6 @@ function eggnogDataTracker({ gene }) {
   const eggnogSub = Meteor.subscribe('eggnog', gene.eggnogId);
   const loading = !eggnogSub.ready();
   const eggnog = eggnogCollection.findOne({});
-  console.log(eggnog)
 
   return {
     loading,

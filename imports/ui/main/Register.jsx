@@ -44,11 +44,35 @@ export default function Register({ location }) {
     return <Redirect to={redirectTo} />;
   }
 
+  if (Meteor.settings.public.disable_user_login === true || Meteor.settings.public.disable_user_registration === true){
+    return (
+      <div className="hero is-small is-light is-bold">
+      <div className="hero-body">
+        <div className="container is-centered has-text-centered">
+          <div className="card column is-4 is-offset-4 login-form">
+            <div className="card-image">
+              <figure className="image is-96x96">
+                <img className="is-rounded" src="logo.svg" alt="" />
+              </figure>
+            </div>
+            <div className="card-content">
+              <div className="content">
+                Registrations are currently closed
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </div>
+    )
+  }
+
+
   return (
     <div className="hero is-small is-light is-bold register-user">
       <div className="hero-body">
-        <div className="container columns is-centered has-text-centered">
-          <form className="card column is-4 login-form" onSubmit={handleSubmit}>
+        <div className="container is-centered has-text-centered">
+          <form className="card column is-4 is-offset-4 login-form" onSubmit={handleSubmit}>
             <div className="card-image">
               <figure className="image is-96x96">
                 <img className="is-rounded" src="logo.svg" alt="" />

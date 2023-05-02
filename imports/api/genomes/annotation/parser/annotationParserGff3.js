@@ -589,7 +589,7 @@ class AnnotationProcessor {
     });
 
     if (this.geneBulkOperation.length > 0) {
-      this.geneBulkOperation.execute();
+      return this.geneBulkOperation.execute();
     }
   };
 }
