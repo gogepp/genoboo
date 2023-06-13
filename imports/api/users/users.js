@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { ValidatedMethod } from 'meteor/mdg:validated-method';
 import { Accounts } from 'meteor/accounts-base';
 import { Roles } from 'meteor/alanning:roles';
+import logger from '/imports/api/util/logger.js';
 
 import SimpleSchema from 'simpl-schema';
 
@@ -37,16 +38,30 @@ export const updateUserInfo = new ValidatedMethod({
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
-    if (!Roles.userIsInRole(this.userId, 'admin') && userId !== this.userId) {
+
+    const isAdmin = Roles.userIsInRole(this.userId, 'admin')
+
+    if (!isAdmin && userId !== this.userId) {
       throw new Meteor.Error('not-authorized');
     }
 
-    Meteor.users.update({ _id: userId }, {
-      $set: {
-        username, profile, emails,
-      },
-    });
-    Roles.setUserRoles(userId, role);
+    try {
+      Meteor.users.update({ _id: userId }, {
+        $set: {
+          username, profile, emails,
+        },
+      });
+    } catch (err) {
+      // 11000 is duplicate error
+      if (err.code === 11000){
+        throw new Meteor.Error('Username is already in use');
+      }
+      throw new Meteor.Error(JSON.stringify(err));
+    }
+
+    if (isAdmin){
+      Roles.setUserRoles(userId, role);
+    }
   },
 });
 
@@ -130,7 +145,7 @@ export const setUserPassword = new ValidatedMethod({
   },
   run({ userId, newPassword }) {
     if (!this.userId) {
-      throw new Meteor.Error('not-autorized');
+      throw new Meteor.Error('not-authorized');
     }
 
     if (!Roles.userIsInRole(this.userId, 'admin')) {
@@ -154,7 +169,7 @@ export const setUsernamePassword = new ValidatedMethod({
   },
   run({ userName, newPassword }) {
     if (!this.userId) {
-      throw new Meteor.Error('not-autorized');
+      throw new Meteor.Error('not-authorized');
     }
 
     if (!Roles.userIsInRole(this.userId, 'admin')) {
@@ -214,10 +229,11 @@ export const addUser = new ValidatedMethod({
     }
 
     const userRole = (role === undefined ? 'registered' : role);
+    let userId
 
     if (!Accounts.findUserByUsername(userName)) {
       if (emails) {
-        const userId = Accounts.createUser({
+        userId = Accounts.createUser({
           username: userName,
           email: emails,
           password: newPassword,
@@ -226,7 +242,7 @@ export const addUser = new ValidatedMethod({
 
         Roles.setUserRoles(userId, userRole);
       } else {
-        const userId = Accounts.createUser({
+        userId = Accounts.createUser({
           username: userName,
           password: newPassword,
           profile,
@@ -241,7 +257,7 @@ export const addUser = new ValidatedMethod({
     }
 
     const jobStatus = `Success to create the ${userName} user account.`;
-    return { jobStatus };
+    return { jobStatus, userId };
   },
 });
 

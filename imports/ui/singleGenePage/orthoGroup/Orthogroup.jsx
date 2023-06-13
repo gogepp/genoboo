@@ -3,13 +3,37 @@ import { orthogroupCollection } from '/imports/api/genes/orthogroup/orthogroupCo
 import { withTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import React from 'react';
-import { Tree } from 'react-bio-viz';
+import { PhyloTree } from 'react-bio-viz';
+import { css } from "@emotion/css";
+import randomColor from "randomcolor";
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
 import {
   branch,
   compose,
   isLoading,
   Loading,
 } from '/imports/ui/util/uiUtil.jsx';
+
+import './orthogroup.scss'
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 function hasNoOrthogroup({ orthogroup }) {
   return typeof orthogroup === 'undefined';
@@ -29,7 +53,7 @@ function NoOrthogroup({ showHeader }) {
 }
 
 function orthogroupDataTracker({ gene, ...props }) {
-  const orthogroupId = (typeof gene.orthogroups === 'undefined' ? undefined : gene.orthogroups._str);
+  const orthogroupId = (typeof gene.orthogroup === 'undefined' ? undefined : gene.orthogroup.id);
   const orthogroupSub = Meteor.subscribe('orthogroups', orthogroupId);
   const loading = !orthogroupSub.ready();
   const orthogroup = (typeof orthogroupId === 'undefined' ? undefined : orthogroupCollection.findOne({}));
@@ -52,15 +76,85 @@ function Header() {
 }
 
 function Orthogroup({ orthogroup, showHeader = false }) {
+
+  function leafTextComponent({ node, fontSize = 11 }){
+    const {
+      data: { name, geneId },
+      x,
+    } = node;
+
+    let val = name
+
+    if (geneId) {
+      val = <a href={geneId}>{name}</a>
+    }
+
+    return (
+      <text x={0} y={0} className={css({fontFamily: 'sans-serif', fontSize: `${fontSize}`, color: 'red' })}>
+        {val}
+      </text>
+    )
+  }
+
+ function leafColorComponent(node){
+   const {
+     data: { name, genomeId },
+     x,
+   } = node;
+
+   let val = "unknown"
+   if (genomeId && orthogroup.genomes && orthogroup.genomes[genomeId]){
+     val = orthogroup.genomes[genomeId].name
+   }
+
+   return val
+ }
+
+  let barData = {
+    labels: ["Gene count in tree"],
+    datasets: []
+  }
+
+  let totalGenes = 0
+
+  Object.values(orthogroup.genomes).map( genome => {
+    if (genome.count > 0){
+      barData.datasets.push({
+        maxBarThickness: 100,
+        data:[genome.count],
+        label: genome.name == "unknown" ? "Unregistered genome": genome.name,
+        backgroundColor: [randomColor({seed: genome.name})]
+      })
+    }
+    totalGenes += genome.count
+  })
+
+  let options = {
+    plugins: {
+      title: {
+        display: true,
+        text: 'Tree composition (' + totalGenes + ' genes)',
+      },
+    },
+    responsive: true,
+    maintainAspectRatio: true
+  }
+
   return (
     <div id="orthogroup">
       {showHeader && <Header />}
-      <Tree
+      <b>{orthogroup.name}</b>
+      <PhyloTree
         tree={orthogroup.tree}
         height={orthogroup.size * 15}
         cladogram
         shadeBranchBySupport={false}
+        leafTextComponent={leafTextComponent}
+        colorFunction={leafColorComponent}
       />
+      <div class="chart-container">
+      <Bar data={barData} options={options}/>
+      </div>
     </div>
   );
 }

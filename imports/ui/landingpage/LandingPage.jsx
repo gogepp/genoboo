@@ -101,10 +101,14 @@ function NoGenomes() {
         <article className="message is-info" role="alert">
           <div className="message-body">
             No public genomes are available.&nbsp;
-            <Link to="/login">
-              Sign in
-            </Link>
-            &nbsp;to access private data.
+            {! Meteor.settings.public.disable_user_login && (
+              <>
+              <Link to="/login">
+                Sign in
+              </Link>
+              &nbsp;to access private data.
+              </> 
+            )}
           </div>
         </article>
       )
@@ -120,6 +124,23 @@ const withConditionalRendering = compose(
 const StatsWithDataTracker = withConditionalRendering(Stats);
 
 function LandingPage() {
+  const block = Meteor.settings.public.disable_blast ? 6 : 4
+
+  let blastLink = (
+    <Link to="/blast" className="button is-light is-link is-fullwidth">
+      <span className="icon-database" aria-hidden="true" />&nbsp;Blast
+    </Link>
+  )
+
+  if (Meteor.settings.public.blast_link){
+    blastLink = (
+      <a target="_blank" href={Meteor.settings.public.blast_link} className="button is-light is-link is-fullwidth">
+        <span className="icon-database" aria-hidden="true" />&nbsp;Blast
+      </a>
+    )
+  }
+ 
+
   return (
     <>
       <section className="hero is-small is-light is-bold">
@@ -136,14 +157,18 @@ function LandingPage() {
           !Meteor.userId()
           && (
           <div className="buttons are-small" role="group">
+            {! (Meteor.settings.public.disable_user_login === true || Meteor.settings.public.disable_user_registration === true) && ( 
             <Link to="/register" className="button is-success">
               <span className="icon-user-add" aria-hidden="true" />
               &nbsp;Create account
             </Link>
+            )}
+            {! Meteor.settings.public.disable_user_login === true && (
             <Link to="/login" className="button is-link">
               <span className="icon-login" aria-hidden="true" />
               &nbsp;Sign in
             </Link>
+            )}
             <a href="http://genenotebook.github.io/" className="button is-dark is-outlined">
               <span className="icon-github" aria-hidden="true" />
               &nbsp;About GeneNotebook
@@ -158,7 +183,7 @@ function LandingPage() {
         <div className="hero-body">
           <div className="columns">
 
-            <div className="column is-4">
+            <div className={"column is-" + block}>
               <div className="card">
                 <div className="card-content">
                   <div className="media">
@@ -189,7 +214,7 @@ function LandingPage() {
               </div>
             </div>
 
-            <div className="column is-4">
+            <div className={"column is-" + block}>
               <div className="card">
                 <div className="card-content">
                   <div className="media">
@@ -221,7 +246,9 @@ function LandingPage() {
               </div>
             </div>
 
-            <div className="column is-4">
+           {!Meteor.settings.public.disable_blast && (
+
+            <div className={"column is-" + block}>
               <div className="card">
                 <div className="card-content">
                   <div className="media">
@@ -242,15 +269,13 @@ function LandingPage() {
                   <div className="content">
                     BLAST your protein or DNA sequence to genome annotations.
                   </div>
-                  <div className="content">
-                    <Link to="/blast" className="button is-light is-link is-fullwidth">
-                      <span className="icon-database" aria-hidden="true" />
-              &nbsp;Blast
-                    </Link>
+                  <div className="content"> 
+                    {blastLink}
                   </div>
                 </div>
               </div>
             </div>
+           )}
           </div>
         </div>
       </section>

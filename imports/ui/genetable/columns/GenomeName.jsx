@@ -13,7 +13,7 @@ function hasOwnProperty(obj, prop) {
 function dataTracker({ genomeId, genomeDataCache }) {
   let genome;
   let genomeSub;
-  if (hasOwnProperty(genomeDataCache, genomeId)) {
+  if (hasOwnProperty(genomeDataCache, genomeId) && typeof genomeDataCache[genomeId] !== 'undefined') {
     genome = genomeDataCache[genomeId];
   } else {
     genomeSub = Meteor.subscribe('genomes');

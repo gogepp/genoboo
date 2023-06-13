@@ -11,6 +11,18 @@ class EggnogProcessor {
   constructor() {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
+    this.nEggnog = 0;
+  }
+
+  /**
+   * Function that returns the total number of insertions or updates in the
+   * eggnog collection.
+   * @function
+   * @return {Number} Return the total number of insertions or updates of
+   * eggnog.
+   */
+  getNumberEggnog() {
+    return this.nEggnog;
   }
 
   parse = (line) => {
@@ -78,11 +90,17 @@ class EggnogProcessor {
 
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
-      const subfeatureIsFound = this.genesDb.findOne(
-        { 'subfeatures.ID': queryName },
-      );
+      const subfeatureIsFound = Genes.findOne({
+          $or: [
+            { 'subfeatures.ID': queryName },
+            { 'subfeatures.protein_id': queryName },
+          ],
+      });
 
       if (typeof subfeatureIsFound !== 'undefined') {
+        // Increment eggnog.
+        this.nEggnog += 1;
+
         // Update or insert if no matching documents were found.
         const documentEggnog = eggnogCollection.upsert(
           { query_name: queryName }, // selector.
@@ -92,15 +110,18 @@ class EggnogProcessor {
         // Update eggnogId in genes database.
         if (typeof documentEggnog.insertedId !== 'undefined') {
           // Eggnog _id is created.
-          this.genesDb.update(
-            { 'subfeatures.ID': queryName },
+          return this.genesDb.update({
+              $or: [
+                { 'subfeatures.ID': queryName },
+                { 'subfeatures.protein_id': queryName },
+            ]},
             { $set: { eggnogId: documentEggnog.insertedId } },
           );
         } else {
           // Eggnog already exists.
           const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName })._id;
-          this.genesDb.update(
-            { 'subfeatures.ID': queryName },
+          return this.genesDb.update(
+            { $or: [{'subfeatures.ID': queryName}, {'subfeatures.protein_id': queryName}] },
             { $set: { eggnogId: eggnogIdentifiant } },
           );
         }
@@ -130,18 +151,17 @@ const addEggnog = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
 
-    console.log('file :', { fileName });
+    logger.log('file :', { fileName });
     const job = new Job(jobQueue, 'addEggnog', { fileName });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;
     logger.debug(`Job status: ${status}`);
-    while (status !== 'completed') {
+    while ((status !== 'completed') && (status !== 'failed')) {
       const { doc } = job.refresh();
       status = doc.status;
     }
-
-    return { result: job.doc.result };
+    return { result: job.doc.result, jobStatus: status};
   },
 });
 

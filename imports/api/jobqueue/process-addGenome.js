@@ -130,7 +130,11 @@ class LineProcessor {
       isPublic,
       permission,
     });
-    return bulkOp.execute();
+    if (bulkOp.length > 0) {
+      return bulkOp.execute();
+    } else {
+      return { ok: "", writeErrors: "", nInserted: 0 }
+    }
   }
 }
 
@@ -141,14 +145,14 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, genomeName, permission = 'admin' } = job.data;
+    const { fileName, genomeName, public, permission = 'admin' } = job.data;
     logger.log(`Inserting ${fileName} as ${genomeName}`);
     const genomeId = genomeCollection.insert({
       name: genomeName,
       permission,
       description: 'description',
       organism: 'organism',
-      isPublic: false,
+      isPublic: public,
     });
 
     const lineReader = readline.createInterface({
@@ -159,7 +163,8 @@ jobQueue.processJobs(
     let processedLines = 0;
 
     const lineProcessor = new LineProcessor({ genomeId, permission });
-    lineReader.on('line', async (line) => {
+
+    for await (const line of lineReader) {
       processedBytes += line.length + 1; // also count \n
       processedLines += 1;
       if ((processedLines % 10000) === 0) {
@@ -167,24 +172,22 @@ jobQueue.processJobs(
           (err) => { if (err) logger.error(err); });
       }
       try {
-        lineProcessor.process(line);
+        await lineProcessor.process(line);
       } catch (error) {
         logger.error(error);
         job.fail({ error });
         callback();
       }
-    });
-    lineReader.on('close', async () => {
-      try {
-        logger.log('File reading finished, start bulk insert');
-        const { ok, writeErrors, nInserted } = await lineProcessor.finalize();
-        logger.log(`Inserted in ${nInserted} chunks`);
-        job.done({ ok, writeErrors, nInserted });
-      } catch (error) {
-        logger.error(error);
-        job.fail({ error });
-      }
-      callback();
-    });
+    };
+    try {
+      logger.log('File reading finished, start bulk insert');
+      const { ok, writeErrors, nInserted } = await lineProcessor.finalize();
+      logger.log(`Inserted in ${nInserted} chunks`);
+      job.done({ ok, writeErrors, nInserted });
+    } catch (error) {
+      logger.error(error);
+      job.fail({ error });
+    }
+    callback();
   },
 );

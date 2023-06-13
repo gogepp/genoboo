@@ -25,18 +25,15 @@ jobQueue.processJobs(
 
       xml.on(`tag:${tag}`, async (obj) => {
         try {
-          lineProcessor.parse(obj);
+          const { ok, writeErrors, nInserted, nUpserted } = await lineProcessor.parse(obj);
+          job.done({ ok, writeErrors, nInserted: nInserted + nUpserted });
+          logger.log('Xml file reading finished !');
+          callback();
         } catch (err) {
           logger.error(err);
           job.fail({ err });
           callback();
         }
-      });
-
-      xml.on('end', async () => {
-        logger.log('Xml file reading finished !');
-        job.done();
-        callback();
       });
 
       xml.on('error', async (error) => {
@@ -53,27 +50,25 @@ jobQueue.processJobs(
 
       const lineProcessor = new PairwiseProcessor(program, algorithm, matrix, database);
 
-      lineReader.on('line', async (line) => {
-        try {
-          lineProcessor.parse(line);
-        } catch (error) {
-          logger.error(error);
-          job.fail({ error });
-          callback();
-        }
-      });
+      for await (const line of lineReader) {
+          try {
+            await lineProcessor.parse(line);
+          } catch (error) {
+            logger.error(error);
+            job.fail({ error });
+            callback();
+          }
+      };
 
-      lineReader.on('close', async () => {
-        try {
+      try {
           logger.log('File reading finished, start bulk insert');
-          lineProcessor.lastPairwise();
-          job.done();
-        } catch (error) {
+          const { ok, writeErrors, nInserted, nUpserted } = await lineProcessor.lastPairwise();
+          job.done({ ok, writeErrors, nInserted: nInserted + nUpserted });
+      } catch (error) {
           logger.error(error);
           job.fail({ error });
-        }
-        callback();
-      });
+      }
+      callback();
     }
   },
 );

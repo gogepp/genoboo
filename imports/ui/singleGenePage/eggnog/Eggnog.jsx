@@ -34,11 +34,9 @@ function NoEggnog({ showHeader }) {
 }
 
 function eggnogDataTracker({ gene }) {
-  const eggnogId = Genes.findOne({ ID: gene.ID }).eggnogId;
-
-  const eggnogSub = Meteor.subscribe('eggnog');
+  const eggnogSub = Meteor.subscribe('eggnog', gene.eggnogId);
   const loading = !eggnogSub.ready();
-  const eggnog = eggnogCollection.findOne({ _id: eggnogId });
+  const eggnog = eggnogCollection.findOne({});
 
   return {
     loading,
@@ -379,7 +377,6 @@ function Kegg({ database, query }) {
           >
             {ID}
           </a>
-          <KeggApi database={database} query={ID} />
         </div>
       );
     })
@@ -392,7 +389,6 @@ function Kegg({ database, query }) {
         >
           {query}
         </a>
-        <KeggApi database={database} query={query} />
       </div>
     ));
 
@@ -558,7 +554,6 @@ function Pfams({ family }) {
           >
             { val }
           </a>
-          <PfamsApi id={val} />
         </div>
       );
     })
@@ -571,7 +566,6 @@ function Pfams({ family }) {
         >
           { family }
         </a>
-        <PfamsApi id={family} />
       </div>
     ));
 

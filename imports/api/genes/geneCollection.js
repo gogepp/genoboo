@@ -77,6 +77,12 @@ const SubfeatureSchema = new SimpleSchema(
       // denyUpdate: true,
       label: 'Unique subfeature ID',
     },
+    protein_id: {
+      type: String,
+      optional: true,
+      index: true,
+      label: 'Linked protein ID for mRNA',
+    },
     phase: {
       type: SimpleSchema.oneOf(SimpleSchema.Integer, String),
       allowedValues: [0, 1, 2, '.'],
@@ -94,16 +100,6 @@ const SubfeatureSchema = new SimpleSchema(
     'parents.$': {
       type: String,
     },
-    protein_domains: {
-      type: Array,
-      label: 'Interproscan protein domains',
-      optional: true,
-    },
-    'protein_domains.$': {
-      type: Object,
-      label: 'Interproscan protein domain',
-      blackbox: true,
-    },
   },
   {
     keepRawDefinition: true,
@@ -112,6 +108,22 @@ const SubfeatureSchema = new SimpleSchema(
 
 // Extend the subfeature schema with base subfeatures.
 SubfeatureSchema.extend(IntervalBaseSchema);
+
+// Basic schema to store orthgroup information on the gene
+const OrthogroupSchema = new SimpleSchema(
+  {
+    id: {
+      type: String,
+      index: true,
+      label: 'Orthogroup DB identifier (_id in orthogroup collection)',
+    },
+    name: {
+      type: String,
+      index: true,
+      label: 'Orthogroup name',
+    },
+  }
+)
 
 const GeneSchema = new SimpleSchema(
   {
@@ -149,11 +161,11 @@ const GeneSchema = new SimpleSchema(
       index: true,
       label: 'Reference genome DB identifier (_id in genome collection)',
     },
-    orthogroupId: {
-      type: String,
+    orthogroup: {
+      type: OrthogroupSchema,
       index: true,
       optional: true,
-      label: 'Orthogroup DB identifier (_id in orthogroup collection)',
+      label: 'Orthogroup information',
     },
     eggnogId: {
       type: String,
@@ -172,7 +184,7 @@ const GeneSchema = new SimpleSchema(
     type: {
       type: String,
       allowedValues: ['gene'],
-      label: 
+      label:
         'Type of the top level annotation (currently only "gene" is allowed)',
     },
     strand: {

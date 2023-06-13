@@ -1,6 +1,8 @@
 import { similarSequencesCollection } from '/imports/api/genes/alignment/similarSequenceCollection.js';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 
+import logger from '/imports/api/util/logger.js';
+
 class Pairwise {
   constructor({
     iteration_query,
@@ -66,6 +68,7 @@ class PairwiseProcessor {
           /** Update or insert pairwise. */
           this.similarSeqBulkOp.find({
             iteration_query: this.pairWise.iteration_query,
+            protein_id: this.pairWise.iteration_query
           }).upsert().update(
             {
               $set: {
@@ -74,6 +77,7 @@ class PairwiseProcessor {
                 matrix_ref: this.matrix,
                 database_ref: this.database,
                 iteration_query: this.pairWise.iteration_query,
+                protein_id: this.pairWise.iteration_query,
                 query_len: this.pairWise.query_length,
                 iteration_hits: this.pairWise.iteration_hits,
               },
@@ -83,7 +87,6 @@ class PairwiseProcessor {
               multi: true,
             },
           );
-          this.similarSeqBulkOp.execute();
         }
 
         /** Initializes a new pairwise. */
@@ -355,8 +358,10 @@ class PairwiseProcessor {
    * @function
    */
   lastPairwise = () => {
+
     this.similarSeqBulkOp.find({
       iteration_query: this.pairWise.iteration_query,
+      protein_id: this.pairWise.iteration_query
     }).upsert().update(
       {
         $set: {
@@ -365,6 +370,7 @@ class PairwiseProcessor {
           matrix_ref: this.matrix,
           database_ref: this.database,
           iteration_query: this.pairWise.iteration_query,
+          protein_id: this.pairWise.iteration_query,
           query_len: this.pairWise.query_length,
           iteration_hits: this.pairWise.iteration_hits,
         },
@@ -374,7 +380,11 @@ class PairwiseProcessor {
         multi: true,
       },
     );
-    this.similarSeqBulkOp.execute();
+    if (this.similarSeqBulkOp.length > 0) {
+        return this.similarSeqBulkOp.execute();
+    } else {
+        return { ok:"", writeErrors:"", nInserted:0, nUpserted: 0 }
+    }
   };
 }
 

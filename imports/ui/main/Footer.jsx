@@ -37,7 +37,7 @@ export default function Footer() {
           </span>
         </div>
       </a>
-      <p className="has-text-grey-light">© 2017-2020</p>
+      <p className="has-text-grey-light">© 2017-2023</p>
     </footer>
   );
 }

@@ -22,6 +22,10 @@ const similarSequencesSchema = new SimpleSchema({
     type: String,
     label: 'Query sequence name.',
   },
+  protein_id: {
+    type: String,
+    label: 'Protein_id',
+  },
   iteration_hits: {
     type: Array,
     label: 'List of iteration hits.',

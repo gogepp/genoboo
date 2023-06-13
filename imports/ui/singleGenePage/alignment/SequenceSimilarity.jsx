@@ -24,7 +24,7 @@ function Header() {
 }
 
 function hasNoSequenceSimilarity({ similarSequences }) {
-  return typeof similarSequences === 'undefined';
+  return typeof similarSequences === 'undefined' || similarSequences.length == 0;
 }
 
 function NoSequenceSimilarity({ showHeader }) {
@@ -41,28 +41,10 @@ function NoSequenceSimilarity({ showHeader }) {
 }
 
 function SequenceSimilarityDataTracker({ gene }) {
-  const queryGenes = Genes.findOne({ ID: gene.ID });
-  const geneChildren = queryGenes.children;
-
-  const alignmentSub = Meteor.subscribe('alignment');
+  const alignmentSub = Meteor.subscribe('alignment', gene);
   const loading = !alignmentSub.ready();
 
-  /**
-   * iteration_query in the alignment collection can take the value of a gene
-   * identifier or be a child of the gene.
-   */
-  const similarSequences = (
-    typeof queryGenes.ID === 'undefined'
-      ? undefined
-      : similarSequencesCollection.findOne(
-        {
-          $or: [
-            { iteration_query: queryGenes.ID },
-            { iteration_query: { $in: geneChildren } },
-          ],
-        },
-      )
-  );
+  const similarSequences = similarSequencesCollection.find().fetch()
 
   return {
     loading,
@@ -136,7 +118,7 @@ function DescriptionLimited({ description }) {
     }
   }, [openDesc]);
 
-  const buttonText = openDesc ? 'Show less' : 'Show more ...';
+  const buttonText = openDesc ? 'Show more' : 'Show less ...';
 
   return (
     <>
@@ -571,6 +553,28 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
     .domain([0, length])
     .range([margin.left, width - margin.right - 140]);
 
+  let hitContent = (
+    <div className="diamond-body-empty">
+      <p>No hits selected for this query</p>
+    </div>
+  )
+
+  if (querySequences.iteration_hits.length > 0){
+    hitContent = (
+      <div className="diamond-body">
+        <div>
+          <div id="top-bar-sequence">
+            <TopBarSequence length={length} scale={scale} />
+          </div>
+          <div>
+            <HitsCoverLines query={querySequences} scale={scale} height={height} />
+          </div>
+        </div>
+        <ReactResizeDetector handleWidth onResize={(w) => setWidth(w)} />
+      </div>
+    )
+  }
+
   return (
     <div className="card">
 
@@ -581,6 +585,12 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
               <th colSpan="2" className="is-light">
                 General informations
               </th>
+            </tr>
+            <tr>
+               <td>Query :</td>
+              <td>
+                {querySequences.protein_id && <p>{querySequences.protein_id}</p>} 
+              </td>
             </tr>
             <tr>
               <td>Algorithm :</td>
@@ -619,29 +629,20 @@ function GlobalInformation({ querySequences, initialWidth = 200 }) {
           </tbody>
         </table>
       </div>
-
-      <div className="diamond-body">
-        <div>
-          <div id="top-bar-sequence">
-            <TopBarSequence length={length} scale={scale} />
-          </div>
-          <div>
-            <HitsCoverLines query={querySequences} scale={scale} height={height} />
-          </div>
-        </div>
-        <ReactResizeDetector handleWidth onResize={(w) => setWidth(w)} />
-      </div>
-
+      {hitContent}
     </div>
   );
 }
 
 function SequenceSimilarity({ showHeader = false, similarSequences }) {
+  let content = similarSequences.map(similar => {
+    return (<GlobalInformation querySequences={similar} />)
+  })
   return (
     <>
       {showHeader && <Header />}
       <div>
-        <GlobalInformation querySequences={similarSequences} />
+        {content}
       </div>
     </>
   );

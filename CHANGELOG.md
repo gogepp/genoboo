@@ -1,15 +1,82 @@
-# GeneNoteBook Changelog
+# Genoboo Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
-## [Unreleased]
+## [0.4.3] 2023-05-02
+
+### Fixed
+
+- Fixed Protein domains view in gene list
+- Removed remaining console.log in Eggnog
+- Fixed display for blast/diamond when there is no data
+- Fixed typo in Show more / Show less for diamond
+- Fixed async annotation add
+
+### Added
+
+- Added back config file option at startup (see config.json.template)
+- Added config option to disable login (and registration) (*disable_user_login* key)
+- Added config option to disable registrations (*disable_user_registration* key)
+- Added config option to hide blast link (*disable_blast* key)
+- Added config option to redirect blast link to custom external link (*blast_link* key)
+
+## [0.4.2] 2023-04-13
+
+### Fixed
+
+- Fixed an issue with annotations files (numerical score values)
+- Fixed eggnog integration
+- Fixed an issue with publications (stopped loading all interpro / eggnog data)
+- Fixed an issue with blast xml loader
+
+### Changed
+
+- Moved Interpro data to dedicated collection
+- Allow multiple blast / interpro results for the same gene (one for each protein)
+- Removed wrong link for Unintegrated interpro data
+- Disabled Kegg api call (for now)
+- Only integrate Interpro & GO DBxref for now
+
+## [0.4.1] 2023-03-31
+
+### Fixed
+
+- Fixed several async issues when loading data (interproscan, genome, alignment) (issue with 'on' on LineReader)
+- Improper management of errors in CLI (process left hanging)
+- Better management of bulkOp when empty
+
+## [0.4.0] 2023-03-21
+
+### Added
+
+- Add support for custom protein ids when integrating annotation
+- Add tests from the API side
+
+### Changed
+
+- Forked Genenotebook to Genoboo
+- Rewrote orthogroup integration (for better protein management + include orthogroup name)
+  - (Not compatible with previous version: need to re-integrate orthogroups)
+- Added Bar Plot for orthogroup content
+
+# Removed
+
+- API calls for PFAM in Eggnog display (pfam is deprecated)
+
+### Fixed
+
+- Various UI issues
+
+## [0.3.2] 2022-11-04
 
 ### Added
 
 - Support for additional InterproScan file formats (tsv, gff, xml)
+- EggNog annotations
+- BLAST/diamond alignment reading/visualizing
 
 ## [0.3.1] 2021-01-28
 

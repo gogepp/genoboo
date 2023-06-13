@@ -34,7 +34,7 @@ jobQueue.processJobs(
 
     let lineNbr = 0;
 
-    rl.on('line', async (line) => {
+    for await (const line of rl) {
       lineNbr += 1;
 
       if (lineNbr % 10000 === 0) {
@@ -42,27 +42,26 @@ jobQueue.processJobs(
       }
 
       try {
-        lineProcessor.parse(line);
+        await lineProcessor.parse(line);
       } catch (err) {
         logger.error(err);
         job.fail({ err });
         callback();
       }
-    });
+    };
 
-    // Occurs when all lines are read.
-    rl.on('close', async () => {
-      try {
-        logger.log('File reading finished');
-        const { nMatched } = await lineProcessor.finalize();
-        const nInserted = nMatched;
-        logger.log(`Matched to ${nMatched} protein domain(s)`);
-        job.done({ nInserted });
-      } catch (err) {
-        logger.error(err);
-        job.fail({ err });
-      }
-      callback();
-    });
+    try {
+      logger.log('File reading finished');
+      const { nUpserted } = await lineProcessor.finalize();
+      const nInserted = nUpserted;
+      logger.log(`Matched to ${nInserted} protein domain(s)`);
+      logger.log("Updating related genes")
+      await lineProcessor.updateGenes()
+      job.done({ nInserted });
+    } catch (err) {
+      logger.error(err);
+      job.fail({ err });
+    }
+    callback();
   },
 );

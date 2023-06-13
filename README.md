@@ -2,7 +2,7 @@
 
 ![Automated](https://img.shields.io/docker/cloud/automated/genenotebook/genenotebook.svg?style=flat-square&logo=docker)![Build status](https://img.shields.io/docker/cloud/build/genenotebook/genenotebook.svg?style=flat-square&logo=docker)
 
-![CircleCI](https://img.shields.io/circleci/build/github/genenotebook/genenotebook/master?label=Circle%20CI&logo=circleci&style=flat-square)
+**Genoboo is a fork of [GeneNoteBook](https://github.com/genenotebook/genenotebook), and may be merged back to the main repository at any point.**
 
 # GeneNoteBook
 

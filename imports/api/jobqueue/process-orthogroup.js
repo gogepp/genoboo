@@ -18,7 +18,7 @@ jobQueue.processJobs(
     const listprefixes = (typeof prefixes !== 'undefined' ? await orthofinder.getListPrefixes() : null);
 
     logger.log(`Add ${folderName} folder.`);
-    logger.log('List prefixes :', listprefixes);
+    logger.log(`List prefixes : ${listprefixes}`);
 
     // Iterate over all files in the folder.
     orthofinder.globListFilesFolder(folderName)

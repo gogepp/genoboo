@@ -5,6 +5,8 @@ import { groupBy } from 'lodash';
 import ReactResizeDetector from 'react-resize-detector';
 import randomColor from 'randomcolor';
 
+import { interproscanCollection } from '/imports/api/genes/interproscan/interproscanCollection.js';
+import { withTracker } from 'meteor/react-meteor-data';
 import { getGeneSequences } from '/imports/api/util/util.js';
 
 import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
@@ -14,6 +16,15 @@ import {
 } from '/imports/ui/util/Popover.jsx';
 
 import './proteinDomains.scss';
+
+
+function Loading() {
+  return <div>Loading...</div>;
+}
+
+function isLoading({ loading }) {
+  return loading;
+}
 
 function XAxis({
   scale, numTicks, transform, seqid,
@@ -38,7 +49,7 @@ function XAxis({
         y="0"
         dy="5"
         textAnchor="left"
-        fontSize="11"
+        fontSize="10"
       >
         {seqid}
       </text>
@@ -80,96 +91,6 @@ function XAxis({
     </g>
   );
 }
-
-/*
-function DomainPopover({
-  showPopover, targetId, togglePopover, ...domain
-}) {
-  const {
-    start, end, score, name, Dbxref = [], Ontology_term = [],
-    signature_desc, source,
-  } = domain;
-  return (
-    <Popover
-      placement="top"
-      isOpen={showPopover}
-      target={targetId}
-      toggle={togglePopover}
-    >
-      <PopoverHeader>
-        {source}
-        {' '}
-        <small className="text-muted">{ name }</small>
-      </PopoverHeader>
-      <PopoverBody className="px-0 py-0">
-        <div className="table-responive">
-          <table className="table table-hover">
-            <tbody>
-              {
-              signature_desc
-              && (
-              <tr>
-                <td>Signature description</td>
-                <td>{signature_desc}</td>
-              </tr>
-              )
-            }
-              <tr>
-                <td>Coordinates</td>
-                <td>
-                  {`${start}..${end}`}
-                </td>
-              </tr>
-              <tr>
-                <td>Score</td>
-                <td>{score}</td>
-              </tr>
-              {
-              Dbxref.length > 0
-              && (
-              <tr>
-                <td>Dbxref</td>
-                <td>
-                  <ul>
-                    {
-                      Dbxref.map((xref) => (
-                        <li key={xref}>
-                          { xref }
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </td>
-              </tr>
-              )
-            }
-              {
-              Ontology_term.length > 0
-              && (
-              <tr>
-                <td>Ontology term</td>
-                <td>
-                  <ul>
-                    {
-                      Ontology_term.map((term) => (
-                        <li key={term}>
-                          { term }
-                        </li>
-                      ))
-                    }
-                  </ul>
-                </td>
-              </tr>
-              )
-            }
-            </tbody>
-          </table>
-        </div>
-      </PopoverBody>
-    </Popover>
-  );
-}
-*/
 
 function ProteinDomain({
   interproId, start, end, name, domainIndex, scale, Dbxref = [], Ontology_term = [], signature_desc, source, score,
@@ -280,6 +201,23 @@ function InterproGroup({
     });
   });
   const description = [...descriptions].sort((a, b) => b.length - a.length)[0];
+  let content = interproId
+  if (interproId !== 'Unintegrated signature'){
+    content = (
+      <>
+      <a
+        href={`https://www.ebi.ac.uk/interpro/entry/${interproId}`}
+        style={{ fontSize: '.7rem' }}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {interproId}
+      </a>
+      {` ${description}`}
+      </>
+    )
+  }
+
   return (
     <g transform={transform}>
       <foreignObject width={xMax} height="25" x="0" y="-22">
@@ -293,15 +231,7 @@ function InterproGroup({
           wordBreak: 'break-all',
         }}
         >
-          <a
-            href={`https://www.ebi.ac.uk/interpro/entry/${interproId}`}
-            style={{ fontSize: '.7rem' }}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {interproId}
-          </a>
-          { interproId !== 'Unintegrated signature' && ` ${description}`}
+          { content }
         </p>
       </foreignObject>
       {
@@ -338,11 +268,8 @@ function sortGroups(groupA, groupB) {
   return startA - startB;
 }
 
-function hasNoProteinDomains({ gene }) {
-  const transcripts = gene.subfeatures.filter((sub) => sub.type === 'mRNA');
-  const proteinDomains = transcripts.filter((transcript) => typeof transcript.protein_domains !== 'undefined');
-
-  return proteinDomains.length === 0;
+function hasNoProteinDomains({ proteinDomains, gene }) {
+  return typeof proteinDomains === 'undefined' || proteinDomains.length == 0 || proteinDomains.filter(domain => domain.gene_id === gene.ID).length == 0;
 }
 
 function Header() {
@@ -367,7 +294,21 @@ function NoProteinDomains({ showHeader }) {
   );
 }
 
+function InterproDataTracker({ gene }) {
+  const interproSub = Meteor.subscribe('interpro', gene.ID);
+  const loading = !interproSub.ready();
+
+  const proteinDomains = interproscanCollection.find({}).fetch()
+
+  return {
+    loading,
+    gene,
+    proteinDomains,
+  };
+}
+
 function ProteinDomains({
+  proteinDomains,
   gene,
   showHeader = false,
   resizable = false,
@@ -377,26 +318,11 @@ function ProteinDomains({
 
   // get sequence to determine length
   const sequences = getGeneSequences(gene);
-  // interproscan results should be on transcripts
-  const transcripts = gene.subfeatures.filter((sub) => sub.type == 'mRNA');
-  // pick transcript with annotated protein domains
-  const transcript = transcripts.filter((tr) => (
-    typeof tr.protein_domains !== 'undefined'))[0];
-  const transcriptSequence = sequences.filter((seq) => seq.ID === transcript.ID)[0];
-  const transcriptSize = transcriptSequence.prot.length;
 
-  const interproGroups = Object.entries(groupBy(transcript.protein_domains,
-    'interproId')).sort(sortGroups);
-  const totalGroups = interproGroups.length;
-  const totalDomains = 0;
-  /*
-  const sortedDomains = interproGroups.map((domainGroup) => {
-    const [interproId, domains] = domainGroup;
-    const sourceGroups = Object.entries(groupBy(domains, 'name'));
-    totalDomains += sourceGroups.length;
-    return sourceGroups;
-  });
-  */
+  let totalGroups = 0;
+  let totalProteins = 0;
+  let currentTranslate = 0
+  let maxTranscriptSize = 0
 
   const margin = {
     top: 10,
@@ -411,43 +337,65 @@ function ProteinDomains({
   };
 
   const svgWidth = width - margin.left - margin.right;
-  const svgHeight = (totalGroups * 30) + (totalDomains * 10)
-    + margin.top + margin.bottom + 40;
-  const scale = scaleLinear()
-    .domain([0, transcriptSize])
-    .range([0, svgWidth]);
-  let domainCount = 0;
+
+  let content = proteinDomains.filter(domain => domain.gene_id === gene.ID).map(domain => {
+
+    totalProteins += 1
+    let domainCount = 0
+
+    let seq = sequences.filter((seq) => (seq.ID === domain.protein_id || seq.protein_id === domain.protein_id))[0]
+    let size = seq.prot.length;
+    const scale = scaleLinear()
+      .domain([0, size])
+      .range([0, svgWidth]);
+
+    let interproGroups = Object.entries(groupBy(domain.protein_domains,
+      'interproId')).sort(sortGroups);
+    totalGroups += interproGroups.length;
+
+    let proteinContent = interproGroups.map((interproGroup, index) => {
+      const [interproId, domains] = interproGroup;
+      const sourceGroups = groupBy(domains, 'name');
+      const yTransform = ((index + 1) * 30) + (domainCount * 10);
+      const transform = `translate(0,${yTransform})`;
+
+      domainCount += Object.entries(sourceGroups).length;
+
+      return (
+        <InterproGroup
+          key={interproId}
+          interproId={interproId}
+          sourceGroups={sourceGroups}
+          transform={transform}
+          scale={scale}
+        />
+      );
+    })
+
+    let axisTransform = `translate(0,${15 + currentTranslate})`     
+    let gTransform = `translate(0,${40 + currentTranslate})`
+
+    let data = (
+      <>
+      <XAxis scale={scale} numTicks={5} transform={axisTransform} seqid={domain.protein_id}/>
+      <g className="domains" transform={gTransform}>
+      {proteinContent}
+      </g>
+      </>
+    )
+
+    currentTranslate += ((interproGroups.length + 1 ) * 30) + (domainCount * 10);
+    return data
+  })
+
+  const svgHeight = currentTranslate + margin.top + margin.bottom;
+
   return (
     <>
       { showHeader && <Header /> }
       <div className="card protein-domains">
         <svg width={svgWidth} height={svgHeight} style={style}>
-          <XAxis
-            scale={scale}
-            numTicks={5}
-            transform="translate(0,10)"
-            seqid={transcript.ID}
-          />
-          <g className="domains" transform="translate(0,40)">
-            {
-              interproGroups.map((interproGroup, index) => {
-                const [interproId, domains] = interproGroup;
-                const sourceGroups = groupBy(domains, 'name');
-                const yTransform = ((index + 1) * 30) + (domainCount * 10);
-                const transform = `translate(0,${yTransform})`;
-                domainCount += Object.entries(sourceGroups).length;
-                return (
-                  <InterproGroup
-                    key={interproId}
-                    interproId={interproId}
-                    sourceGroups={sourceGroups}
-                    transform={transform}
-                    scale={scale}
-                  />
-                );
-              })
-            }
-          </g>
+          {content}
         </svg>
         {resizable && (
           <ReactResizeDetector
@@ -461,5 +409,7 @@ function ProteinDomains({
 }
 
 export default compose(
+  withTracker(InterproDataTracker),
+  branch(isLoading, Loading),
   branch(hasNoProteinDomains, NoProteinDomains),
 )(ProteinDomains);
