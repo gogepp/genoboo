@@ -34,6 +34,7 @@ class AnnotationProcessor {
 
     // Initialize gene bulk operation (mongoDB).
     this.geneBulkOperation = Genes.rawCollection().initializeUnorderedBulkOp();
+    this.isReset = false
 
     // Object of a gene with the following hierarchy: gene → subfeatures
     // -> [transcript, exons, cds, ...].
@@ -347,7 +348,7 @@ class AnnotationProcessor {
       }
 
       // Add sequence to the top level.
-      if (typeof sequence !== 'undefined') {
+    if (typeof sequence !== 'undefined') {
         this.geneLevelHierarchy.seq = sequence;
       }
 
@@ -443,6 +444,7 @@ class AnnotationProcessor {
     try {
       GeneSchema.validate(geneWithoutId);
     } catch (err) {
+      logger.error(err)
       throw new Error('There is something wrong with the gene collection schema');
     }
     return true;
@@ -479,6 +481,11 @@ class AnnotationProcessor {
         phaseGff,
         attributeString,
       ] = line;
+
+      if (this.isReset){
+          this.isReset = false
+          this.geneBulkOperation = Genes.rawCollection().initializeUnorderedBulkOp();
+      }
 
       // Parse gff3 attribute column into key:value object. e.g:
       // attributes : {
@@ -530,7 +537,7 @@ class AnnotationProcessor {
           this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
 
           // Add to bulk operation.
-          this.geneBulkOperation.insert(this.geneLevelHierarchy);
+          this.geneBulkOperation.insert(this.geneLevelHierarchy)
 
           // Reset values.
           this.geneLevelHierarchy = {};
@@ -541,6 +548,12 @@ class AnnotationProcessor {
 
           // Init new gene.
           this.initGeneHierarchy(features);
+
+          // Arbitrary break up of batch size to save ram
+          if (this.geneBulkOperation.length > 500) {
+              this.isReset = true
+              return this.geneBulkOperation.execute();
+          }
         }
       } else {
         // The other hierarchical levels (e.g: exons, cds, ...) of the gene.
