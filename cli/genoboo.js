@@ -755,6 +755,45 @@ Example:
   })
   .exitOverride(customExitOverride(addEggnog));
 
+// Add Hectar annotations file.
+const addHectar = add.command('hectar');
+
+addHectar
+  .description('Add Hectar results to a running GeneNoteBook server')
+  .usage('[options] <Hectar tab output file>')
+  .arguments('<file>')
+  .requiredOption(
+    '-u, --username <adminUsername>',
+    'GeneNoteBook admin username'
+  )
+  .requiredOption(
+    '-p, --password <adminPassword>',
+    'GeneNoteBook admin password'
+  )
+  .option(
+    '--port [port]',
+    'Port on which GeneNoteBook is running. Default: 3000'
+  )
+  .action((file, { username, password, port = 3000 }) => {
+    if (typeof file !== 'string') addHectar.help();
+
+    const fileName = path.resolve(file);
+    if (!(fileName && username && password)) {
+      addHectar.help();
+    }
+
+    new GeneNoteBookConnection({ username, password, port }).call('addHectar', {
+      fileName,
+    });
+  })
+  .on('--help', () => {
+    console.log(`
+Example:
+    genenotebook add hectar hectar_annotations.tab -u admin -p admin
+    `);
+  })
+  .exitOverride(customExitOverride(addHectar));
+
 // add orthogroups.
 const addOrthogroups = add.command('orthogroups');
 
