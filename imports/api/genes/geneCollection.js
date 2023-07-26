@@ -173,6 +173,12 @@ const GeneSchema = new SimpleSchema(
       optional: true,
       label: 'eggnog DB identifier (_id in eggnog collection)',
     },
+    hectarId: {
+      type: String,
+      index: true,
+      optional: true,
+      label: 'Hectar identifier (_id in hectar collection)',
+    },
     seqid: {
       type: String,
       label: 'ID of the sequence on which the gene is, e.g. chr1',
