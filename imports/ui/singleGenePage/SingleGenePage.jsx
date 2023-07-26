@@ -16,6 +16,7 @@ import Genemodel from './Genemodel.jsx';
 import Seq from './Seq.jsx';
 import ProteinDomains from './ProteinDomains.jsx';
 import Eggnog from './eggnog/Eggnog.jsx';
+import Hectar from './hectar/Hectar.jsx';
 import SequenceSimilarity from './alignment/SequenceSimilarity.jsx';
 import Orthogroup from './orthoGroup/Orthogroup.jsx';
 
