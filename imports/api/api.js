@@ -19,6 +19,7 @@ import './genomes/annotation/addAnnotation.js';
 import './genes/interproscan.js';
 import './genes/addInterproscan.js';
 import './genes/eggnog/addEggnog.js';
+import './genes/hectar/addHectar.js';
 import './genes/scanGeneAttributes.js';
 import './genes/updateAttributeInfo.js';
 import './genes/updateGene.js';
