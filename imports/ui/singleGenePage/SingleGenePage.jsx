@@ -117,6 +117,11 @@ function SingleGenePage({ gene, genome = {} }) {
                 </a>
               </li>
               <li>
+                <a href="#hectar">
+                  Hectar
+                </a>
+              </li>
+              <li>
                 <a href="#sequence-similarity">
                   Sequence Similarity
                 </a>
@@ -147,6 +152,9 @@ function SingleGenePage({ gene, genome = {} }) {
           </section>
           <section id="eggnog">
             <Eggnog gene={gene} showHeader resizable />
+          </section>
+          <section id="hectar">
+            <Hectar gene={gene} showHeader resizable />
           </section>
           <section id="sequence-similarity">
             <SequenceSimilarity gene={gene} showHeader={true} resizable />
