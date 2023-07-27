@@ -26,7 +26,7 @@ class HectarProcessor {
   }
 
   parse = (line) => {
-    if (!(line[0] === '#' || line.split('\t').length <= 1)) {
+    if (!(line.slice(0,10) === 'protein id'  || line.split('\t').length <= 1)) {
       // Get all hectar informations line by line and separated by tabs.
       const [
         proteinId,
@@ -61,7 +61,7 @@ class HectarProcessor {
           annotations[key] = value.split(',');
         }
       }
-
+	  console.log(proteinId);
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
       const subfeatureIsFound = Genes.findOne({
@@ -72,6 +72,7 @@ class HectarProcessor {
       });
 
       if (typeof subfeatureIsFound !== 'undefined') {
+        console.log("if loop" + typeof subfeatureIsFound);
         // Increment hectar.
         this.nHectar += 1;
 
