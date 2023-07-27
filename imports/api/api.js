@@ -55,5 +55,6 @@ import './jobqueue/process-blast.js';
 import './jobqueue/process-download.js';
 import './jobqueue/process-addGenome.js';
 import './jobqueue/process-eggnog.js';
+import './jobqueue/process-hectar.js';
 import './jobqueue/process-similarsequences.js';
 import './jobqueue/process-orthogroup.js';

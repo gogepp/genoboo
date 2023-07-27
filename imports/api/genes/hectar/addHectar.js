@@ -66,8 +66,8 @@ class HectarProcessor {
       // MMUCEDO_000002-T1).
       const subfeatureIsFound = Genes.findOne({
           $or: [
-            { 'subfeatures.ID': protein_id },
-            { 'subfeatures.protein_id': protein_id },
+            { 'subfeatures.ID': proteinId },
+            { 'subfeatures.protein_id': proteinId },
           ],
       });
 
