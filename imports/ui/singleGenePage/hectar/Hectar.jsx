@@ -47,118 +47,58 @@ function hectarDataTracker({ gene }) {
 
 function Localisation({ annot }) {
   return (
-    <a>
+    <p>
       { annot }
-    </a>
+    </p>
   );
 }
 
 function SigPepScore({ sigPep }) {
   return (
-    <a>
+    <p>
       { sigPep }
-    </a>
+    </p>
   );
 }
 
 function SigPepClivScore({ sigPepCli }) {
   return (
-    <a>
+    <p>
       { sigPepCli }
-    </a>
+    </p>
   );
 }
 
 function TIISigAncScore({ sigAnchor }) {
   return (
-    <a>
+    <p>
       { sigAnchor }
-    </a>
+    </p>
   );
 }
 
 function ChloroScore({ chloro }) {
   return (
-    <a>
+    <p>
       { chloro }
-    </a>
+    </p>
   );
 }
 
 function MitoScore({ mito }) {
   return (
-    <a>
+    <p>
       { mito }
-    </a>
+    </p>
   );
 }
 
 
 function OtherScore({ other }) {
   return (
-    <a>
+    <p>
       { other }
-    </a>
-  );
-}
-
-function HectarGeneralInformations({ informations, maxArray = 5 }) {
-  const maxChar = 70;
-  const maxArrayLines = maxArray;
-  const infoIsArray = Array.isArray(informations);
-  const isMaxArray = informations.length > maxArrayLines;
-  const isMaxChar = informations.length > maxChar;
-
-  const [openInfo, setOpenInfo] = useState(false);
-  const [descArray, setDescArray] = useState([]);
-  const [descChar, setDescChar] = useState('');
-
-  useEffect(() => {
-    if (infoIsArray) {
-      if (openInfo) {
-        setDescArray(informations);
-      } else {
-        setDescArray(informations.slice(0, maxArrayLines));
-      }
-    } else {
-      if (informations.length > maxChar) {
-        if (openInfo === false) {
-          const descNoArray = informations
-            ? `${informations.slice(0, maxChar)} ... `
-            : informations;
-          setDescChar(descNoArray);
-        } else {
-          setDescChar(informations);
-        }
-      } else {
-        setDescChar(informations);
-      }
-    }
-  }, [openInfo]);
-
-  const buttonText = (() => {
-    if (infoIsArray) {
-      if (openInfo) {
-        return 'Show less';
-      }
-      return `Show ${informations.length - maxArrayLines} more ...`;
-    } else {
-      if (openInfo) {
-        return 'Show less';
-      }
-      return 'Show more ...';
-    }
-  })();
-
-  return (
-    <>
-      {
-        infoIsArray
-          (
-            <div>{ descChar }</div>
-          )
-      }
-    </>
+    </p>
   );
 }
 
