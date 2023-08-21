@@ -3,7 +3,7 @@ import { resetDatabase } from 'meteor/xolvio:cleaner';
 import chai from 'chai';
 import logger from '../../util/logger';
 import { hectarCollection } from './hectarCollection';
-import addhectar from './addHectar';
+import addHectar from './addHectar';
 import { addTestUsers, addTestGenome } from '../../../startup/server/fixtures/addTestData';
 import '../../jobqueue/process-hectar';
 
