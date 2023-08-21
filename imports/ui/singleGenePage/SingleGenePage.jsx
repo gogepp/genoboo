@@ -16,6 +16,7 @@ import Genemodel from './Genemodel.jsx';
 import Seq from './Seq.jsx';
 import ProteinDomains from './ProteinDomains.jsx';
 import Eggnog from './eggnog/Eggnog.jsx';
+import Hectar from './hectar/Hectar.jsx';
 import SequenceSimilarity from './alignment/SequenceSimilarity.jsx';
 import Orthogroup from './orthoGroup/Orthogroup.jsx';
 
@@ -116,6 +117,11 @@ function SingleGenePage({ gene, genome = {} }) {
                 </a>
               </li>
               <li>
+                <a href="#hectar">
+                  Hectar
+                </a>
+              </li>
+              <li>
                 <a href="#sequence-similarity">
                   Sequence Similarity
                 </a>
@@ -146,6 +152,9 @@ function SingleGenePage({ gene, genome = {} }) {
           </section>
           <section id="eggnog">
             <Eggnog gene={gene} showHeader resizable />
+          </section>
+          <section id="hectar">
+            <Hectar gene={gene} showHeader resizable />
           </section>
           <section id="sequence-similarity">
             <SequenceSimilarity gene={gene} showHeader={true} resizable />

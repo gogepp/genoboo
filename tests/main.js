@@ -10,6 +10,7 @@ if (Meteor.isServer) {
   import '../imports/api/genomes/annotation/addAnnotation.test';
   import '../imports/api/genes/alignment/alignment.test.js';
   import '../imports/api/genes/eggnog/eggnog.test.js';
+  import '../imports/api/genes/hectar/hectar.test.js';
   import '../imports/api/genes/interproscan/interproscan.test.js';
   import '../imports/api/transcriptomes/transcriptomes.test.js';
   import '../imports/api/genes/download/download.test.js';
