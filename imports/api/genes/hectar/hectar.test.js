@@ -32,7 +32,7 @@ describe('hectar', function testHectar() {
     addTestGenome(annot = true);
 
     const hectarParams = {
-      fileName: 'assets/app/data/Bnigra_hectar.tsv',
+      fileName: 'assets/app/data/Bnigra_hectar.tab',
     };
 
     // Should fail for non-logged in
@@ -49,7 +49,7 @@ describe('hectar', function testHectar() {
 
     chai.assert.equal(result.nInserted, 1)
 
-    const hecs = hectarCollection.find({ protein_id: 'BniB01g000010.2N.1-P' }).fetch();
+    const hecs = hectarCollection.find({ protein_id: 'BniB01g000010.2N.1' }).fetch();
 
     chai.assert.lengthOf(hecs, 1, 'No hectar data found');
 
