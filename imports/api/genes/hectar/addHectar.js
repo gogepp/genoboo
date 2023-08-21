@@ -61,7 +61,6 @@ class HectarProcessor {
           annotations[key] = value.split(',');
         }
       }
-	  console.log(proteinId);
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
       const subfeatureIsFound = Genes.findOne({
