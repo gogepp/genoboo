@@ -10,6 +10,7 @@ import { ExperimentInfo, Transcriptomes } from '/imports/api/transcriptomes/tran
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { resetDatabase } from 'meteor/xolvio:cleaner';
 
+import addKallistoTranscriptome from './addKallistoTranscriptome.js';
 import addTranscriptome from './addTranscriptome.js';
 import updateSampleInfo from './updateSampleInfo.js'
 import updateReplicaGroup from './updateReplicaGroup.js'
@@ -32,14 +33,14 @@ describe('transcriptomes', function testTranscriptomes() {
   });
 
 
-  it('Should add a transcriptome file', async function testAddTranscriptome() {
+  it('Should add a Kallisto transcriptome file', async function testAddKallistoTranscriptome() {
     // Increase timeout
     this.timeout(20000);
 
     const {genomeId, genomeSeqId} = addTestGenome(annot=true)
 
     const transcriParams = {
-      fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      fileName: 'assets/app/data/Bnigra_kallisto_abundance.tsv',
       sampleName: "mySample",
       replicaGroup: "replicaGroup",
       description: "A new description"
@@ -47,16 +48,16 @@ describe('transcriptomes', function testTranscriptomes() {
 
     // Should fail for non-logged in
     chai.expect(() => {
-      addTranscriptome._execute({}, transcriParams);
+      addKallistoTranscriptome._execute({}, transcriParams);
     }).to.throw('[not-authorized]');
 
 
     // Should fail for non admin user
     chai.expect(() => {
-      addTranscriptome._execute(userContext, transcriParams);
+      addKallistoTranscriptome._execute(userContext, transcriParams);
     }).to.throw('[not-authorized]');
 
-    let result = await addTranscriptome._execute(adminContext, transcriParams);
+    let result = await addKallistoTranscriptome._execute(adminContext, transcriParams);
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
@@ -77,6 +78,52 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '1.80368')
     chai.assert.equal(transcriptome.est_counts, '21')
+
+  })
+
+  it('Should add a transcriptome file', async function testAddTranscriptome() {
+    // Increase timeout
+    this.timeout(20000);
+
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+
+    const transcriParams = {
+      fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      description: "A new description"
+    };
+
+    // Should fail for non-logged in
+    chai.expect(() => {
+      addTranscriptome._execute({}, transcriParams);
+    }).to.throw('[not-authorized]');
+
+
+    // Should fail for non admin user
+    chai.expect(() => {
+      addTranscriptome._execute(userContext, transcriParams);
+    }).to.throw('[not-authorized]');
+
+    let result = await addTranscriptome._execute(adminContext, transcriParams);
+
+    const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
+
+    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+
+    const exp = exps[0]
+
+    chai.assert.equal(exp.sampleName, 'sample1')
+    chai.assert.equal(exp.replicaGroup, 'Replica 1')
+    chai.assert.equal(exp.description, 'A new description')
+
+    const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
+
+    chai.assert.lengthOf(transcriptomes, 1, "Did not find 1 transcriptomes")
+
+    const transcriptome = transcriptomes[0]
+
+    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.equal(transcriptome.est_counts, '40')
 
   })
 

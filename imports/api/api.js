@@ -7,6 +7,7 @@ import './publications.js';
  * ddp connection in the data-loading scripts
  */
 import './transcriptomes/addTranscriptome.js';
+import './transcriptomes/addKallistoTranscriptome.js';
 import './transcriptomes/updateSampleInfo.js';
 import './transcriptomes/updateReplicaGroup.js';
 
