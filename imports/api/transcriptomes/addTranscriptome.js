@@ -17,8 +17,8 @@ const getGenomeId = (data) => {
   logger.debug(firstTranscripts);
   const gene = Genes.findOne({
     $or: [
-      { ID: { $in: firstTranscipts } },
-      { 'subfeatures.ID': { $in: firstTranscipts } },
+      { ID: { $in: firstTranscripts } },
+      { 'subfeatures.ID': { $in: firstTranscripts } },
     ],
   });
   if (typeof gene === "undefined"){
@@ -45,7 +45,8 @@ const parseTranscriptomeTsv = ({
     complete({ data, meta }, _file) {
       let nInserted = 0;
       // Remove "Gene" column, leaving samples only
-      meta.shift();
+      let samples = meta['fields']
+      samples.shift();
 
       const genomeId = getGenomeId(data);
 
@@ -53,17 +54,18 @@ const parseTranscriptomeTsv = ({
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
       }
 
+      var replicaGroup = "Replica 1"
       let experiments = {}
-      for (sampleName in meta){
+      samples.forEach((sampleName) =>{
           experiments[sampleName] = ExperimentInfo.insert({
             genomeId,
             sampleName,
-            "Replica 1",
+            replicaGroup,
             description,
             permission,
             isPublic,
         });
-      }
+      });
 
       data.forEach((row) => {
         const gene = Genes.findOne({
@@ -77,15 +79,14 @@ const parseTranscriptomeTsv = ({
           logger.warn(`${target_id} not found`);
         } else {
           nInserted += 1;
-          meta.forEach((sampleName) =>
+          samples.forEach((sampleName) => {
               bulkOp.insert({
                 geneId: gene.ID,
-                row[sampleName],
-                row[sampleName],
-                experiments[sampleName],
+                est_counts: row[sampleName],
+                tpm: row[sampleName],
+                experimentId: experiments[sampleName]
               });
           })
-
         }
       });
       let bulkOpResult
@@ -118,7 +119,7 @@ const addTranscriptome = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseTranscriptomeTsv({
-      fileName, sampleName, replicaGroup, description,
+      fileName, description,
     })
       .catch((error) => {
         logger.warn(error);

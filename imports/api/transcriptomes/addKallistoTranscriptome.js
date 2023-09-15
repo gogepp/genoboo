@@ -118,4 +118,4 @@ const addKallistoTranscriptome = new ValidatedMethod({
   },
 });
 
-export default addTranscriptome;
+export default addKallistoTranscriptome;
