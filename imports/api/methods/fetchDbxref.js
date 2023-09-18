@@ -25,7 +25,7 @@ const fetchDbxref = new ValidatedMethod({
     switch (true) {
       case DBXREF_REGEX.go.test(dbxrefId):
         publicUrl = `http://amigo.geneontology.org/amigo/term/${dbxrefId}`;
-        apiUrl = `http://api.geneontology.org/api/bioentity/${dbxrefId}`;
+        apiUrl = `https://api.geneontology.org/api/go/${dbxrefId}`;
         dbType = 'go';
         break;
       case DBXREF_REGEX.interpro.test(dbxrefId):
