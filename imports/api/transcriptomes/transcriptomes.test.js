@@ -123,7 +123,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
-    chai.assert.equal(transcriptome.est_counts, '40')
+    chai.assert.isUndefined(transcriptome.est_counts)
 
   })
 

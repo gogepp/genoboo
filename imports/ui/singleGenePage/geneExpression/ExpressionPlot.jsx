@@ -143,6 +143,20 @@ function YAxis({ scale, numTicks }) {
 function ExpressionDot({
   yScale, tpm, est_counts, description, replicaGroup, sampleName,
 }) {
+
+  let expression_count
+
+  if (est_counts) {
+    expression_count = (
+      <tr>
+        <td>EST counts</td>
+        <td>{est_counts}</td>
+     </tr>
+    )
+  }
+
+
+
   return (
     <Popover>
       <PopoverTrigger>
@@ -164,10 +178,7 @@ function ExpressionDot({
                 <td>TPM</td>
                 <td>{tpm}</td>
               </tr>
-              <tr>
-                <td>EST counts</td>
-                <td>{est_counts}</td>
-              </tr>
+              {expression_count}
               <tr>
                 <td>Description</td>
                 <td>{description}</td>

@@ -82,7 +82,6 @@ const parseTranscriptomeTsv = ({
           samples.forEach((sampleName) => {
               bulkOp.insert({
                 geneId: gene.ID,
-                est_counts: row[sampleName],
                 tpm: row[sampleName],
                 experimentId: experiments[sampleName]
               });
