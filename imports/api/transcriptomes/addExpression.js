@@ -28,8 +28,8 @@ const getGenomeId = (data) => {
   return gene.genomeId
 };
 
-const parseTranscriptomeTsv = ({
-  fileName, description, permission = 'admin', isPublic = false,
+const parseExpressionTsv = ({
+  fileName, description, replicas = [], replicaNames = [], permission = 'admin', isPublic = false,
 }) => new Promise((resolve, reject) => {
   const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
   const bulkOp = Transcriptomes.rawCollection().initializeUnorderedBulkOp();
@@ -45,18 +45,30 @@ const parseTranscriptomeTsv = ({
     complete({ data, meta }, _file) {
       let nInserted = 0;
       // Remove "Gene" column, leaving samples only
-      let samples = meta['fields']
-      samples.shift();
+      let replicaGroups = meta['fields']
+      let replicaNamesArray = []
 
+      if (replicas.length > 0){
+          replicas.forEach((replica, replicaNumber) => {
+              let split = replica.split(",")
+              let replicaName = split[0]
+              if (replicaNames.length >= replicaNumber + 1){
+                  replicaName = replicaNames[replicaNumber]
+              }
+              for (var i = 0; i < split.length; i++) {replicaNamesArray.push(replicaName)}
+          });
+      }
+
+      let firstColumn = replicaGroups.shift();
       const genomeId = getGenomeId(data);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
       }
 
-      var replicaGroup = "Replica 1"
       let experiments = {}
-      samples.forEach((sampleName) =>{
+      replicaGroups.forEach((replicaGroup, replicaIndex) => {
+          const sampleName = replicaNamesArray.length >= replicaIndex + 1 ? replicaNamesArray[replicaIndex] : replicaGroup
           experiments[sampleName] = ExperimentInfo.insert({
             genomeId,
             sampleName,
@@ -70,8 +82,8 @@ const parseTranscriptomeTsv = ({
       data.forEach((row) => {
         const gene = Genes.findOne({
           $or: [
-            { ID: row.gene },
-            { 'subfeatures.ID': row.gene },
+            { ID: row[firstColumn] },
+            { 'subfeatures.ID': row[firstColumn] },
           ],
         });
 
@@ -79,11 +91,11 @@ const parseTranscriptomeTsv = ({
           logger.warn(`${target_id} not found`);
         } else {
           nInserted += 1;
-          samples.forEach((sampleName) => {
+          replicaGroups.forEach((replicaGroup) => {
               bulkOp.insert({
                 geneId: gene.ID,
-                tpm: row[sampleName],
-                experimentId: experiments[sampleName]
+                tpm: row[replicaGroup],
+                experimentId: experiments[replicaGroup]
               });
           })
         }
@@ -99,17 +111,19 @@ const parseTranscriptomeTsv = ({
   });
 });
 
-const addTranscriptome = new ValidatedMethod({
+const addExpression = new ValidatedMethod({
   name: 'addTranscriptome',
   validate: new SimpleSchema({
     fileName: String,
     description: String,
+    replicas: Array,
+    replicaNames: Array,
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
   run({
-    fileName, description,
+    fileName, description, replicas, replicaNames
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -117,8 +131,8 @@ const addTranscriptome = new ValidatedMethod({
     if (!Roles.userIsInRole(this.userId, 'admin')) {
       throw new Meteor.Error('not-authorized');
     }
-    return parseTranscriptomeTsv({
-      fileName, description,
+    return parseExpressionTsv({
+      fileName, description, replicas, replicaNames
     })
       .catch((error) => {
         logger.warn(error);
@@ -126,4 +140,4 @@ const addTranscriptome = new ValidatedMethod({
   },
 });
 
-export default addTranscriptome;
+export default addExpression;

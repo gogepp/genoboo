@@ -11,7 +11,7 @@ import { Genes } from '/imports/api/genes/geneCollection.js';
 import { resetDatabase } from 'meteor/xolvio:cleaner';
 
 import addKallistoTranscriptome from './addKallistoTranscriptome.js';
-import addTranscriptome from './addTranscriptome.js';
+import addExpression from './addExpression.js';
 import updateSampleInfo from './updateSampleInfo.js'
 import updateReplicaGroup from './updateReplicaGroup.js'
 
@@ -81,7 +81,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
   })
 
-  it('Should add a transcriptome file', async function testAddTranscriptome() {
+  it('Should add an expression file', async function testAddExpression() {
     // Increase timeout
     this.timeout(20000);
 
@@ -89,21 +89,23 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
-      description: "A new description"
+      description: "A new description",
+      replicas: ["1,2"],
+      replicaName: ["My replica group name"]
     };
 
     // Should fail for non-logged in
     chai.expect(() => {
-      addTranscriptome._execute({}, transcriParams);
+      addExpression._execute({}, transcriParams);
     }).to.throw('[not-authorized]');
 
 
     // Should fail for non admin user
     chai.expect(() => {
-      addTranscriptome._execute(userContext, transcriParams);
+      addExpression._execute(userContext, transcriParams);
     }).to.throw('[not-authorized]');
 
-    let result = await addTranscriptome._execute(adminContext, transcriParams);
+    let result = await addExpression._execute(adminContext, transcriParams);
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
@@ -111,8 +113,8 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const exp = exps[0]
 
-    chai.assert.equal(exp.sampleName, 'sample1')
-    chai.assert.equal(exp.replicaGroup, 'Replica 1')
+    chai.assert.equal(exp.sampleName, 'My replica group name')
+    chai.assert.equal(exp.replicaGroup, 'sample1')
     chai.assert.equal(exp.description, 'A new description')
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()

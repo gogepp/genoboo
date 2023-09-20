@@ -600,10 +600,10 @@ or
   })
   .exitOverride(customExitOverride(addBlast));
 
-// add transcriptome
-const addTranscriptome = add.command('transcriptome');
+// add Expression file
+const addExpression = add.command('expression');
 
-addTranscriptome
+addExpression
   .description(
     'Add gene expression to a running GeneNoteBook server'
   )
@@ -619,6 +619,14 @@ addTranscriptome
     '-d, --sample-description <description>',
     'Description of the experiment'
   )
+  .option(
+    '-r, --replicas <replicas...>',
+    'Comma-separated column positions, which are part of the same replica group. Can be set multiple times for multiple groups. The replica group name will be the first column, unless replica-names is set'
+  )
+  .option(
+    '-n, --replica-names <replicaNames...>',
+    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group)'
+  )
   .action((file, { username, password, port = 3000, ...opts }) => {
     if (typeof file !== 'string') addTranscriptome.help();
     const fileName = path.resolve(file);
@@ -627,11 +635,15 @@ addTranscriptome
     if (!(fileName && username && password)) {
       program.help();
     }
+    console.log(replicas)
+    console.log(replicaNames)
     new GeneNoteBookConnection({ username, password, port }).call(
-      'addTranscriptome',
+      'addExpression',
       {
         fileName,
         description,
+        replicas,
+        replicaNames
       }
     );
   })
