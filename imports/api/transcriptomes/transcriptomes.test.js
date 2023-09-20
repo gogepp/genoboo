@@ -91,7 +91,7 @@ describe('transcriptomes', function testTranscriptomes() {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
       description: "A new description",
       replicas: ["1,2"],
-      replicaName: ["My replica group name"]
+      replicaNames: ["My replica group name"]
     };
 
     // Should fail for non-logged in

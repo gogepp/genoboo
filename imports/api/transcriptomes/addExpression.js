@@ -69,7 +69,7 @@ const parseExpressionTsv = ({
       let experiments = {}
       replicaGroups.forEach((replicaGroup, replicaIndex) => {
           const sampleName = replicaNamesArray.length >= replicaIndex + 1 ? replicaNamesArray[replicaIndex] : replicaGroup
-          experiments[sampleName] = ExperimentInfo.insert({
+          experiments[replicaGroup] = ExperimentInfo.insert({
             genomeId,
             sampleName,
             replicaGroup,
