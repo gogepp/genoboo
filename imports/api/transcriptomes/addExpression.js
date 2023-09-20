@@ -117,7 +117,13 @@ const addExpression = new ValidatedMethod({
     fileName: String,
     description: String,
     replicas: Array,
+    'replicas.$': {
+      type: String,
+    },
     replicaNames: Array,
+    'replicaNames.$': {
+      type: String,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
