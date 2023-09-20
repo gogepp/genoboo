@@ -101,6 +101,8 @@ function YAxis({ scale, numTicks }) {
     ticks.push(start + i * stepSize);
   }
 
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" ? "TPM": Meteor.settings.public.expression_unit
+
   return (
     <g className="y-axis">
       <text
@@ -110,7 +112,7 @@ function YAxis({ scale, numTicks }) {
         transform="rotate(-90)"
         textAnchor="middle"
       >
-        TPM
+        {displayUnit}
       </text>
       <line x1="0" x2="0" y1={range[0]} y2={range[1]} stroke="black" />
       <g>
@@ -155,8 +157,7 @@ function ExpressionDot({
     )
   }
 
-
-
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" ? "TPM": Meteor.settings.public.expression_unit
   return (
     <Popover>
       <PopoverTrigger>
@@ -175,7 +176,7 @@ function ExpressionDot({
           <table className="table is-small is-narrow is-hoverable">
             <tbody>
               <tr>
-                <td>TPM</td>
+                <td>{displayUnit}</td>
                 <td>{tpm}</td>
               </tr>
               {expression_count}
