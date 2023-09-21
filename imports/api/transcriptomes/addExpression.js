@@ -116,11 +116,19 @@ const addExpression = new ValidatedMethod({
   validate: new SimpleSchema({
     fileName: String,
     description: String,
-    replicas: Array,
+    replicas: {
+      type: Array,
+      optional: true,
+      defaultValue: []
+    },
     'replicas.$': {
       type: String,
     },
-    replicaNames: Array,
+    replicaNames: {
+      type: Array,
+      optional: true,
+      defaultValue: []
+    },
     'replicaNames.$': {
       type: String,
     },
