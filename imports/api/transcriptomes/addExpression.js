@@ -46,16 +46,21 @@ const parseExpressionTsv = ({
       let nInserted = 0;
       // Remove "Gene" column, leaving samples only
       let replicaGroups = meta['fields']
-      let replicaNamesArray = []
+      let replicaNamesDict = {}
 
       if (replicas.length > 0){
           replicas.forEach((replica, replicaNumber) => {
               let split = replica.split(",")
-              let replicaName = split[0]
+              let replicaName = replicaNumber + 1
               if (replicaNames.length >= replicaNumber + 1){
                   replicaName = replicaNames[replicaNumber]
+              } else if (replicaGroups.length > split[0]) {
+                  replicaName = replicaGroups[replicaName]
               }
-              for (var i = 0; i < split.length; i++) {replicaNamesArray.push(replicaName)}
+              split.forEach((column, i) => {
+                  replicaNamesDict[column] = replicaName
+              });
+
           });
       }
 
@@ -68,7 +73,7 @@ const parseExpressionTsv = ({
 
       let experiments = {}
       replicaGroups.forEach((replicaGroup, replicaIndex) => {
-          const sampleName = replicaNamesArray.length >= replicaIndex + 1 ? replicaNamesArray[replicaIndex] : replicaGroup
+          const sampleName = replicaIndex + 1 in replicaNamesDict ? replicaNamesDict[replicaIndex + 1] : replicaGroup
           experiments[replicaGroup] = ExperimentInfo.insert({
             genomeId,
             sampleName,
