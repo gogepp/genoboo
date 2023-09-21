@@ -672,7 +672,7 @@ addExpression
       'Description of the experiment'
     )
     .action((file, { username, password, port = 3000, ...opts }) => {
-      if (typeof file !== 'string') addTranscriptome.help();
+      if (typeof file !== 'string') addKallisto.help();
       const fileName = path.resolve(file);
       const sampleName = opts.sampleName || fileName;
       const replicaGroup = opts.replicaGroup || fileName;
@@ -691,7 +691,7 @@ addExpression
         }
       );
     })
-    .exitOverride(customExitOverride(addTranscriptome));
+    .exitOverride(customExitOverride(addKallisto));
 
 // Add interproscan file
 const addInterproscan = add.command('interproscan');
