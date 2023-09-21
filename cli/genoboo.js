@@ -628,15 +628,13 @@ addExpression
     'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group)'
   )
   .action((file, { username, password, port = 3000, ...opts }) => {
-    if (typeof file !== 'string') addTranscriptome.help();
+    if (typeof file !== 'string') addExpression.help();
     const fileName = path.resolve(file);
     const description = opts.sampleDescription || 'description';
 
     if (!(fileName && username && password)) {
       program.help();
     }
-    console.log(replicas)
-    console.log(replicaNames)
     new GeneNoteBookConnection({ username, password, port }).call(
       'addExpression',
       {
@@ -647,7 +645,7 @@ addExpression
       }
     );
   })
-  .exitOverride(customExitOverride(addTranscriptome));
+  .exitOverride(customExitOverride(addExpression));
 
   // add Kallisto-formated transcriptome
   const addKallisto = add.command('kallisto');
