@@ -89,6 +89,108 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      description: "A new description"
+    };
+
+    // Should fail for non-logged in
+    chai.expect(() => {
+      addExpression._execute({}, transcriParams);
+    }).to.throw('[not-authorized]');
+
+
+    // Should fail for non admin user
+    chai.expect(() => {
+      addExpression._execute(userContext, transcriParams);
+    }).to.throw('[not-authorized]');
+
+    let result = await addExpression._execute(adminContext, transcriParams);
+
+    const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
+
+    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+
+    const exp = exps[0]
+
+    chai.assert.equal(exp.sampleName, 'sample1')
+    chai.assert.equal(exp.replicaGroup, 'sample1')
+    chai.assert.equal(exp.description, 'A new description')
+
+    chai.assert.equal(exps[1].sampleName, 'sample2')
+    chai.assert.equal(exps[1].replicaGroup, 'sample2')
+    chai.assert.equal(exps[1].description, 'A new description')
+
+    const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
+
+    chai.assert.lengthOf(transcriptomes, 1, "Did not find 1 transcriptomes")
+
+    const transcriptome = transcriptomes[0]
+
+    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.isUndefined(transcriptome.est_counts)
+
+  })
+
+  it('Should add an expression file with replica groups', async function testAddExpression() {
+    // Increase timeout
+    this.timeout(20000);
+
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+
+    const transcriParams = {
+      fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      description: "A new description",
+      replicas: ["1,2"],
+      replicaNames: ["My replica group name"]
+    };
+
+    // Should fail for non-logged in
+    chai.expect(() => {
+      addExpression._execute({}, transcriParams);
+    }).to.throw('[not-authorized]');
+
+
+    // Should fail for non admin user
+    chai.expect(() => {
+      addExpression._execute(userContext, transcriParams);
+    }).to.throw('[not-authorized]');
+
+    let result = await addExpression._execute(adminContext, transcriParams);
+
+    const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
+
+    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+
+    const exp = exps[0]
+
+    chai.assert.equal(exp.sampleName, 'sample1')
+    chai.assert.equal(exp.replicaGroup, 'sample1')
+    chai.assert.equal(exp.description, 'A new description')
+
+    chai.assert.equal(exps[1].sampleName, 'sample1')
+    chai.assert.equal(exps[1].replicaGroup, 'sample2')
+    chai.assert.equal(exps[1].description, 'A new description')
+
+    const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
+
+    chai.assert.lengthOf(transcriptomes, 1, "Did not find 1 transcriptomes")
+
+    const transcriptome = transcriptomes[0]
+
+    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.isUndefined(transcriptome.est_counts)
+
+  })
+
+  it('Should add an expression file with replica groups and names', async function testAddExpression() {
+    // Increase timeout
+    this.timeout(20000);
+
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+
+    const transcriParams = {
+      fileName: 'assets/app/data/Bnigra_abundance.tsv',
       description: "A new description",
       replicas: ["1,2"],
       replicaNames: ["My replica group name"]
@@ -116,6 +218,10 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'My replica group name')
     chai.assert.equal(exp.replicaGroup, 'sample1')
     chai.assert.equal(exp.description, 'A new description')
+
+    chai.assert.equal(exps[1].sampleName, 'My replica group name')
+    chai.assert.equal(exps[1].replicaGroup, 'sample2')
+    chai.assert.equal(exps[1].description, 'A new description')
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
