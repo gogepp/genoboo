@@ -627,10 +627,18 @@ addExpression
     '-n, --replica-names <replicaNames...>',
     'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group)'
   )
+  .option(
+    '--public',
+    'Set the generated replica groups as public. Default: false',
+    false
+  )
   .action((file, { username, password, port = 3000, ...opts }) => {
     if (typeof file !== 'string') addExpression.help();
     const fileName = path.resolve(file);
-    const description = opts.sampleDescription || 'description';
+    const description = opts.sampleDescription || 'No description';
+    const replicas = opts.replicas || [];
+    const replicaNames = opts.replicaNames || [];
+    const isPublic = opts.public;
 
     if (!(fileName && username && password)) {
       program.help();
@@ -641,7 +649,8 @@ addExpression
         fileName,
         description,
         replicas,
-        replicaNames
+        replicaNames,
+        isPublic
       }
     );
   })
@@ -671,12 +680,18 @@ addExpression
       '-d, --sample-description <description>',
       'Description of the experiment'
     )
+    .option(
+      '--public',
+      'Set the generated replica groups as public. Default: false',
+      false
+    )
     .action((file, { username, password, port = 3000, ...opts }) => {
       if (typeof file !== 'string') addKallisto.help();
       const fileName = path.resolve(file);
       const sampleName = opts.sampleName || fileName;
       const replicaGroup = opts.replicaGroup || fileName;
       const description = opts.sampleDescription || 'description';
+      const isPublic = opts.public
 
       if (!(fileName && username && password)) {
         program.help();
@@ -688,6 +703,7 @@ addExpression
           sampleName,
           replicaGroup,
           description,
+          isPublic
         }
       );
     })

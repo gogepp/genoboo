@@ -62,6 +62,10 @@ const parseExpressionTsv = ({
               });
 
           });
+      } else if (replicaNames.length > 0) {
+          replicaNames.forEach((replicaName, replicaNameNumber) => {
+            replicaNamesDict[replicaNameNumber + 1] = replicaName
+          })
       }
 
       let firstColumn = replicaGroups.shift();
@@ -72,9 +76,9 @@ const parseExpressionTsv = ({
       }
 
       let experiments = {}
-      replicaGroups.forEach((replicaGroup, replicaIndex) => {
-          const sampleName = replicaIndex + 1 in replicaNamesDict ? replicaNamesDict[replicaIndex + 1] : replicaGroup
-          experiments[replicaGroup] = ExperimentInfo.insert({
+      replicaGroups.forEach((sampleName, replicaIndex) => {
+          const replicaGroup = replicaIndex + 1 in replicaNamesDict ? replicaNamesDict[replicaIndex + 1] : sampleName
+          experiments[sampleName] = ExperimentInfo.insert({
             genomeId,
             sampleName,
             replicaGroup,
@@ -117,7 +121,7 @@ const parseExpressionTsv = ({
 });
 
 const addExpression = new ValidatedMethod({
-  name: 'addTranscriptome',
+  name: 'addExpression',
   validate: new SimpleSchema({
     fileName: String,
     description: String,
@@ -137,12 +141,13 @@ const addExpression = new ValidatedMethod({
     'replicaNames.$': {
       type: String,
     },
+    isPublic: Boolean,
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
   run({
-    fileName, description, replicas, replicaNames
+    fileName, description, replicas, replicaNames, isPublic
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -151,10 +156,11 @@ const addExpression = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseExpressionTsv({
-      fileName, description, replicas, replicaNames
+      fileName, description, replicas, replicaNames, isPublic
     })
       .catch((error) => {
         logger.warn(error);
+        throw new Meteor.Error(error)
       });
   },
 });

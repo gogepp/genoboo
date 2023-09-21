@@ -6,7 +6,7 @@ import './publications.js';
  * This is crucial to be able to call them with the asteroid
  * ddp connection in the data-loading scripts
  */
-import './transcriptomes/addTranscriptome.js';
+import './transcriptomes/addExpression.js';
 import './transcriptomes/addKallistoTranscriptome.js';
 import './transcriptomes/updateSampleInfo.js';
 import './transcriptomes/updateReplicaGroup.js';

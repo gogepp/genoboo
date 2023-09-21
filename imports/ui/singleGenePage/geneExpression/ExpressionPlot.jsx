@@ -360,7 +360,7 @@ function ExpressionPlot({ values, resizable, height }) {
   const padding = {
     top: 20,
     bottom: 10,
-    left: 50,
+    left: 80,
     right: 10,
   };
 

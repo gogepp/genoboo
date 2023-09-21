@@ -1,6 +1,6 @@
 {
   "name": "genoboo",
-  "version": "0.4.4",
+  "version": "0.4.6",
   "repository": "https://github.com/gogepp/genoboo",
   "description": "A portable website for browsing and querying genome sequences and annotations. Forked from genenotebook",
   "license": "AGPL-3.0",
