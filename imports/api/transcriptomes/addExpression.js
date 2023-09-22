@@ -64,11 +64,10 @@ const parseExpressionTsv = ({
           // Use the remainder of replicaNames
           if (replicas.length < replicaNames.length){
             let remainderNames = replicaNames.splice(replicaNames.length - replicas.length)
-            let remainderColumns = replicaGroups.filter((col, index) => {! index + 1 in replicaNamesDict})
             let currentIndex = 0
-            for (let i = 0; i < replicaGroups.length; i++){
-              if (! i + 1 in replicaNamesDict){
-                replicaNamesDict[i + 1] = remainderNames[i]
+            for (let i = 1; i < replicaGroups.length; i++){
+              if (! (i + 1 in replicaNamesDict)){
+                replicaNamesDict[i + 1] = remainderNames[currentIndex]
                 currentIndex += 1
               }
               if (currentIndex + 1 > remainderNames.length ){break}

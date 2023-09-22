@@ -221,6 +221,8 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.lengthOf(exps, 4, "Did not find 4 Experimentations")
 
     const exp = exps[0]
+    console.log(exps)
+
 
     chai.assert.equal(exp.sampleName, 'sample1')
     chai.assert.equal(exp.replicaGroup, 'My replica group name')
