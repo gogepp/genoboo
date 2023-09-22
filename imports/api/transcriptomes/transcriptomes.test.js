@@ -109,7 +109,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
-    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+    chai.assert.lengthOf(exps, 4, "Did not find 4 Experimentations")
 
     const exp = exps[0]
 
@@ -161,7 +161,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
-    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+    chai.assert.lengthOf(exps, 4, "Did not find 4 Experimentations")
 
     const exp = exps[0]
 
@@ -172,6 +172,10 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'sample1')
     chai.assert.equal(exps[1].description, 'A new description')
+
+    chai.assert.equal(exps[2].sampleName, 'sample3')
+    chai.assert.equal(exps[2].replicaGroup, 'sample3')
+    chai.assert.equal(exps[2].description, 'A new description')
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -195,7 +199,7 @@ describe('transcriptomes', function testTranscriptomes() {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
       description: "A new description",
       replicas: ["1,2"],
-      replicaNames: ["My replica group name"],
+      replicaNames: ["My replica group name", "Another group name"],
       isPublic: false
     };
 
@@ -214,7 +218,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
-    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+    chai.assert.lengthOf(exps, 4, "Did not find 4 Experimentations")
 
     const exp = exps[0]
 
@@ -225,6 +229,14 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'My replica group name')
     chai.assert.equal(exps[1].description, 'A new description')
+
+    chai.assert.equal(exps[2].sampleName, 'sample3')
+    chai.assert.equal(exps[2].replicaGroup, 'Another group name')
+    chai.assert.equal(exps[2].description, 'A new description')
+
+    chai.assert.equal(exps[3].sampleName, 'sample4')
+    chai.assert.equal(exps[3].replicaGroup, 'sample4')
+    chai.assert.equal(exps[3].description, 'A new description')
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -266,7 +278,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const exps = ExperimentInfo.find({genomeId: genomeId}).fetch()
 
-    chai.assert.lengthOf(exps, 2, "Did not find 2 Experimentations")
+    chai.assert.lengthOf(exps, 4, "Did not find 4 Experimentations")
 
     const exp = exps[0]
 
@@ -277,6 +289,10 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'TestReplica2')
     chai.assert.equal(exps[1].description, 'A new description')
+
+    chai.assert.equal(exps[2].sampleName, 'sample3')
+    chai.assert.equal(exps[2].replicaGroup, 'sample3')
+    chai.assert.equal(exps[2].description, 'A new description')
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 

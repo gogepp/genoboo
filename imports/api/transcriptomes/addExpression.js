@@ -60,8 +60,20 @@ const parseExpressionTsv = ({
               split.forEach((column, i) => {
                   replicaNamesDict[column] = replicaName
               });
-
           });
+          // Use the remainder of replicaNames
+          if (replicas.length < replicaNames.length){
+            let remainderNames = replicaNames.splice(replicaNames.length - replicas.length)
+            let remainderColumns = replicaGroups.filter((col, index) => {! index + 1 in replicaNamesDict})
+            let currentIndex = 0
+            for (let i = 0; i < replicaGroups.length; i++){
+              if (! i + 1 in replicaNamesDict){
+                replicaNamesDict[i + 1] = remainderNames[i]
+                currentIndex += 1
+              }
+              if (currentIndex + 1 > remainderNames.length ){break}
+            }
+          }
       } else if (replicaNames.length > 0) {
           replicaNames.forEach((replicaName, replicaNameNumber) => {
             replicaNamesDict[replicaNameNumber + 1] = replicaName
