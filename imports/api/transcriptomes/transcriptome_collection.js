@@ -48,6 +48,7 @@ const TranscriptomeSchema = new SimpleSchema({
   est_counts: {
     type: Number,
     label: 'Raw read counts',
+    optional: true,
   },
   tpm: {
     type: Number,

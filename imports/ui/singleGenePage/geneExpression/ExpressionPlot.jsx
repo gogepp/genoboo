@@ -101,6 +101,8 @@ function YAxis({ scale, numTicks }) {
     ticks.push(start + i * stepSize);
   }
 
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" || Meteor.settings.public.expression_unit == "" ? "TPM": Meteor.settings.public.expression_unit
+
   return (
     <g className="y-axis">
       <text
@@ -110,7 +112,7 @@ function YAxis({ scale, numTicks }) {
         transform="rotate(-90)"
         textAnchor="middle"
       >
-        TPM
+        {displayUnit}
       </text>
       <line x1="0" x2="0" y1={range[0]} y2={range[1]} stroke="black" />
       <g>
@@ -143,6 +145,19 @@ function YAxis({ scale, numTicks }) {
 function ExpressionDot({
   yScale, tpm, est_counts, description, replicaGroup, sampleName,
 }) {
+
+  let expression_count
+
+  if (est_counts) {
+    expression_count = (
+      <tr>
+        <td>EST counts</td>
+        <td>{est_counts}</td>
+     </tr>
+    )
+  }
+
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" || Meteor.settings.public.expression_unit == "" ? "TPM": Meteor.settings.public.expression_unit
   return (
     <Popover>
       <PopoverTrigger>
@@ -161,13 +176,10 @@ function ExpressionDot({
           <table className="table is-small is-narrow is-hoverable">
             <tbody>
               <tr>
-                <td>TPM</td>
+                <td>{displayUnit}</td>
                 <td>{tpm}</td>
               </tr>
-              <tr>
-                <td>EST counts</td>
-                <td>{est_counts}</td>
-              </tr>
+              {expression_count}
               <tr>
                 <td>Description</td>
                 <td>{description}</td>
@@ -348,7 +360,7 @@ function ExpressionPlot({ values, resizable, height }) {
   const padding = {
     top: 20,
     bottom: 10,
-    left: 50,
+    left: 80,
     right: 10,
   };
 
