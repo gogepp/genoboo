@@ -625,7 +625,7 @@ addExpression
   )
   .option(
     '-n, --replica-names <replicaNames...>',
-    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group)'
+    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group). If --replicas is set, will match each replica group in order. Else, will match each column in order'
   )
   .option(
     '--public',

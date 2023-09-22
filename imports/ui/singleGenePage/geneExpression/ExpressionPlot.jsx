@@ -101,7 +101,7 @@ function YAxis({ scale, numTicks }) {
     ticks.push(start + i * stepSize);
   }
 
-  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" ? "TPM": Meteor.settings.public.expression_unit
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" || Meteor.settings.public.expression_unit == "" ? "TPM": Meteor.settings.public.expression_unit
 
   return (
     <g className="y-axis">
@@ -157,7 +157,7 @@ function ExpressionDot({
     )
   }
 
-  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" ? "TPM": Meteor.settings.public.expression_unit
+  let displayUnit = typeof Meteor.settings.public.expression_unit === "undefined" || Meteor.settings.public.expression_unit == "" ? "TPM": Meteor.settings.public.expression_unit
   return (
     <Popover>
       <PopoverTrigger>
