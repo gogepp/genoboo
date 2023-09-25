@@ -5,11 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
-## [0.4.6] Unrelease
+## [0.4.6] 2023-09-25
 
 ### Added
 
 - Added generic expression loader
+
+### Fixed
+
+- Crash when loading a transcriptome with a gene not in DB
 
 ## [0.4.5] 2023-09-19
 
