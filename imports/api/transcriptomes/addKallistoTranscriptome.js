@@ -49,6 +49,8 @@ const parseKallistoTsv = ({
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
       }
 
+      const unit = "tpm"
+
       const experimentId = ExperimentInfo.insert({
         genomeId,
         sampleName,
@@ -56,6 +58,7 @@ const parseKallistoTsv = ({
         description,
         permission,
         isPublic,
+        unit
       });
 
       data.forEach(({ target_id, tpm, est_counts }) => {
@@ -89,19 +92,20 @@ const parseKallistoTsv = ({
   });
 });
 
-const addTranscriptome = new ValidatedMethod({
-  name: 'addTranscriptome',
+const addKallistoTranscriptome = new ValidatedMethod({
+  name: 'addKallistoTranscriptome',
   validate: new SimpleSchema({
     fileName: String,
     sampleName: String,
     replicaGroup: String,
     description: String,
+    isPublic: Boolean
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
   run({
-    fileName, sampleName, replicaGroup, description,
+    fileName, sampleName, replicaGroup, description, isPublic
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -110,7 +114,7 @@ const addTranscriptome = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseKallistoTsv({
-      fileName, sampleName, replicaGroup, description,
+      fileName, sampleName, replicaGroup, description, isPublic
     })
       .catch((error) => {
         logger.warn(error);
@@ -118,4 +122,4 @@ const addTranscriptome = new ValidatedMethod({
   },
 });
 
-export default addTranscriptome;
+export default addKallistoTranscriptome;

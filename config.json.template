@@ -3,6 +3,7 @@
     "disable_blast": false,
     "disable_user_login": false,
     "disable_user_registration": false,
-    "blast_link": ""
+    "blast_link": "",
+    "expression_unit": "My unit"
   }
 }

@@ -600,12 +600,12 @@ or
   })
   .exitOverride(customExitOverride(addBlast));
 
-// add transcriptome
-const addTranscriptome = add.command('transcriptome');
+// add Expression file
+const addExpression = add.command('expression');
 
-addTranscriptome
+addExpression
   .description(
-    'Add Kallisto quantified gene expression to a running GeneNoteBook server'
+    'Add gene expression to a running GeneNoteBook server'
   )
   .usage('[options] <Kallisto abundance.tsv file>')
   .arguments('<file>')
@@ -615,36 +615,99 @@ addTranscriptome
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .option('-s, --sample-name <sample name>', 'Unique sample name')
-  .option(
-    '-r, --replica-group <replica group>',
-    'Identifier to group samples that belong to the same experiment'
-  )
   .option(
     '-d, --sample-description <description>',
     'Description of the experiment'
   )
+  .option(
+    '-r, --replicas <replicas...>',
+    'Comma-separated column positions, which are part of the same replica group. Can be set multiple times for multiple groups. The replica group name will be the first column, unless replica-names is set'
+  )
+  .option(
+    '-n, --replica-names <replicaNames...>',
+    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group). Will match replica groups in order, whether they are multiple of single columns.
+  )
+  .option(
+    '--public',
+    'Set the generated replica groups as public. Default: false',
+    false
+  )
   .action((file, { username, password, port = 3000, ...opts }) => {
-    if (typeof file !== 'string') addTranscriptome.help();
+    if (typeof file !== 'string') addExpression.help();
     const fileName = path.resolve(file);
-    const sampleName = opts.sampleName || fileName;
-    const replicaGroup = opts.replicaGroup || fileName;
-    const description = opts.sampleDescription || 'description';
+    const description = opts.sampleDescription || 'No description';
+    const replicas = opts.replicas || [];
+    const replicaNames = opts.replicaNames || [];
+    const isPublic = opts.public;
 
     if (!(fileName && username && password)) {
       program.help();
     }
     new GeneNoteBookConnection({ username, password, port }).call(
-      'addTranscriptome',
+      'addExpression',
       {
         fileName,
-        sampleName,
-        replicaGroup,
         description,
+        replicas,
+        replicaNames,
+        isPublic
       }
     );
   })
-  .exitOverride(customExitOverride(addTranscriptome));
+  .exitOverride(customExitOverride(addExpression));
+
+  // add Kallisto-formated transcriptome
+  const addKallisto = add.command('kallisto');
+
+  addKallisto
+    .description(
+      'Add Kallisto quantified gene expression to a running GeneNoteBook server'
+    )
+    .usage('[options] <Kallisto abundance.tsv file>')
+    .arguments('<file>')
+    .option('-u, --username <username>', 'GeneNoteBook admin username')
+    .option('-p, --password <password>', 'GeneNoteBook admin password')
+    .option(
+      '--port [port]',
+      'Port on which GeneNoteBook is running. Default: 3000'
+    )
+    .option('-s, --sample-name <sample name>', 'Unique sample name')
+    .option(
+      '-r, --replica-group <replica group>',
+      'Identifier to group samples that belong to the same experiment'
+    )
+    .option(
+      '-d, --sample-description <description>',
+      'Description of the experiment'
+    )
+    .option(
+      '--public',
+      'Set the generated replica groups as public. Default: false',
+      false
+    )
+    .action((file, { username, password, port = 3000, ...opts }) => {
+      if (typeof file !== 'string') addKallisto.help();
+      const fileName = path.resolve(file);
+      const sampleName = opts.sampleName || fileName;
+      const replicaGroup = opts.replicaGroup || fileName;
+      const description = opts.sampleDescription || 'description';
+      const isPublic = opts.public
+
+      if (!(fileName && username && password)) {
+        program.help();
+      }
+      new GeneNoteBookConnection({ username, password, port }).call(
+        'addKallistoTranscriptome',
+        {
+          fileName,
+          sampleName,
+          replicaGroup,
+          description,
+          isPublic
+        }
+      );
+    })
+    .exitOverride(customExitOverride(addKallisto));
 
 // Add interproscan file
 const addInterproscan = add.command('interproscan');

@@ -201,7 +201,7 @@ class NewickProcessor {
       this.nOrthogroups += documentOrthogroup;
 
       const orthogroupIdentifiant = orthogroupCollection.findOne({ tree: tree })._id;
-      this.genesDb.update(
+      await this.genesDb.update(
         { ID: { $in: rmDuplicateGeneIDs } },
         {
           $set: // Modifier.
