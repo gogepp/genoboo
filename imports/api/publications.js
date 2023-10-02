@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/alanning:roles';
+import { fetch } from 'meteor/fetch';
 // jobqueue
 import jobQueue from '/imports/api/jobqueue/jobqueue.js';
 // genes
@@ -76,9 +77,35 @@ Meteor.publish({
     const queryGenomeIds = hasOwnProperty(query, 'genomeId')
       ? query.genomeId.$in.filter((genomeId) => genomeIds.includes(genomeId))
       : genomeIds;
+    let transformedQuery;
 
-    const transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
+    if (typeof Meteor.settings.customSearchOptions === "object" && Meteor.settings.customSearchOptions.url !== undefined){
+      let url = Meteor.settings.customSearchOptions.url.replace(/,+$/, "") + "/";
+      let paramsDict = {}
+      let geneField = Meteor.settings.customSearchOptions.gene_field !== undefined ? Meteor.settings.customSearchOptions.gene_field : "geneId"
+      if (Meteor.settings.customSearchOptions.query_param !== undefined){
+        paramsDict[Meteor.settings.customSearchOptions.query_param] = query.query
+      } else {
+        url = url += query.query
+      }
+      if (Meteor.settings.customSearchOptions.field_param !== undefined){
+        paramsDict[Meteor.settings.customSearchOptions.field_param] = geneField
+      }
 
+      if (Meteor.settings.customSearchOptions.count_param !== undefined){
+        paramsDict[Meteor.settings.customSearchOptions.count_param] = limit
+      }
+      url = url + new URLSearchParams(paramsDict)
+      let geneResults = []
+      fetch(url).then((res) => {
+        if (res.status === 200){
+          geneResults = res.json().data.map(result => result._source[geneField])
+        }
+      })
+      transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
+    } else {
+      transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
+    }
     return Genes.find(transformedQuery, { sort, limit });
   },
   singleGene({ geneId, transcriptId }) {
