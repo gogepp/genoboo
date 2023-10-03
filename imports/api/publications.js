@@ -28,6 +28,7 @@ import { fileCollection } from '/imports/api/files/fileCollection.js';
 import fetchDbxref from '/imports/api/methods/fetchDbxref.js';
 // utilities
 import { DBXREF_REGEX } from '/imports/api/util/util.js';
+import logger from '/imports/api/util/logger.js'
 
 function availableGenomes({ userId }) {
   const roles = Roles.getRolesForUser(userId);
@@ -77,9 +78,11 @@ Meteor.publish({
     const queryGenomeIds = hasOwnProperty(query, 'genomeId')
       ? query.genomeId.$in.filter((genomeId) => genomeIds.includes(genomeId))
       : genomeIds;
-    let transformedQuery;
+    let transformedQuery = {};
 
-    if (typeof Meteor.settings.customSearchOptions === "object" && Meteor.settings.customSearchOptions.url !== undefined){
+    logger.log(query)
+
+    if ( query.query !== undefined && typeof Meteor.settings.customSearchOptions === "object" && Meteor.settings.customSearchOptions.url !== undefined){
       let url = Meteor.settings.customSearchOptions.url.replace(/,+$/, "") + "/";
       let paramsDict = {}
       let geneField = Meteor.settings.customSearchOptions.gene_field !== undefined ? Meteor.settings.customSearchOptions.gene_field : "geneId"
@@ -94,15 +97,14 @@ Meteor.publish({
 
       if (Meteor.settings.customSearchOptions.count_param !== undefined){
         paramsDict[Meteor.settings.customSearchOptions.count_param] = limit
+
       }
-      url = url + new URLSearchParams(paramsDict)
-      let geneResults = []
-      fetch(url).then((res) => {
-        if (res.status === 200){
-          geneResults = res.json().data.map(result => result._source[geneField])
-        }
-      })
-      transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
+      url = url + "?" + new URLSearchParams(paramsDict)
+      const response = HTTP.get(url);
+      if (response.statusCode === 200){
+        geneResults = response.data.data.map(result => result._source[geneField])
+        transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
+      }
     } else {
       transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
     }

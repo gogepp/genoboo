@@ -66,8 +66,8 @@ function searchTracker({
 
   let searchQuery
 
-  if (Meteor.settings.public.customSearch === true){
-    searchQuery = {query: searchValue}
+  if (searchValue !== "" && Meteor.settings.public.customSearch === true){
+    searchQuery = {query: searchValue, $or: []}
   } else {
     searchQuery = { $or: [] };
     attributes
