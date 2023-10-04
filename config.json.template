@@ -6,7 +6,8 @@
     "blast_link": "",
     "expression_unit": "My unit",
     "externalSearch": false,
-    "redirectSearch": ""
+    "redirectSearch": "",
+    "redirectSearchAttribute": ""
   },
   "externalSearchOptions": {
     "url": "http://0.0.0.0:80",
