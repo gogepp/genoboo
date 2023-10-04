@@ -82,21 +82,21 @@ Meteor.publish({
 
     let config = Meteor.settings
 
-    if ( query.query !== undefined && typeof config.customSearchOptions === "object" && config.customSearchOptions.url){
-      let url = config.customSearchOptions.url.replace(/,+$/, "") + "/";
+    if ( query.query !== undefined && config.public.externalSearch && typeof config.externalSearchOptions === "object" && config.externalSearchOptions.url){
+      let url = config.externalSearchOptions.url.replace(/,+$/, "") + "/";
       let paramsDict = {}
-      let geneField = config.customSearchOptions.gene_field ? config.customSearchOptions.gene_field : "geneId"
-      if (config.customSearchOptions.query_param){
-        paramsDict[config.customSearchOptions.query_param] = query.query
+      let geneField = config.externalSearchOptions.gene_field ? config.externalSearchOptions.gene_field : "geneId"
+      if (config.externalSearchOptions.query_param){
+        paramsDict[config.externalSearchOptions.query_param] = query.query
       } else {
         url += query.query
       }
-      if (config.customSearchOptions.field_param){
-        paramsDict[config.customSearchOptions.field_param] = geneField
+      if (config.externalSearchOptions.field_param){
+        paramsDict[config.externalSearchOptions.field_param] = geneField
       }
 
-      if (config.customSearchOptions.count_param){
-        paramsDict[config.customSearchOptions.count_param] = limit
+      if (config.externalSearchOptions.count_param){
+        paramsDict[config.externalSearchOptions.count_param] = limit
       }
 
       let geneResults = []

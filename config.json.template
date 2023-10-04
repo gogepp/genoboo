@@ -5,10 +5,11 @@
     "disable_user_registration": false,
     "blast_link": "",
     "expression_unit": "My unit",
-    "customSearch": true
+    "externalSearch": false,
+    "redirectSearch": ""
   },
-  "customSearchOptions": {
-    "url": "http://0.0.0.0:8888",
+  "externalSearchOptions": {
+    "url": "http://0.0.0.0:80",
     "gene_field": "gene_id",
     "query_param": "q",
     "field_param": "display_fields",

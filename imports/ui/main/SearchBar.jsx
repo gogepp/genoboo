@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Redirect, withRouter } from 'react-router-dom';
+import { Redirect, withRouter, useHistory } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 
 import { attributeCollection } from '/imports/api/genes/attributeCollection.js';
@@ -57,7 +57,7 @@ function SearchBar({
   const [selectedAttributes, setSelectedAttributes] = useState(
     new Set(['Gene ID', ...initialSelectedAttributes]),
   );
-
+  let history = useHistory()
   const inputRef = useRef();
   useEffect(() => {
     if (highLightSearch) {
@@ -90,6 +90,13 @@ function SearchBar({
 
   function submit(event) {
     event.preventDefault();
+    if (Meteor.settings.public.redirectSearch){
+        const query = new URLSearchParams();
+        const searchUrl = Meteor.settings.public.redirectSearch
+        const searchAttr = Meteor.settings.public.redirectSearchAttribute ? Meteor.settings.public.redirectSearchAttribute : 'query'
+        query.set(searchAttr, searchString.trim());
+        location.href = searchUrl + `?${query.toString()}`
+    }
     setRedirect(true);
   }
 
@@ -100,14 +107,8 @@ function SearchBar({
   if (redirect) {
     const query = new URLSearchParams();
     let searchUrl = "/genes"
-    if (Meteor.settings.public.redirectSearch){
-      searchUrl = Meteor.settings.public.redirectSearch
-      const searchAttr = Meteor.settings.public.redirectSearchAttribute ? Meteor.settings.public.redirectSearchAttribute : 'query'
-      query.set(searchAttr, searchString.trim());
-    } else {
-      query.set('attributes', [...selectedAttributes]);
-      query.set('search', searchString.trim());
-    }
+    query.set('attributes', [...selectedAttributes]);
+    query.set('search', searchString.trim());
     const queryString = `?${query.toString()}`;
 
     return (

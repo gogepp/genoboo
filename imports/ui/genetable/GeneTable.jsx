@@ -66,7 +66,7 @@ function searchTracker({
 
   let searchQuery
 
-  if (searchValue !== "" && Meteor.settings.public.customSearch === true){
+  if (searchValue !== "" && Meteor.settings.public.externalSearch === true){
     searchQuery = {query: searchValue, $or: []}
   } else {
     searchQuery = { $or: [] };
