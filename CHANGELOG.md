@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.8] Unreleased
+
+### Added
+
+- Option for redirecting the search to an external url ("public.redirectSearch" key in config)
+  - An additional key "public.redirectSearchAttribute", defaulting to 'query', will be used as the get parameter attribute. (ie: url + "?redirectSearchAttribute=query")
+- Options for using a remote search ending, and merging the results with GNB internal search.
+  - The 'public.externalSearch' option need to be set to true, and an 'externalSearchOptions' dict need to be set.
+  - 'url' key is the remote endpoint where the query will be sent
+  - 'gene_field' is the remote field to get the gene IDs (default to geneId)
+  - 'query_param' : optional get parameter to use for the query
+  - 'field_param': optional get parameter to use to restrict the results to the gene_field value
+  - 'count_param': optional get parameter to restrict the number of results
+
 ## [0.4.7] 2023-09-26
 
 ### Fixed
@@ -399,4 +413,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.1.3]: https://github.com/genenotebook/genenotebook/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/genenotebook/genenotebook/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/genenotebook/genenotebook/compare/v0.1.0...v0.1.1
-

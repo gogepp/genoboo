@@ -62,20 +62,25 @@ function searchTracker({
 
   const attributeString = queryString.get('attributes') || '';
   const searchAttributes = attributeString.split(',');
-
   const searchValue = queryString.get('search') || '';
 
-  const searchQuery = { $or: [] };
-  attributes
-    .filter(({ name }) => new RegExp(name).test(searchAttributes))
-    .forEach((attribute) => {
-      searchQuery.$or.push({
-        [attribute.query]: {
-          $regex: searchValue,
-          $options: 'i',
-        },
+  let searchQuery
+
+  if (searchValue !== "" && Meteor.settings.public.externalSearch === true){
+    searchQuery = {query: searchValue, $or: []}
+  } else {
+    searchQuery = { $or: [] };
+    attributes
+      .filter(({ name }) => new RegExp(name).test(searchAttributes))
+      .forEach((attribute) => {
+        searchQuery.$or.push({
+          [attribute.query]: {
+            $regex: searchValue,
+            $options: 'i',
+          },
+        });
       });
-    });
+  }
 
   const selectedAttributes = attributes
     .filter(

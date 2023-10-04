@@ -4,6 +4,16 @@
     "disable_user_login": false,
     "disable_user_registration": false,
     "blast_link": "",
-    "expression_unit": "My unit"
+    "expression_unit": "My unit",
+    "externalSearch": false,
+    "redirectSearch": "",
+    "redirectSearchAttribute": ""
+  },
+  "externalSearchOptions": {
+    "url": "http://0.0.0.0:80",
+    "gene_field": "gene_id",
+    "query_param": "q",
+    "field_param": "display_fields",
+    "count_param": "max_results"
   }
 }

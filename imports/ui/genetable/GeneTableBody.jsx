@@ -45,7 +45,7 @@ function dataTracker({
 }) {
   const geneSub = Meteor.subscribe('genes', { query, sort, limit });
   const loading = !geneSub.ready();
-  const genes = Genes.find(query, { limit, sort }).fetch();
+  const genes = Genes.find({}, { limit, sort }).fetch();
 
   return {
     genes,
