@@ -80,31 +80,32 @@ Meteor.publish({
       : genomeIds;
     let transformedQuery = {};
 
-    logger.log(query)
+    let config = Meteor.settings
 
-    if ( query.query !== undefined && typeof Meteor.settings.customSearchOptions === "object" && Meteor.settings.customSearchOptions.url !== undefined){
-      let url = Meteor.settings.customSearchOptions.url.replace(/,+$/, "") + "/";
+    if ( query.query !== undefined && typeof config.customSearchOptions === "object" && config.customSearchOptions.url){
+      let url = config.customSearchOptions.url.replace(/,+$/, "") + "/";
       let paramsDict = {}
-      let geneField = Meteor.settings.customSearchOptions.gene_field !== undefined ? Meteor.settings.customSearchOptions.gene_field : "geneId"
-      if (Meteor.settings.customSearchOptions.query_param !== undefined){
-        paramsDict[Meteor.settings.customSearchOptions.query_param] = query.query
+      let geneField = config.customSearchOptions.gene_field ? config.customSearchOptions.gene_field : "geneId"
+      if (config.customSearchOptions.query_param){
+        paramsDict[config.customSearchOptions.query_param] = query.query
       } else {
-        url = url += query.query
+        url += query.query
       }
-      if (Meteor.settings.customSearchOptions.field_param !== undefined){
-        paramsDict[Meteor.settings.customSearchOptions.field_param] = geneField
+      if (config.customSearchOptions.field_param){
+        paramsDict[config.customSearchOptions.field_param] = geneField
       }
 
-      if (Meteor.settings.customSearchOptions.count_param !== undefined){
-        paramsDict[Meteor.settings.customSearchOptions.count_param] = limit
-
+      if (config.customSearchOptions.count_param){
+        paramsDict[config.customSearchOptions.count_param] = limit
       }
+
+      let geneResults = []
       url = url + "?" + new URLSearchParams(paramsDict)
       const response = HTTP.get(url);
       if (response.statusCode === 200){
         geneResults = response.data.data.map(result => result._source[geneField])
-        transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
       }
+      transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
     } else {
       transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
     }

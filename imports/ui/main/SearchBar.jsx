@@ -99,15 +99,22 @@ function SearchBar({
 
   if (redirect) {
     const query = new URLSearchParams();
-    query.set('attributes', [...selectedAttributes]);
-    query.set('search', searchString.trim());
+    let searchUrl = "/genes"
+    if (Meteor.settings.public.redirectSearch){
+      searchUrl = Meteor.settings.public.redirectSearch
+      const searchAttr = Meteor.settings.public.redirectSearchAttribute ? Meteor.settings.public.redirectSearchAttribute : 'query'
+      query.set(searchAttr, searchString.trim());
+    } else {
+      query.set('attributes', [...selectedAttributes]);
+      query.set('search', searchString.trim());
+    }
     const queryString = `?${query.toString()}`;
 
     return (
       <Redirect
         push
         to={{
-          pathname: '/genes',
+          pathname: searchUrl,
           search: searchString.length ? queryString : '',
           state: {
             redirected: true,
