@@ -31,6 +31,10 @@ const PERMANENT_ATTRIBUTES = [
     name: 'Genome',
     query: 'genomeId',
   },
+  {
+    name: 'Annotation',
+    query: 'annotationName',
+  },
 ];
 
 export default function addDefaultAttributes() {

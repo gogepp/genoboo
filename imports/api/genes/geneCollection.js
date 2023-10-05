@@ -213,7 +213,7 @@ GeneSchema.extend(IntervalBaseSchema);
 Genes.attachSchema(GeneSchema);
 
 Genes.createIndex({ID: 'text', 'annotationName': 'text'}, {name: 'Id and annotation index', unique: true})
-Genes.createIndex({'subfeatures.$.ID': 'text', 'annotationName': 'text'}, {name: 'SubId and annotation index', unique: true})
+Genes.createIndex({'subfeatures.ID': 'text', 'annotationName': 'text'}, {name: 'SubId and annotation index', unique: true})
 
 export {
   Genes,
