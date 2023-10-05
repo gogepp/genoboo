@@ -125,6 +125,9 @@ function SearchBar({
     );
   }
 
+  let label = Meteor.settings.public.externalSearch ? "Select attributes to display" : "Select attributes to search"
+  let display_attr = Meteor.settings.public.redirectSearch ? false : true
+
   return (
     <form
       className="navbar-item is-pulled-right"
@@ -132,6 +135,7 @@ function SearchBar({
       onSubmit={submit}
     >
       <div className="field has-addons">
+      {display_attr &&
         <div className="control has-dropdown">
           <div className="dropdown is-hoverable">
             <div className="dropdown-trigger">
@@ -143,7 +147,7 @@ function SearchBar({
             </div>
             <div className="dropdown-menu" id="dropdown-menu-search" role="menu">
               <div className="dropdown-content">
-                <h6 className="is-h6 dropdown-item">Select attributes to search</h6>
+                <h6 className="is-h6 dropdown-item">{label}</h6>
                 {attributes.map(({ name }) => {
                   const checked = selectedAttributes.has(name);
                   return (
@@ -165,6 +169,7 @@ function SearchBar({
             </div>
           </div>
         </div>
+        }
         <div className="control">
           <input
             type="text"
