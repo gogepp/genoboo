@@ -31,6 +31,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra.gff3',
       genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
       verbose: false,
     };
 
@@ -54,6 +55,7 @@ describe('AddAnnotation', function testAnnotation() {
     const gene = genes[0];
 
     chai.assert.equal(gene.ID, 'BniB01g000010.2N');
+    chai.assert.equal(gene.annotationName, 'Test annotation');
     chai.assert.equal(gene.seqid, 'B1');
     chai.assert.equal(gene.source, 'AAFC_GIFS');
     chai.assert.equal(gene.strand, '-');
@@ -73,6 +75,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra_min.gff3',
       genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
       verbose: false,
     };
 
@@ -94,6 +97,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra_min.gff3',
       genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
       verbose: false,
       re_protein_capture: '^Bni(.*?)$',
       re_protein: 'testprot-$1'
@@ -117,6 +121,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra_min.gff3',
       genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
       verbose: false,
       attr_protein: 'protid'
     };
@@ -138,6 +143,7 @@ describe('AddAnnotation', function testAnnotation() {
     const toAnnot = {
       fileName: 'assets/app/data/Bnigra_min.gff3',
       genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
       verbose: false,
       attr_protein: 'protid2'
     };

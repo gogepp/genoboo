@@ -323,6 +323,10 @@ addAnnotation
     'Reference genome name to which the annotation should be added.',
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '-r, --re_protein <pattern>',
     'Replacement string for the protein name using capturing groups defined by --re_protein_capture. Make sure to use JS-style groups ($1 for group 1)',
   )
@@ -352,6 +356,7 @@ addAnnotation
         password,
         port = 3000,
         name,
+        annot,
         re_protein,
         re_protein_capture,
         attr_protein,
@@ -389,6 +394,7 @@ addAnnotation
         {
           fileName,
           genomeName: name,
+          annotationName: annot,
           re_protein,
           re_protein_capture: correctProteinCapture,
           attr_protein,

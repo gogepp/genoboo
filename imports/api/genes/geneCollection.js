@@ -73,9 +73,7 @@ const SubfeatureSchema = new SimpleSchema(
     ID: {
       type: String,
       index: true,
-      unique: true,
-      // denyUpdate: true,
-      label: 'Unique subfeature ID',
+      label: 'Subfeature ID',
     },
     protein_id: {
       type: String,
@@ -129,9 +127,8 @@ const GeneSchema = new SimpleSchema(
   {
     ID: {
       type: String,
-      unique: true,
       index: true,
-      label: 'Unique gene ID',
+      label: 'Gene ID',
     },
     editing: {
       type: String,
@@ -160,6 +157,11 @@ const GeneSchema = new SimpleSchema(
       type: String,
       index: true,
       label: 'Reference genome DB identifier (_id in genome collection)',
+    },
+    annotationName: {
+      type: String,
+      index: true,
+      label: 'Annotation name',
     },
     orthogroup: {
       type: OrthogroupSchema,
@@ -207,7 +209,11 @@ const GeneSchema = new SimpleSchema(
 // Extend the gene schema with base features.
 GeneSchema.extend(IntervalBaseSchema);
 
+
 Genes.attachSchema(GeneSchema);
+
+Genes.createIndex({ID: 'text', 'annotationName': 'text'}, {name: 'Id and annotation index', unique: true})
+Genes.createIndex({'subfeatures.$.ID': 'text', 'annotationName': 'text'}, {name: 'SubId and annotation index', unique: true})
 
 export {
   Genes,

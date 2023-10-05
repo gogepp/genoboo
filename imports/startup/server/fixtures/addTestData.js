@@ -68,6 +68,7 @@ export function addTestGenome(annot=false) {
     start: 0,
     end: 23320,
     genomeId: genomeId,
+    annotationName: "Annotation name",
     permission: 'admin',
     isPublic: false
   })
@@ -87,6 +88,7 @@ export function addTestGenome(annot=false) {
       start: 13640,
       end: 15401,
       genomeId: genomeId,
+      annotationName: "Annotation name",
       score: '.',
       subfeatures: [subfeature, cds],
       seq: 'AAAA',
