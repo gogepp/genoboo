@@ -51,7 +51,7 @@ export function addTestUsers() {
 
 export function addTestGenome(annot=false) {
 
-  const annotObj = annot ? { name: 'myfilename.gff'} : undefined
+  const annotObj = annot ? [{ name: 'myfilename.gff'}] : undefined
 
   const genomeId = genomeCollection.insert({
     name: "Test Genome",
@@ -68,7 +68,6 @@ export function addTestGenome(annot=false) {
     start: 0,
     end: 23320,
     genomeId: genomeId,
-    annotationName: "Annotation name",
     permission: 'admin',
     isPublic: false
   })

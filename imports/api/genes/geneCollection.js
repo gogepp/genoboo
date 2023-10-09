@@ -1,5 +1,6 @@
 import SimpleSchema from 'simpl-schema';
 import { Mongo } from 'meteor/mongo';
+import logger from '/imports/api/util/logger.js';
 
 const VALID_SUBFEATURE_TYPES = [
   'transcript',
@@ -209,10 +210,10 @@ const GeneSchema = new SimpleSchema(
 // Extend the gene schema with base features.
 GeneSchema.extend(IntervalBaseSchema);
 
-
 Genes.attachSchema(GeneSchema);
 
-Genes.createIndex({ID: 'text', 'annotationName': 'text', 'subfeatures.ID': 'text'}, {name: 'Id and annotation index', unique: true})
+Genes.createIndex({ID: 1, annotationName: 1}, {name: 'Id and annotation index', unique: true})
+Genes.createIndex({'subfeatures.ID': 1, annotationName: 1}, {name: 'SubId and annotation index', unique: true})
 
 export {
   Genes,

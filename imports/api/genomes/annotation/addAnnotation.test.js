@@ -28,7 +28,7 @@ describe('AddAnnotation', function testAnnotation() {
     this.timeout(10000);
 
     const { genomeId, genomeSeqId } = addTestGenome();
-    const toAnnot = {
+    let toAnnot = {
       fileName: 'assets/app/data/Bnigra.gff3',
       genomeName: 'Test Genome',
       annotationName: 'Test annotation',
@@ -66,6 +66,45 @@ describe('AddAnnotation', function testAnnotation() {
     chai.assert.lengthOf(gene.subfeatures, 13, 'Number of subfeatures is not 13');
   });
 
+  it('Should add multiple copies of genes with different annotation names', function addAnnotationGff3() {
+    // Increase timeout
+    this.timeout(10000);
+
+    const { genomeId, genomeSeqId } = addTestGenome();
+    let toAnnot = {
+      fileName: 'assets/app/data/Bnigra.gff3',
+      genomeName: 'Test Genome',
+      annotationName: 'Test annotation',
+      verbose: false,
+    };
+
+    // Should fail for non-logged in
+    chai.expect(() => {
+      addAnnotation._execute({}, toAnnot);
+    }).to.throw('[not-authorized]');
+
+    // Should fail for non admin user
+    chai.expect(() => {
+      addAnnotation._execute(userContext, toAnnot);
+    }).to.throw('[not-authorized]');
+
+    // Add annotation.
+    addAnnotation._execute(adminContext, toAnnot);
+
+
+    toAnnot = {
+      fileName: 'assets/app/data/Bnigra.gff3',
+      genomeName: 'Test Genome',
+      annotationName: 'Test annotation2',
+      verbose: false,
+    };
+
+    addAnnotation._execute(adminContext, toAnnot);
+
+    const genes = Genes.find({ genomeId: genomeId }).fetch();
+
+    chai.assert.lengthOf(genes, 10, 'Number of created genes is not 10');
+  });
 
   it('Should add a default -protein label to the mRNA protein_id', function addAnnotationGff3() {
     // Increase timeout
