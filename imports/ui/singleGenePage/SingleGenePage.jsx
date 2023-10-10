@@ -40,10 +40,19 @@ function isNotFound({ gene }) {
   return typeof gene === 'undefined';
 }
 
-function geneDataTracker({ match, genomeDataCache }) {
+function isMultiple({ gene }) {
+  return gene.length > 1;
+}
+
+function Multiple( {gene} ){
+    return <div>Multiple annotation</div>;
+}
+
+function geneDataTracker({ match, genomeDataCache, location }) {
   const { geneId } = match.params;
+  const { annotation } = new URLSearchParams(location.search);
   const geneSub = Meteor.subscribe('singleGene', { geneId });
-  const gene = Genes.findOne({ ID: geneId });
+  const gene = Genes.find({ ID: geneId, annotationName: annotation }).fetch();
   const loading = !geneSub.ready();
   return {
     loading,
@@ -83,6 +92,7 @@ function SingleGenePage({ gene, genome = {} }) {
           <h4 className="title is-size-4 has-text-weight-light">
             {`${gene.ID} `}
             <small className="text-muted">{genome.name}</small>
+            <small className="text-muted">{gene.annotationName}</small>
           </h4>
           <div className="tabs is-boxed">
             <ul>
