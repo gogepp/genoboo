@@ -212,8 +212,11 @@ GeneSchema.extend(IntervalBaseSchema);
 
 Genes.attachSchema(GeneSchema);
 
-Genes.createIndex({ID: 1, annotationName: 1}, {name: 'Id and annotation index', unique: true})
-Genes.createIndex({'subfeatures.ID': 1, annotationName: 1}, {name: 'SubId and annotation index', unique: true})
+if (Meteor.isServer) {
+  Genes.createIndex({ID: 1, annotationName: 1}, {name: 'Id and annotation index', unique: true})
+  Genes.createIndex({'subfeatures.ID': 1, annotationName: 1}, {name: 'SubId and annotation index', unique: true})
+}
+
 
 export {
   Genes,

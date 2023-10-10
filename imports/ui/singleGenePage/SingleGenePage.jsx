@@ -50,9 +50,14 @@ function Multiple( {gene} ){
 
 function geneDataTracker({ match, genomeDataCache, location }) {
   const { geneId } = match.params;
-  const { annotation } = new URLSearchParams(location.search);
+  const annotation = new URLSearchParams(location.search).get("annotation");
   const geneSub = Meteor.subscribe('singleGene', { geneId });
-  const gene = Genes.find({ ID: geneId, annotationName: annotation }).fetch();
+  let gene
+  if (annotation) {
+    gene = Genes.findOne({ ID: geneId, annotationName: annotation });
+  } else {
+    gene = Genes.findOne({ ID: geneId });
+  }
   const loading = !geneSub.ready();
   return {
     loading,
@@ -91,7 +96,7 @@ function SingleGenePage({ gene, genome = {} }) {
         <header className="has-background-light">
           <h4 className="title is-size-4 has-text-weight-light">
             {`${gene.ID} `}
-            <small className="text-muted">{genome.name}</small>
+            <small className="text-muted">{genome.name}&nbsp;</small>
             <small className="text-muted">{gene.annotationName}</small>
           </h4>
           <div className="tabs is-boxed">
