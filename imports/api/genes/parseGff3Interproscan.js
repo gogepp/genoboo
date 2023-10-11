@@ -62,6 +62,8 @@ class ParseGff3File extends InterproscanProcessor {
                 geneQuery['annotationName'] = this.annot
             }
             let gene = Genes.findOne(geneQuery);
+            logger.log(gene)
+            logger.log(geneQuery)
             if (typeof gene !== "undefined"){
               this.currentGene = gene.ID
               this.currentAnnotationName = gene.annotationName
