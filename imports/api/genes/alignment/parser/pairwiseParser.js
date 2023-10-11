@@ -31,6 +31,7 @@ class PairwiseProcessor {
   constructor(program, algorithm, matrix, database, annot) {
     this.genesDb = Genes.rawCollection();
     this.pairWise = new Pairwise({});
+    this.currentGene = ""
     this.program = program;
     this.algorithm = algorithm;
     this.matrix = matrix;
@@ -63,6 +64,22 @@ class PairwiseProcessor {
           this.pairWise.iteration_query = queryClean;
         }
 
+        let geneQuery = {
+            $or: [
+              { 'subfeatures.ID': this.pairWise.iteration_query },
+              { 'subfeatures.protein_id': this.pairWise.iteration_query },
+            ],
+        }
+        if (typeof this.annot !== "undefined"){
+            geneQuery['annotationName'] = this.annot
+        }
+
+        this.currentGene = Genes.findOne(geneQuery);
+        if (typeof this.currentGene === 'undefined'){
+            logger.warn(`Warning ! No sub-feature was found for ${this.pairWise.iteration_query}.`);
+            return
+        }
+
         /** In the case where a new pairwise must be created. */
         if (typeof this.pairWise.iteration_query !== 'undefined'
             && this.pairWise.iteration_query !== queryClean) {
@@ -70,7 +87,7 @@ class PairwiseProcessor {
           this.similarSeqBulkOp.find({
             iteration_query: this.pairWise.iteration_query,
             protein_id: this.pairWise.iteration_query,
-            annotationName: this.annot,
+            annotationName: this.currentGene.annotationName,
           }).upsert().update(
             {
               $set: {
@@ -79,7 +96,7 @@ class PairwiseProcessor {
                 matrix_ref: this.matrix,
                 database_ref: this.database,
                 iteration_query: this.pairWise.iteration_query,
-                annotationName: this.annot,
+                annotationName: this.currentGene.annotationName,
                 protein_id: this.pairWise.iteration_query,
                 query_len: this.pairWise.query_length,
                 iteration_hits: this.pairWise.iteration_hits,
@@ -97,6 +114,11 @@ class PairwiseProcessor {
         this.pairWise.iteration_query = queryClean;
         this.pairWise.iteration_hits = [];
       }
+
+      if (typeof this.currentGene === 'undefined'){
+          return
+      }
+
       if (/Length/.test(line)) {
         /**
          * Get and clean the length of the query sequence according to the program used.
@@ -365,7 +387,7 @@ class PairwiseProcessor {
     this.similarSeqBulkOp.find({
       iteration_query: this.pairWise.iteration_query,
       protein_id: this.pairWise.iteration_query,
-      annotationName: this.annot,
+      annotationName: this.currentGene.annotationName,
     }).upsert().update(
       {
         $set: {
@@ -374,7 +396,7 @@ class PairwiseProcessor {
           matrix_ref: this.matrix,
           database_ref: this.database,
           iteration_query: this.pairWise.iteration_query,
-          annotationName: this.annot,
+          annotationName: this.currentGene.annotationName,
           protein_id: this.pairWise.iteration_query,
           query_len: this.pairWise.query_length,
           iteration_hits: this.pairWise.iteration_hits,
