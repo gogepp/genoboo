@@ -38,6 +38,8 @@ class ParseTsvFile extends InterproscanProcessor {
       if (typeof gene !== "undefined"){
         this.currentGene = gene.ID
         this.currentAnnotationName = gene.annotationName
+      } else {
+        logger.warn(logger.warn(`Warning ! No sub-feature was found for ${seqId}.`))
       }
 
       this.currentContent = []

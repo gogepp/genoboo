@@ -33,7 +33,7 @@ class InterproscanProcessor {
     if (this.bulkOp.length > 0){
       return this.bulkOp.execute();
     }
-    return { nMatched: 0 }
+    return { nUpserted: 0 }
   }
 
   updateGenes = () => {
