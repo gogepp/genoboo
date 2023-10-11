@@ -384,6 +384,10 @@ class PairwiseProcessor {
    */
   lastPairwise = () => {
 
+    if (typeof this.annot !== "undefined") {
+      return
+    }
+
     this.similarSeqBulkOp.find({
       iteration_query: this.pairWise.iteration_query,
       protein_id: this.pairWise.iteration_query,

@@ -1,4 +1,4 @@
-7/* eslint-env mocha */
+/* eslint-env mocha */
 import chai from 'chai';
 import { Meteor } from 'meteor/meteor';
 import logger from '/imports/api/util/logger.js';
@@ -79,6 +79,8 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
+    addTestGenome(annot=true)
+
     const diamondParams = {
       fileName: 'assets/app/data/Diamond_blastx_bnigra.txt',
       parser: 'txt',
@@ -120,6 +122,8 @@ describe('alignment', function testAlignment() {
   it('Should add a Blast txt file', function addDiamond() {
     // Increase timeout
     this.timeout(20000);
+
+    addTestGenome(annot=true)
 
     const diamondParams = {
       fileName: 'assets/app/data/BLAST_blastx_bnigra.txt',
