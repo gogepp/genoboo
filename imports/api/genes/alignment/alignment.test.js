@@ -45,6 +45,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'blosum62',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -85,6 +86,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'BLOSUM90',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -126,6 +128,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'BLOSUM90',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in

@@ -19,6 +19,10 @@ const addSimilarSequence = new ValidatedMethod({
       optional: true,
       allowedValues: ['blast', 'diamond'],
     },
+    annot: {
+      type: String,
+      optional: true,
+    },
     algorithm: {
       type: String,
       optional: true,
@@ -44,7 +48,7 @@ const addSimilarSequence = new ValidatedMethod({
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName, parser, program, algorithm, matrix, database }) {
+  run({ fileName, annot, parser, program, algorithm, matrix, database }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -57,6 +61,7 @@ const addSimilarSequence = new ValidatedMethod({
       'addDiamond',
       {
         fileName,
+        annot,
         parser,
         program,
         algorithm,

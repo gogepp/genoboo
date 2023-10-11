@@ -12,14 +12,16 @@ import { Meteor } from 'meteor/meteor';
  * @method finalize
  */
 class InterproscanProcessor {
-  constructor() {
+  constructor(annot) {
     this.bulkOp = interproscanCollection.rawCollection().initializeUnorderedBulkOp();
     this.geneBulkOp = Genes.rawCollection().initializeUnorderedBulkOp();
     this.currentProt = ""
     this.currentGene = ""
     this.currentContent = []
     this.currentDB = []
-    this.currentOnto = []
+    this.currentOnto = [],
+    this.currentAnnotationName = "",
+    this.annot = annot
   }
 
   finalize = () => {
@@ -47,11 +49,13 @@ class InterproscanProcessor {
       this.bulkOp.find({
         gene_id: this.currentGene,
         protein_id: this.currentProt,
+        annotationName: this.currentAnnotationName
       }).upsert().update(
         {
           $set: {
             gene_id: this.currentGene,
             protein_id: this.currentProt,
+            annotationName: this.currentAnnotationName,
             protein_domains: this.currentContent
           },
         },
@@ -63,7 +67,7 @@ class InterproscanProcessor {
     }
 
     if (this.currentDB != [] || this.currentOnto != []){
-      this.geneBulkOp.find({ID: this.currentGene}).update({
+      this.geneBulkOp.find({ID: this.currentGene, annotationName: this.currentAnnotationName}).update({
         $addToSet: {
           'attributes.Ontology_term': { $each: this.currentOnto },
           'attributes.Dbxref': { $each: this.currentDB }
@@ -80,6 +84,10 @@ const addInterproscan = new ValidatedMethod({
   name: 'addInterproscan',
   validate: new SimpleSchema({
     fileName: { type: String },
+    annot: {
+      type: String,
+      optional: true,
+    },
     parser: {
       type: String,
       allowedValues: ['tsv', 'gff3'],
@@ -88,7 +96,7 @@ const addInterproscan = new ValidatedMethod({
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName, parser }) {
+  run({ fileName, annot, parser }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -96,7 +104,7 @@ const addInterproscan = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
 
-    const job = new Job(jobQueue, 'addInterproscan', { fileName, parser });
+    const job = new Job(jobQueue, 'addInterproscan', { fileName, annot, parser });
     const jobId = job.priority('high').save();
 
     // Continue with synchronous processing

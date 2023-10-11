@@ -26,6 +26,10 @@ const similarSequencesSchema = new SimpleSchema({
     type: String,
     label: 'Protein_id',
   },
+  annotationName: {
+    type: String,
+    label: 'Annotation name',
+  },
   iteration_hits: {
     type: Array,
     label: 'List of iteration hits.',

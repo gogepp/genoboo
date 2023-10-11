@@ -217,6 +217,7 @@ Meteor.publish({
   alignment(gene) {
     const diamond = similarSequencesCollection.find(
       {
+        annotationName: gene.annotationName,
         $or: [
           { iteration_query: gene.ID },
           { iteration_query: { $in: gene.children } },
@@ -225,8 +226,8 @@ Meteor.publish({
     );
     return diamond;
   },
-  interpro(query){
-    return interproscanCollection.find({gene_id: query})
+  interpro(gene){
+    return interproscanCollection.find({gene_id: gene.ID, annotationName: gene.annotationName})
   },
   orthogroups(ID) {
     return orthogroupCollection.find({ _id: ID });

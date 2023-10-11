@@ -63,39 +63,44 @@ class HectarProcessor {
       }
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
-      const subfeatureIsFound = Genes.findOne({
+
+      let geneQuery = {
           $or: [
             { 'subfeatures.ID': proteinId },
             { 'subfeatures.protein_id': proteinId },
           ],
-      });
+      }
+      if (typeof this.annot !== "undefined"){
+          geneQuery['annotationName'] = this.annot
+      }
+
+      const subfeatureIsFound = Genes.findOne(geneQuery);
 
       if (typeof subfeatureIsFound !== 'undefined') {
         console.log("if loop" + typeof subfeatureIsFound);
+        let annotationName = subfeatureIsFound.annotationName
         // Increment hectar.
         this.nHectar += 1;
 
+        annotations['annotationName'] = annotationName
+
         // Update or insert if no matching documents were found.
         const documentHectar = hectarCollection.upsert(
-          { protein_id: proteinId }, // selector.
+          { protein_id: proteinId, annotationName }, // selector.
           annotations, // modifier.
         );
 
         // Update hectarId in genes database.
         if (typeof documentHectar.insertedId !== 'undefined') {
           // Hectar _id is created.
-          return this.genesDb.update({
-              $or: [
-                { 'subfeatures.ID': proteinId },
-                { 'subfeatures.protein_id': proteinId },
-            ]},
+          return this.genesDb.update(geneQuery,
             { $set: { hectarId: documentHectar.insertedId } },
           );
         } else {
           // Hectar already exists.
-          const hectarIdentifiant = hectarCollection.findOne({ protein_id: proteinId })._id;
+          const hectarIdentifiant = hectarCollection.findOne({ protein_id: proteinId, annotationName })._id;
           return this.genesDb.update(
-            { $or: [{'subfeatures.ID': proteinId}, {'subfeatures.protein_id': proteinId}] },
+            geneQuery,
             { $set: { hectarId: hectarIdentifiant } },
           );
         }
@@ -113,11 +118,15 @@ const addHectar = new ValidatedMethod({
   name: 'addHectar',
   validate: new SimpleSchema({
     fileName: { type: String },
+    annot: {
+      type: String,
+      optional: true,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName }) {
+  run({ fileName, annot }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -126,7 +135,7 @@ const addHectar = new ValidatedMethod({
     }
 
     logger.log('file :', { fileName });
-    const job = new Job(jobQueue, 'addHectar', { fileName });
+    const job = new Job(jobQueue, 'addHectar', { fileName, annot });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;

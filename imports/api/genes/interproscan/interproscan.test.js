@@ -41,6 +41,7 @@ describe('interproscan', function testInterproscan() {
     const interproParams = {
       fileName: 'assets/app/data/Bnigra_interproscan.tsv',
       parser: "tsv",
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -89,6 +90,7 @@ describe('interproscan', function testInterproscan() {
     const interproParams = {
       fileName: 'assets/app/data/Bnigra_interproscan.gff',
       parser: "gff3",
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in

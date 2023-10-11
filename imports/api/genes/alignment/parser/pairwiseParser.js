@@ -7,7 +7,7 @@ class Pairwise {
   constructor({
     iteration_query,
     query_length,
-    position_query,
+    position_query
   }){
     this.iteration_query = iteration_query;
     this.query_length = query_length;
@@ -28,7 +28,7 @@ class Pairwise {
  * @param {string} database - The reference database (Non-redundant protein sequences (nr)).
  */
 class PairwiseProcessor {
-  constructor(program, algorithm, matrix, database) {
+  constructor(program, algorithm, matrix, database, annot) {
     this.genesDb = Genes.rawCollection();
     this.pairWise = new Pairwise({});
     this.program = program;
@@ -36,6 +36,7 @@ class PairwiseProcessor {
     this.matrix = matrix;
     this.database = database;
     this.similarSeqBulkOp = similarSequencesCollection.rawCollection().initializeUnorderedBulkOp();
+    this.annot = annot;
   }
 
   /**
@@ -68,7 +69,8 @@ class PairwiseProcessor {
           /** Update or insert pairwise. */
           this.similarSeqBulkOp.find({
             iteration_query: this.pairWise.iteration_query,
-            protein_id: this.pairWise.iteration_query
+            protein_id: this.pairWise.iteration_query,
+            annotationName: this.annot,
           }).upsert().update(
             {
               $set: {
@@ -77,6 +79,7 @@ class PairwiseProcessor {
                 matrix_ref: this.matrix,
                 database_ref: this.database,
                 iteration_query: this.pairWise.iteration_query,
+                annotationName: this.annot,
                 protein_id: this.pairWise.iteration_query,
                 query_len: this.pairWise.query_length,
                 iteration_hits: this.pairWise.iteration_hits,
@@ -361,7 +364,8 @@ class PairwiseProcessor {
 
     this.similarSeqBulkOp.find({
       iteration_query: this.pairWise.iteration_query,
-      protein_id: this.pairWise.iteration_query
+      protein_id: this.pairWise.iteration_query,
+      annotationName: this.annot,
     }).upsert().update(
       {
         $set: {
@@ -370,6 +374,7 @@ class PairwiseProcessor {
           matrix_ref: this.matrix,
           database_ref: this.database,
           iteration_query: this.pairWise.iteration_query,
+          annotationName: this.annot,
           protein_id: this.pairWise.iteration_query,
           query_len: this.pairWise.query_length,
           iteration_hits: this.pairWise.iteration_hits,

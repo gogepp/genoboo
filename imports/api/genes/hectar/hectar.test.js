@@ -33,6 +33,7 @@ describe('hectar', function testHectar() {
 
     const hectarParams = {
       fileName: 'assets/app/data/Bnigra_hectar.tab',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in

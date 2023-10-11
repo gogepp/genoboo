@@ -33,6 +33,7 @@ describe('eggnog', function testEggnog() {
 
     const eggNogParams = {
       fileName: 'assets/app/data/Bnigra_eggnog.tsv',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in

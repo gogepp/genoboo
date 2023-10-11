@@ -295,7 +295,7 @@ function NoProteinDomains({ showHeader }) {
 }
 
 function InterproDataTracker({ gene }) {
-  const interproSub = Meteor.subscribe('interpro', gene.ID);
+  const interproSub = Meteor.subscribe('interpro', gene);
   const loading = !interproSub.ready();
 
   const proteinDomains = interproscanCollection.find({}).fetch()
@@ -372,7 +372,7 @@ function ProteinDomains({
       );
     })
 
-    let axisTransform = `translate(0,${15 + currentTranslate})`     
+    let axisTransform = `translate(0,${15 + currentTranslate})`
     let gTransform = `translate(0,${40 + currentTranslate})`
 
     let data = (

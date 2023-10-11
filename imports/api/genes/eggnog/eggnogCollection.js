@@ -6,6 +6,10 @@ const eggnogSchema = new SimpleSchema({
     type: String,
     label: 'Query sequence name.',
   },
+  annotationName: {
+    type: String,
+    label: 'Annotation name',
+  },
   seed_eggNOG_ortholog: {
     type: String,
     label: 'Best protein match in eggNOG.',

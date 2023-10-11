@@ -16,12 +16,13 @@ import logger from '/imports/api/util/logger.js';
  */
 
 class XmlProcessor {
-  constructor(program, algorithm, matrix, database) {
+  constructor(program, algorithm, matrix, database, annot) {
     this.genesDb = Genes.rawCollection();
     this.program = program;
     this.algorithm = algorithm;
     this.matrix = matrix;
     this.database = database;
+    this.annot = annot;
     this.similarSeqBulkOp = similarSequencesCollection.rawCollection().initializeUnorderedBulkOp();
   }
 
@@ -101,9 +102,16 @@ class XmlProcessor {
 
         await Promise.all(splitIterationQuery.map(async (iter) => {
           /** Chek if the queries exist in the genes collection. */
-          const subfeatureIsFound = await this.genesDb.findOne({ $or: [{'subfeatures.ID': iter}, {'subfeatures.protein_id': iter}] });
+
+          let geneQuery = { $or: [{'subfeatures.ID': iter}, {'subfeatures.protein_id': iter}] }
+          if (typeof this.annot !== "undefined"){
+              geneQuery['annotationName'] = this.annot
+          }
+
+          const subfeatureIsFound = await this.genesDb.findOne(geneQuery);
           if (typeof subfeatureIsFound !== 'undefined' && subfeatureIsFound !== null) {
             /** Get the total query sequence length. */
+            const annotationName = subfeatureIsFound.annotationName
             const queryLen = blastIteration[i]['iteration_query-len']
 
             /** Get the root tag of hit sequences. */
@@ -185,7 +193,8 @@ class XmlProcessor {
             /** Mongo bulk-operation. */
             this.similarSeqBulkOp.find({
               iteration_query: geneIdentifier,
-              protein_id: iter
+              protein_id: iter,
+              annotationName: annotationName
             }).upsert().update(
               {
                 $set: {
@@ -197,6 +206,7 @@ class XmlProcessor {
                   protein_id: iter,
                   query_len: queryLen,
                   iteration_hits: iterations,
+                  annotationName: annotationName
                 },
               },
               {

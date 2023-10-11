@@ -30,9 +30,14 @@ class ParseTsvFile extends InterproscanProcessor {
 
       this.currentProt = seqId
       this.currentGene = ""
-      let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
+      let geneQuery = { $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] }
+      if (typeof this.annot !== "undefined"){
+          geneQuery['annotationName'] = this.annot
+      }
+      let gene = Genes.findOne(geneQuery);
       if (typeof gene !== "undefined"){
         this.currentGene = gene.ID
+        this.currentAnnotationName = gene.annotationName
       }
 
       this.currentContent = []
