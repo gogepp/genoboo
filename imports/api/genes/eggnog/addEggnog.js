@@ -8,10 +8,11 @@ import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
 
 class EggnogProcessor {
-  constructor() {
+  constructor(annot) {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
     this.nEggnog = 0;
+    this.annot = annot;
   }
 
   /**

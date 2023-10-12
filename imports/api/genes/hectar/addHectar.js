@@ -8,10 +8,11 @@ import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
 
 class HectarProcessor {
-  constructor() {
+  constructor(annot) {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
     this.nHectar = 0;
+    this.annot = annot;
   }
 
   /**

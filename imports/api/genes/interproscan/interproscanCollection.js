@@ -13,6 +13,7 @@ const interproscanSchema = new SimpleSchema({
   },
   annotationName: {
     type: String,
+    index: true,
     label: 'Annotation name',
   },
   protein_domains: {
