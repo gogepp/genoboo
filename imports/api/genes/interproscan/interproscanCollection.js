@@ -9,6 +9,7 @@ const interproscanSchema = new SimpleSchema({
   },
   protein_id: {
     type: String,
+    index: true,
     label: 'Linked protein ID',
   },
   annotationName: {
