@@ -85,7 +85,7 @@ class PairwiseProcessor {
             && this.pairWise.iteration_query !== queryClean) {
           /** Update or insert pairwise. */
           this.similarSeqBulkOp.find({
-            iteration_query: this.pairWise.iteration_query,
+            iteration_query: this.currentGene.ID,
             protein_id: this.pairWise.iteration_query,
             annotationName: this.currentGene.annotationName,
           }).upsert().update(
@@ -95,7 +95,7 @@ class PairwiseProcessor {
                 algorithm_ref: this.algorithm,
                 matrix_ref: this.matrix,
                 database_ref: this.database,
-                iteration_query: this.pairWise.iteration_query,
+                iteration_query: this.currentGene.ID,
                 annotationName: this.currentGene.annotationName,
                 protein_id: this.pairWise.iteration_query,
                 query_len: this.pairWise.query_length,
@@ -384,12 +384,12 @@ class PairwiseProcessor {
    */
   lastPairwise = () => {
 
-    if (typeof this.currentGene !== "undefined") {
+    if (typeof this.currentGene === "undefined") {
       return { ok:"", writeErrors:"", nInserted:0, nUpserted: 0 }
     }
 
     this.similarSeqBulkOp.find({
-      iteration_query: this.pairWise.iteration_query,
+      iteration_query: this.currentGene.ID,
       protein_id: this.pairWise.iteration_query,
       annotationName: this.currentGene.annotationName,
     }).upsert().update(
@@ -399,7 +399,7 @@ class PairwiseProcessor {
           algorithm_ref: this.algorithm,
           matrix_ref: this.matrix,
           database_ref: this.database,
-          iteration_query: this.pairWise.iteration_query,
+          iteration_query: this.currentGene.ID,
           annotationName: this.currentGene.annotationName,
           protein_id: this.pairWise.iteration_query,
           query_len: this.pairWise.query_length,

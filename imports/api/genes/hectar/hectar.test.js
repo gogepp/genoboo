@@ -63,10 +63,10 @@ describe('hectar', function testHectar() {
     chai.assert.equal(hec.mitochondrion_score, '0.1032');
     chai.assert.equal(hec.other_score, '0.8968');
 
-    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name'})
-    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name 2'})
+    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name'})
+    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name 2'})
 
-    chai.assert.isDefined(gene2.eggnogId, "eggNodeId is not defined for the correct annotation")
-    chai.assert.isUndefined(gene2.eggnogId, "eggNodeId is defined for the wrong annotation")
+    chai.assert.isDefined(gene1.hectarId, "eggNodeId is not defined for the correct annotation")
+    chai.assert.isUndefined(gene2.hectarId, "eggNodeId is defined for the wrong annotation")
   });
 });

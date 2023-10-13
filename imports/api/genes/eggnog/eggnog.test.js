@@ -64,10 +64,10 @@ describe('eggnog', function testEggnog() {
     chai.assert.lengthOf(egg.GOs, 18);
     chai.assert.equal(egg.Description, 'UDP-glucuronic acid decarboxylase');
 
-    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name'})
-    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name 2'})
+    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name'})
+    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name 2'})
 
-    chai.assert.isDefined(gene2.eggnogId, "eggNodeId is not defined for the correct annotation")
+    chai.assert.isDefined(gene1.eggnogId, "eggNodeId is not defined for the correct annotation")
     chai.assert.isUndefined(gene2.eggnogId, "eggNodeId is defined for the wrong annotation")
 
 
