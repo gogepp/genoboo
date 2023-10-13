@@ -10,6 +10,10 @@ import { ExperimentInfo } from '/imports/api/transcriptomes/transcriptome_collec
 
 import { Dropdown, DropdownMenu, DropdownButton } from '/imports/ui/util/Dropdown.jsx';
 
+import {
+  branch, compose, round, /* ErrorBoundary, */
+} from '/imports/ui/util/uiUtil.jsx';
+
 import './sampleSelection.scss';
 
 function dataTracker({ gene, showHeader, children }) {
@@ -25,6 +29,23 @@ function dataTracker({ gene, showHeader, children }) {
     children,
     replicaGroups,
   };
+}
+
+
+function hasNoExpression({ experiments }) {
+  return experiments.length === 0;
+}
+
+function NoExpression() {
+  return (
+    <div className="card expression-plot">
+      <article className="message no-protein-domains" role="alert">
+        <div className="message-body">
+          <p className="has-text-grey">No expression data found</p>
+        </div>
+      </article>
+    </div>
+  );
 }
 
 const customStyles = {
@@ -197,4 +218,7 @@ function SampleSelection({
   );
 }
 
-export default withTracker(dataTracker)(SampleSelection);
+export default compose(
+  withTracker(dataTracker),
+  branch(hasNoExpression, NoExpression),
+)(SampleSelection);
