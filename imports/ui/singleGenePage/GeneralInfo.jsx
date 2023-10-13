@@ -365,6 +365,12 @@ function GeneInfo({
               </td>
             </tr>
             <tr>
+              <td>Annotation name</td>
+              <td>
+                {`${gene.annotationName} `}
+              </td>
+            </tr>
+            <tr>
               <td>Genome coordinates</td>
               <td>
                 {`${seqid} ${start}..${end} ${strand}`}
