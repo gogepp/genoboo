@@ -384,8 +384,8 @@ class PairwiseProcessor {
    */
   lastPairwise = () => {
 
-    if (typeof this.annot !== "undefined") {
-      return
+    if (typeof this.currentGene !== "undefined") {
+      return { ok:"", writeErrors:"", nInserted:0, nUpserted: 0 }
     }
 
     this.similarSeqBulkOp.find({

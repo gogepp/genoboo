@@ -36,7 +36,7 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple=true)
 
     const diamondParams = {
       fileName: 'assets/app/data/Diamond_blastp_bnigra.xml',
@@ -60,7 +60,7 @@ describe('alignment', function testAlignment() {
 
     let result = addSimilarSequence._execute(adminContext, diamondParams);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
     const seq = simSeq[0]
@@ -79,7 +79,7 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple=true)
 
     const diamondParams = {
       fileName: 'assets/app/data/Diamond_blastx_bnigra.txt',
@@ -105,7 +105,7 @@ describe('alignment', function testAlignment() {
 
     //Meteor._sleepForMs(10000);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N", annotationName: "Annotation name"}).fetch();
 
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
@@ -123,7 +123,7 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple=true)
 
     const diamondParams = {
       fileName: 'assets/app/data/BLAST_blastx_bnigra.txt',
@@ -147,7 +147,7 @@ describe('alignment', function testAlignment() {
 
     let result = addSimilarSequence._execute(adminContext, diamondParams);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
     const seq = simSeq[0]

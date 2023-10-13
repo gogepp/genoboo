@@ -49,7 +49,7 @@ export function addTestUsers() {
   return { adminId, newUserId, curatorId }
 }
 
-export function addTestGenome(annot=false) {
+export function addTestGenome(annot=false, multiple=false) {
 
   const annotObj = annot ? [{ name: 'myfilename.gff'}] : undefined
 
@@ -93,6 +93,24 @@ export function addTestGenome(annot=false) {
       seq: 'AAAA',
       attributes: {"myNewAttribute": 1}
     })
+
+    if (multiple){
+      Genes.insert({
+        ID: 'BniB01g000010.2N',
+        seqid: 'B1',
+        source: 'AAFC_GIFS',
+        strand: '-',
+        type: 'gene',
+        start: 13640,
+        end: 15401,
+        genomeId: genomeId,
+        annotationName: "Annotation name 2",
+        score: '.',
+        subfeatures: [subfeature, cds],
+        seq: 'AAAA',
+        attributes: {"myNewAttribute": 1}
+      })
+    }
   }
 
   return { genomeId, genomeSeqId, geneId: "BniB01g000010.2N" }

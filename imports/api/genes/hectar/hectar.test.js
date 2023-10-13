@@ -6,6 +6,7 @@ import { hectarCollection } from './hectarCollection';
 import addHectar from './addHectar';
 import { addTestUsers, addTestGenome } from '../../../startup/server/fixtures/addTestData';
 import '../../jobqueue/process-hectar';
+import { Genes } from '/imports/api/genes/geneCollection.js';
 
 describe('hectar', function testHectar() {
   let adminId;
@@ -29,7 +30,7 @@ describe('hectar', function testHectar() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot = true);
+    addTestGenome(annot = true, multiple = true);
 
     const hectarParams = {
       fileName: 'assets/app/data/Bnigra_hectar.tab',
@@ -50,7 +51,7 @@ describe('hectar', function testHectar() {
 
     chai.assert.equal(result.nInserted, 1)
 
-    const hecs = hectarCollection.find({ protein_id: 'BniB01g000010.2N.1' }).fetch();
+    const hecs = hectarCollection.find({ protein_id: 'BniB01g000010.2N.1', annotationName: "Annotation name" }).fetch();
 
     chai.assert.lengthOf(hecs, 1, 'No hectar data found');
 
@@ -61,5 +62,11 @@ describe('hectar', function testHectar() {
     chai.assert.equal(hec.typeII_signal_anchor_score, '0.0228');
     chai.assert.equal(hec.mitochondrion_score, '0.1032');
     chai.assert.equal(hec.other_score, '0.8968');
+
+    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name'})
+    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N.1', annotationName: 'Annotation name 2'})
+
+    chai.assert.isDefined(gene2.eggnogId, "eggNodeId is not defined for the correct annotation")
+    chai.assert.isUndefined(gene2.eggnogId, "eggNodeId is defined for the wrong annotation")
   });
 });
