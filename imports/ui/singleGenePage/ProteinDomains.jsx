@@ -298,7 +298,7 @@ function InterproDataTracker({ gene }) {
   const interproSub = Meteor.subscribe('interpro', gene);
   const loading = !interproSub.ready();
 
-  const proteinDomains = interproscanCollection.find({}).fetch()
+  const proteinDomains = interproscanCollection.find({gene_id: gene.ID, annotationName: gene.annotationName}).fetch()
 
   return {
     loading,
