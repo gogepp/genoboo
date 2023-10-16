@@ -38,30 +38,41 @@ function isLoading({ loading }) {
 }
 
 function isNotFound({ genes }) {
-  return gene.length === 0;
+  return genes.length === 0;
 }
 
 function isMultiple({ genes }) {
-  return gene.length > 1;
+  return genes.length > 1;
 }
 
 function Multiple( {genes} ){
+    let gene = genes[0]
+
     let content = genes.map(gene => {
       const query = new URLSearchParams();
       query.set("annotation", gene.annotationName);
       const url = `/gene/${gene.ID}?${query.toString()}`
       return (
-        <Link to={url} className="genelink" title={geneId}>
-          { geneId }
-        </Link>
+        <p><Link to={url} className="genelink" title={gene.annotationName}>
+          { gene.annotationName }
+        </Link></p>
       );
     })
 
     return (
-      <div>
-        <p>This gene has several available versions. Please select one:</p>
-        <div>
-          {content}
+      <div className="container">
+        <div className="card single-gene-page">
+          <header className="has-background-light">
+            <h4 className="title is-size-4 has-text-weight-light">
+              {`${gene.ID} `}
+            </h4>
+            <div className="box">
+              <p>This gene is defined in several annotations. Please select one:</p>
+              <article className="message is-light">
+                {content}
+              </article>
+            </div>
+          </header>
         </div>
       </div>
     );
@@ -71,12 +82,13 @@ function geneDataTracker({ match, genomeDataCache, location }) {
   const { geneId } = match.params;
   const annotation = new URLSearchParams(location.search).get("annotation");
   const geneSub = Meteor.subscribe('singleGene', { geneId });
-  let gene
+  let genes
   if (annotation) {
-    gene = Genes.find{ ID: geneId, annotationName: annotation }).fetch();
+    genes = Genes.find({ ID: geneId, annotationName: annotation }).fetch();
   } else {
-    gene = Genes.findOne({ ID: geneId }).fetch();
+    genes = Genes.find({ ID: geneId }).fetch();
   }
+
   const loading = !geneSub.ready();
   return {
     loading,
@@ -211,6 +223,7 @@ export default compose(
   withTracker(geneDataTracker),
   branch(isLoading, Loading),
   branch(isNotFound, NotFound),
+  branch(isMultiple, Multiple),
   withTracker(genomeDataTracker),
   branch(isLoading, Loading),
 )(SingleGenePage);
