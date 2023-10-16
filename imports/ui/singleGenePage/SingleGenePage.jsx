@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import hash from 'object-hash';
 
 import { Genes } from '/imports/api/genes/geneCollection.js';
@@ -36,16 +37,34 @@ function isLoading({ loading }) {
   return loading;
 }
 
-function isNotFound({ gene }) {
-  return typeof gene === 'undefined';
+function isNotFound({ genes }) {
+  return gene.length === 0;
 }
 
-function isMultiple({ gene }) {
+function isMultiple({ genes }) {
   return gene.length > 1;
 }
 
-function Multiple( {gene} ){
-    return <div>Multiple annotation</div>;
+function Multiple( {genes} ){
+    let content = genes.map(gene => {
+      const query = new URLSearchParams();
+      query.set("annotation", gene.annotationName);
+      const url = `/gene/${gene.ID}?${query.toString()}`
+      return (
+        <Link to={url} className="genelink" title={geneId}>
+          { geneId }
+        </Link>
+      );
+    })
+
+    return (
+      <div>
+        <p>This gene has several available versions. Please select one:</p>
+        <div>
+          {content}
+        </div>
+      </div>
+    );
 }
 
 function geneDataTracker({ match, genomeDataCache, location }) {
@@ -54,20 +73,21 @@ function geneDataTracker({ match, genomeDataCache, location }) {
   const geneSub = Meteor.subscribe('singleGene', { geneId });
   let gene
   if (annotation) {
-    gene = Genes.findOne({ ID: geneId, annotationName: annotation });
+    gene = Genes.find{ ID: geneId, annotationName: annotation }).fetch();
   } else {
-    gene = Genes.findOne({ ID: geneId });
+    gene = Genes.findOne({ ID: geneId }).fetch();
   }
   const loading = !geneSub.ready();
   return {
     loading,
-    gene,
+    genes,
     genomeDataCache,
   };
 }
 
-function genomeDataTracker({ gene, genomeDataCache }) {
+function genomeDataTracker({ genes, genomeDataCache }) {
   // const genomeSub = Meteor.subscribe('genomes');
+  let gene = genes[0]
   const { genomeId } = gene;
   let genome;
   let genomeSub;
