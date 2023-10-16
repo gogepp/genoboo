@@ -24,6 +24,7 @@ function genomeDataTracker({ ...props }) {
       annotationTrack: { $exists: true },
     })
     .fetch();
+
   return {
     loading,
     genomes,
@@ -38,15 +39,15 @@ function GenomeSelect({
     new Set(genomes.map((genome) => genome._id)),
   );
 
-  const [selectedAnnotations, setselectedAnnotations] = useState(
-    new Set(genomes.map((genome) => {
-      genome.annotationTrack.map((annotation) => annotation.name)
-    })).flat()),
+  const [selectedAnnotations, setSelectedAnnotations] = useState(
+    new Set(genomes.flatMap((genome) => {
+      return genome.annotationTrack.map((annotation) => annotation.name);
+    })),
   );
 
-  let annotations = new Set(genomes.map((genome) => {
-    genome.annotationTrack.map((annotation) => annotation.name)
-  })).flat())
+  let annotations = genomes.flatMap((genome) => {
+    return genome.annotationTrack.map((annotation) => annotation.name)
+  })
 
   function toggleGenomeSelect(genomeId) {
     const newSelection = cloneDeep(selectedGenomes);
@@ -105,9 +106,9 @@ function GenomeSelect({
   }
 
   function selectAllAnnotations() {
-    const newSelection = new Set(genomes.map((genome) => {
+    const newSelection = new Set(genomes.flatMap((genome) => {
       genome.annotationTrack.map((annotation) => annotation.name)
-    })).flat());
+    }));
     setSelectedAnnotations(newSelection);
 
     const newQuery = cloneDeep(query);
@@ -125,6 +126,7 @@ function GenomeSelect({
   }
 
   return (
+    <>
     <div className="dropdown is-hoverable genomeselect">
       <div className="dropdown-trigger">
         <button type="button" className="button is-small">
@@ -179,7 +181,7 @@ function GenomeSelect({
           <h6 className="is-h6 dropdown-item dropdown-header">
             Select annotations
           </h6>
-          {annotations.map(({name}) => {
+          {annotations.map((name) => {
             const checked = selectedAnnotations.has(name);
             return (
               <div key={`${name}-${checked}`} className="dropdown-item">
@@ -209,6 +211,7 @@ function GenomeSelect({
         </div>
       </div>
     </div>
+    </>
   );
 }
 
