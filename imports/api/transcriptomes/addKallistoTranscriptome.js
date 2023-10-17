@@ -88,6 +88,7 @@ const parseKallistoTsv = ({
           nInserted += 1;
           bulkOp.insert({
             geneId: gene.ID,
+            annotationName: gene.annotationName,
             tpm,
             est_counts,
             experimentId,
