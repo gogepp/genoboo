@@ -40,6 +40,10 @@ const TranscriptomeSchema = new SimpleSchema({
     label: 'Gene ID',
     index: true,
   },
+  annotationName: {
+    type: String,
+    label: 'Annotation name',
+  },
   experimentId: {
     type: String,
     label: 'Experiment ID',

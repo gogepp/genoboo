@@ -154,7 +154,7 @@ Meteor.publish({
       $or: [{ genomes: { $in: genomeIds } }, { allGenomes: true }],
     });
   },
-  geneExpression(geneId) {
+  geneExpression(geneId, annotationName) {
     const publication = this;
     const roles = Roles.getRolesForUser(publication.userId);
     const permission = { $in: roles };
@@ -168,6 +168,7 @@ Meteor.publish({
 
     return Transcriptomes.find({
       geneId,
+      annotationName,
       experimentId: {
         $in: experimentIds,
       },
