@@ -29,13 +29,14 @@ import './expressionPlot.scss';
 function expressionDataTracker({
   gene, samples, loading,
 }) {
-  const transcriptomeSub = Meteor.subscribe('geneExpression', gene.ID);
+  const transcriptomeSub = Meteor.subscribe('geneExpression', gene.ID, gene.annotationName);
 
   const sampleInfo = groupBy(samples, '_id');
   const sampleIds = samples.map((sample) => sample._id);
 
   const values = Transcriptomes.find({
     geneId: gene.ID,
+    annotationName: gene.annotationName,
     experimentId: {
       $in: sampleIds,
     },
