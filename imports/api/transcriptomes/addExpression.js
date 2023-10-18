@@ -12,8 +12,8 @@ import {
 } from '/imports/api/transcriptomes/transcriptome_collection.js';
 import logger from '/imports/api/util/logger.js';
 
-const getGenomeId = (data, annot) => {
-  const firstTranscripts = data.slice(0, 10).map((line) => line.gene);
+const getGenomeId = (data, firstColumn, annot) => {
+  const firstTranscripts = data.slice(0, 10).map((line) => line[firstColumn]);
   logger.debug(firstTranscripts);
 
   let geneQuery = {
@@ -30,7 +30,7 @@ const getGenomeId = (data, annot) => {
   const gene = Genes.findOne(geneQuery);
 
   if (typeof gene === "undefined"){
-    return undefined
+    return {genomeId: undefined, annotationName: undefined}
   }
   logger.debug(gene.genomeId);
   return {genomeId: gene.genomeId, annotationName: gene.annotationName}
@@ -88,7 +88,7 @@ const parseExpressionTsv = ({
       }
 
       let firstColumn = replicaGroups.shift();
-      const {genomeId, annotationName} = getGenomeId(data, annot);
+      const {genomeId, annotationName} = getGenomeId(data, firstColumn, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));

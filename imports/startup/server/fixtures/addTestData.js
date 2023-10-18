@@ -121,6 +121,7 @@ export function addTestTranscriptome(genomeId, geneId) {
   const expId = ExperimentInfo.insert({
     genomeId: genomeId,
     sampleName: "sampleName",
+    annotationName: "Annotation name",
     replicaGroup: "replicaGroup",
     description: 'description',
     permission: 'admin',

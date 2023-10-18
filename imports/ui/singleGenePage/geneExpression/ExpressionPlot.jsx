@@ -83,6 +83,23 @@ function Loading() {
   );
 }
 
+function hasNoExpression({ values }) {
+    return values.length == 0;
+}
+
+function NoExpression() {
+    return(
+     <div className="card expression-plot">
+      <article className="message no-protein-domains" role="alert">
+        <div className="message-body">
+          <p className="has-text-grey">No expression data for the selected samples</p>
+        </div>
+      </article>
+    </div>
+    )
+}
+
+
 function YAxis({ scale, numTicks }) {
   const range = scale.range();
   const [start, end] = scale.domain();
@@ -407,4 +424,5 @@ export default compose(
   branch(hasNoSamples, NoSamples),
   withTracker(expressionDataTracker),
   branch(isLoading, Loading),
+  branch(hasNoExpression, NoExpression)
 )(ExpressionPlot);

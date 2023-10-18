@@ -41,7 +41,7 @@ function NoExpression() {
     <div className="card expression-plot">
       <article className="message no-protein-domains" role="alert">
         <div className="message-body">
-          <p className="has-text-grey">No expression data found</p>
+          <p className="has-text-grey">No samples found</p>
         </div>
       </article>
     </div>
@@ -91,10 +91,13 @@ function SampleSelection({
     }));
   }
 
+  let className = showHeader ? "is-pulled-right" : ""
+  let style = showHeader ? {} : {"text-align": "right"}
+
   return (
     <>
       { showHeader && <hr /> }
-      <div className="is-pulled-right">
+      <div className={className} style={style}>
         <div className="dropdown is-right is-hoverable">
           <div className="dropdown-trigger">
             <button type="button" className="button is-small">

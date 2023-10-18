@@ -13,7 +13,7 @@ import {
 import logger from '/imports/api/util/logger.js';
 
 const getGenomeId = (data, annot) => {
-  const firstTranscripts = data.slice(0, 10).map((line) => line.gene);
+  const firstTranscripts = data.slice(0, 10).map((line) => line.target_id);
   logger.debug(firstTranscripts);
 
   let geneQuery = {
@@ -30,7 +30,7 @@ const getGenomeId = (data, annot) => {
   const gene = Genes.findOne(geneQuery);
 
   if (typeof gene === "undefined"){
-    return undefined
+    return {genomeId: undefined, annotationName: undefined}
   }
   logger.debug(gene.genomeId);
   return {genomeId: gene.genomeId, annotationName: gene.annotationName}
