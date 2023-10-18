@@ -129,6 +129,7 @@ export function addTestTranscriptome(genomeId, geneId) {
 
   const transcriptomeId = Transcriptomes.insert({
     geneId: geneId,
+    annotationName: "Annotation name",
     tpm: "60",
     est_counts: "1000",
     experimentId: expId
