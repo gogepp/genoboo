@@ -17,10 +17,10 @@ import {
 import './sampleSelection.scss';
 
 function dataTracker({ gene, showHeader, children }) {
-  const { genomeId, annotationName } = gene;
+  const { genomeId } = gene;
   const experimentSub = Meteor.subscribe('experimentInfo');
   const loading = !experimentSub.ready();
-  const experiments = ExperimentInfo.find({ genomeId, annotationName }).fetch();
+  const experiments = ExperimentInfo.find({ genomeId }).fetch();
   const replicaGroups = groupBy(experiments, 'replicaGroup');
   return {
     showHeader,
