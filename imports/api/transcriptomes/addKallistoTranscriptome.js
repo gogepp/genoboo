@@ -13,13 +13,13 @@ import {
 import logger from '/imports/api/util/logger.js';
 
 const getGenomeId = (data, annot) => {
-  const firstTranscipts = data.slice(0, 10).map((line) => line.target_id);
-  logger.debug(firstTranscipts);
+  const firstTranscripts = data.slice(0, 10).map((line) => line.gene);
+  logger.debug(firstTranscripts);
 
   let geneQuery = {
     $or: [
-      { ID: { $in: firstTranscipts } },
-      { 'subfeatures.ID': { $in: firstTranscipts } },
+      { ID: { $in: firstTranscripts } },
+      { 'subfeatures.ID': { $in: firstTranscripts } },
     ],
   }
 
@@ -27,9 +27,13 @@ const getGenomeId = (data, annot) => {
     geneQuery['annotationName'] = annot
   }
 
-  const { genomeId } = Genes.findOne(geneQuery);
-  logger.debug(genomeId);
-  return genomeId;
+  const gene = Genes.findOne(geneQuery);
+
+  if (typeof gene === "undefined"){
+    return undefined
+  }
+  logger.debug(gene.genomeId);
+  return {genomeId: gene.genomeId, annotationName: gene.annotationName}
 };
 
 const parseKallistoTsv = ({
@@ -50,7 +54,7 @@ const parseKallistoTsv = ({
     complete({ data }, _file) {
       let nInserted = 0;
 
-      const genomeId = getGenomeId(data, annot);
+      const {genomeId, annotationName} = getGenomeId(data, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
@@ -60,6 +64,7 @@ const parseKallistoTsv = ({
 
       const experimentId = ExperimentInfo.insert({
         genomeId,
+        annotationName,
         sampleName,
         replicaGroup,
         description,
@@ -88,7 +93,7 @@ const parseKallistoTsv = ({
           nInserted += 1;
           bulkOp.insert({
             geneId: gene.ID,
-            annotationName: gene.annotationName,
+            annotationName,
             tpm,
             est_counts,
             experimentId,

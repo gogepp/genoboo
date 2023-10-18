@@ -8,6 +8,10 @@ const ExperimentInfoSchema = new SimpleSchema({
     type: String,
     label: 'Genome ID',
   },
+  annotationName: {
+    type: String,
+    label: 'Annotation name',
+  },
   sampleName: {
     type: String,
     label: 'Short name for the sample',

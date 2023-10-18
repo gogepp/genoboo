@@ -33,7 +33,7 @@ const getGenomeId = (data, annot) => {
     return undefined
   }
   logger.debug(gene.genomeId);
-  return gene.genomeId
+  return {genomeId: gene.genomeId, annotationName: gene.annotationName}
 };
 
 const parseExpressionTsv = ({
@@ -88,7 +88,7 @@ const parseExpressionTsv = ({
       }
 
       let firstColumn = replicaGroups.shift();
-      const genomeId = getGenomeId(data, annot);
+      const {genomeId, annotationName} = getGenomeId(data, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
@@ -99,6 +99,7 @@ const parseExpressionTsv = ({
           const replicaGroup = replicaIndex + 1 in replicaNamesDict ? replicaNamesDict[replicaIndex + 1] : sampleName
           experiments[sampleName] = ExperimentInfo.insert({
             genomeId,
+            annotationName,
             sampleName,
             replicaGroup,
             description,
@@ -128,7 +129,7 @@ const parseExpressionTsv = ({
           replicaGroups.forEach((replicaGroup) => {
               bulkOp.insert({
                 geneId: gene.ID,
-                annotationName: gene.annotationName,
+                annotationName,
                 tpm: row[replicaGroup],
                 experimentId: experiments[replicaGroup]
               });
