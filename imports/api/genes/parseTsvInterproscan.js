@@ -4,7 +4,7 @@ import logger from '/imports/api/util/logger.js';
 
 class ParseTsvFile extends InterproscanProcessor {
   parse = async (line) => {
-    const [
+    let [
       seqId,
       md5,
       length,

@@ -29,7 +29,7 @@ class EggnogProcessor {
   parse = (line) => {
     if (!(line[0] === '#' || line.split('\t').length <= 1)) {
       // Get all eggnog informations line by line and separated by tabs.
-      const [
+      let [
         queryName,
         seedEggnogOrtholog,
         seedOrthologEvalue,

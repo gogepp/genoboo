@@ -116,9 +116,10 @@ class NewickProcessor {
    * @return {Array} The list of genes without their prefixes.
    */
 
-   getGeneId = async (prefixes, geneid) => {
+   getGeneId = async (prefixes, geneIdEncoded) => {
+       let geneid = decodeURIComponent(geneIdEncoded)
      return new Promise((resolve, reject) => {
-       let geneName = decodeURIComponent(geneid)
+       let geneName = geneid
        try {
          if (prefixes){
            for (const i in prefixes) {

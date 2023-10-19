@@ -29,7 +29,7 @@ class HectarProcessor {
   parse = (line) => {
     if (!(line.slice(0,10) === 'protein id'  || line.split('\t').length <= 1)) {
       // Get all hectar informations line by line and separated by tabs.
-      const [
+      let [
         proteinId,
         predictedTargetingCategory,
         signalPeptideScore,
