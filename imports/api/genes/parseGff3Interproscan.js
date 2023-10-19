@@ -43,7 +43,7 @@ class ParseGff3File extends InterproscanProcessor {
   parse = (line) => {
     // Check if the line is different of fasta sequence or others indications.
     if (!(line[0] === '#' || line.split('\t').length <= 1)) {
-      const [seqId, source, type, start, end, score, , , attributeString, ] = line.split('\t');
+      let [seqId, source, type, start, end, score, , , attributeString, ] = line.split('\t');
 
       seqId = decodeURIComponent(seqId)
 

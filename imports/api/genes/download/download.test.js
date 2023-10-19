@@ -74,7 +74,7 @@ describe('download', function testDownload() {
     dataFile = result.value
     const stat = fs.statSync(dataFile)
 
-    chai.assert.equal(stat.size, 140)
+    chai.assert.equal(stat.size, 141)
 
     const expected = [
       '##gff-version 3',
@@ -105,7 +105,7 @@ describe('download', function testDownload() {
     dataFile = result.value
     const stat = fs.statSync(dataFile)
 
-    chai.assert.equal(stat.size, 51)
+    chai.assert.equal(stat.size, 52)
 
     const expected = [
       ">Bni|B01g000010.2N.1",
@@ -134,7 +134,7 @@ describe('download', function testDownload() {
     dataFile = result.value
     const stat = fs.statSync(dataFile)
 
-    chai.assert.equal(stat.size, 59)
+    chai.assert.equal(stat.size, 60)
 
     const expected = [
       "gene_id\treplicaGroup",

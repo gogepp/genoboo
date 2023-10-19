@@ -147,7 +147,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
     const mRNA = genes[0].subfeatures[0]
-    chai.assert.equal("testprot-B01g000010.2N.1", mRNA.protein_id)
+    chai.assert.equal("testprot-|B01g000010.2N.1", mRNA.protein_id)
 
   });
 
