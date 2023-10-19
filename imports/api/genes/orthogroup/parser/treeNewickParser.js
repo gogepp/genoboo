@@ -13,9 +13,10 @@ import path from 'path'
  * @public
  */
 class NewickProcessor {
-  constructor() {
+  constructor(annotations) {
     this.genesDb = Genes.rawCollection();
     this.nOrthogroups = 0;
+    this.annotations = annotations;
   }
 
   /**
@@ -127,16 +128,19 @@ class NewickProcessor {
              }
            }
          }
-         const gene = Genes
-           .findOne(
-             {
-               $or: [
-                 { ID: geneName },
-                 { 'subfeatures.ID': geneName },
-                 { 'subfeatures.protein_id': geneName },
-               ],
-             },
-           )
+         let geneQuery = {
+           $or: [
+             { ID: geneName },
+             { 'subfeatures.ID': geneName },
+             { 'subfeatures.protein_id': geneName },
+           ],
+         }
+
+         if (self.annotations.length > 0){
+             geneQuery['annotationName'] = { $in: self.annotations }
+         }
+
+         const gene = Genes.findOne(geneQuery)
          resolve({gene, geneName})
        } catch (err) {
          reject(err);
@@ -177,15 +181,22 @@ class NewickProcessor {
         });
     }
 
+    let geneQuery = { geneIds: { $in: rmDuplicateGeneIDs } }
+
+    if (self.annotations.length > 0){
+        geneQuery['annotations'] = { $in: self.annotations }
+    }
+
     // Add the orthogroups and link them to their genes.
     if (rmDuplicateGeneIDs.length !== 0) {
       const documentOrthogroup = await orthogroupCollection.update(
-        { geneIds: { $in: rmDuplicateGeneIDs } }, // Selector.
+        geneQuery, // Selector.
         {
           $set: // Modifier.
           {
             name: name,
             geneIds: rmDuplicateGeneIDs,
+            annotations: self.annotations,
             tree: tree,
             size: treeSize,
             genomes: genomeDict
@@ -200,9 +211,15 @@ class NewickProcessor {
       // Increment orthogroups.
       this.nOrthogroups += documentOrthogroup;
 
+      let geneQuery = { ID: { $in: rmDuplicateGeneIDs } }
+
+      if (self.annotations.length > 0){
+          geneQuery['annotationName'] = { $in: self.annotations }
+      }
+
       const orthogroupIdentifiant = orthogroupCollection.findOne({ tree: tree })._id;
       await this.genesDb.update(
-        { ID: { $in: rmDuplicateGeneIDs } },
+        geneQuery,
         {
           $set: // Modifier.
           {

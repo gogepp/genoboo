@@ -14,6 +14,14 @@ const orthogroupSchema = new SimpleSchema({
     type: String,
     label: 'Gene ID string',
   },
+  annotations: {
+    type: Array,
+    label: 'Array of all annotations names in the orthogroup',
+  },
+  'annotations.$': {
+    type: String,
+    label: 'Annotation name',
+  },
   tree: {
     type: Object,
     blackbox: true,

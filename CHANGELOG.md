@@ -18,6 +18,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   - 'query_param' : optional get parameter to use for the query
   - 'field_param': optional get parameter to use to restrict the results to the gene_field value
   - 'count_param': optional get parameter to restrict the number of results
+- Multiple annotations for the same genome
+  - When adding an annotation, you must now set the '--annot' to set the annotation name.
+  - When integrating data afterward, you can use the --annot tag to specify the annotation you are aiming for.
+  - If you have multiple genes with the same ID, and do not specify '--annot', the results may be variables
+  - You can specify --annotations multiple time when integrating orthogroups
+- Will now decode proteins and genes IDs when integrating data. (It was already done when integrating gffs, so there was some mismatch with IDs)
+
+## Changed
+
+- Various UI fixes to better fit multiple annotation versions
+  - Including an 'annotation' selector in the gene list
 
 ## [0.4.7] 2023-09-26
 

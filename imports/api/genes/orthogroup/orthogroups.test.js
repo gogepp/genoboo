@@ -37,12 +37,13 @@ describe('orthogroups', function testOrthogroups() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId} = addTestGenome(annot=true)
+    const {genomeId} = addTestGenome(annot=true, multiple=true)
 
     const orthoGroupsParams = {
       folderName: 'assets/app/data/orthogroups/',
       force: false,
       prefixes: "Brassica_nigra",
+      annotations: ["Annotation name"]
     };
 
     // Should fail for non-logged in
@@ -58,7 +59,7 @@ describe('orthogroups', function testOrthogroups() {
 
     let result = addOrthogroupTrees._execute(adminContext, orthoGroupsParams);
 
-    const gene = Genes.findOne({ID: "Bni|B01g000010.2N"})
+    let gene = Genes.findOne({ID: "Bni|B01g000010.2N", annotationName: "Annotation name"})
 
     chai.assert.isDefined(gene.orthogroup, 'orthogroup key is undefined')
 
@@ -76,6 +77,10 @@ describe('orthogroups', function testOrthogroups() {
     chai.assert.sameMembers(ortho.geneIds, ['Bni|B01g000010.2N'])
     chai.assert.equal(ortho.size, 84.5)
     chai.assert.equal(ortho.name, 'OG0000001')
+    chai.assert.sameMembers(ortho.annotations, ['Annotation name'])
+
+    let gene = Genes.findOne({ID: "Bni|B01g000010.2N", annotationName: "Annotation name 2"})
+    chai.assert.isUndefined(gene.orthogroup, 'orthogroup key is undefined')
   });
 
 })

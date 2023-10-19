@@ -323,7 +323,7 @@ addAnnotation
     'Reference genome name to which the annotation should be added.',
   )
   .requiredOption(
-    '--annot <annotation-ame>',
+    '--annot <annotation-name>',
     'Annotation name',
   )
   .option(
@@ -920,16 +920,22 @@ addOrthogroups
     '-f, --force [force]',
     'Ignore the use of prefixes.',
   )
+  .option(
+    '-a, --annotations <annotations...>',
+    'Name of the annotation to use for gene matching. Can be set multiple times'
+  )
   .requiredOption('-u, --username <username>', 'GeneNoteBook admin username')
   .requiredOption('-p, --password <password>', 'GeneNoteBook admin password')
   .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { prefixe, list, force, username, password, port = 3000 }) => {
+  .action((file, { prefixe, list, force, annotations, username, password, port = 3000 }) => {
     if (typeof file !== 'string') addOrthogroups.help();
     const folderName = path.resolve(file);
     const prefixes = (typeof list !== 'undefined' ? list : path.resolve(prefixe));
+
+    annotations = annotations || []
 
     if (!(folderName && username && password)) {
       addOrthogroups.help();
@@ -941,6 +947,7 @@ addOrthogroups
         folderName,
         force,
         prefixes,
+        annotations
       },
     );
   })

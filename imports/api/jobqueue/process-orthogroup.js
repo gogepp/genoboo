@@ -10,10 +10,10 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { folderName, prefixes } = job.data;
+    const { folderName, prefixes, annotations } = job.data;
 
     const orthofinder = new OrthoFinderPrefix(prefixes);
-    const newickProcessor = new NewickProcessor();
+    const newickProcessor = new NewickProcessor(annotations);
 
     const listprefixes = (typeof prefixes !== 'undefined' ? await orthofinder.getListPrefixes() : null);
 
