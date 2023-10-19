@@ -117,7 +117,7 @@ class NewickProcessor {
 
    getGeneId = async (prefixes, geneid) => {
      return new Promise((resolve, reject) => {
-       let geneName = geneid
+       let geneName = decodeURIComponent(geneid)
        try {
          if (prefixes){
            for (const i in prefixes) {

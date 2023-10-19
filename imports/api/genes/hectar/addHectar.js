@@ -40,6 +40,8 @@ class HectarProcessor {
         otherScore,
         ] = line.split('\t');
 
+      proteinId = decodeURIComponent(proteinId)
+
       // Organize data in a dictionary.
       const annotations = {
         protein_id: proteinId,

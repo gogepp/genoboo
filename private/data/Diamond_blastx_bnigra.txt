@@ -1,7 +1,7 @@
 BLASTP 2.3.0+
 
 
-Query= BniB01g000010.2N.1-P 900 bp
+Query= Bni%7CB01g000010.2N.1-P 900 bp
 
 Length=420
 

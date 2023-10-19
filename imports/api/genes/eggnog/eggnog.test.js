@@ -51,7 +51,7 @@ describe('eggnog', function testEggnog() {
 
     chai.assert.equal(result.nInserted, 1)
 
-    const eggs = eggnogCollection.find({ query_name: 'BniB01g000010.2N.1-P', annotationName: "Annotation name" }).fetch();
+    const eggs = eggnogCollection.find({ query_name: 'Bni|B01g000010.2N.1-P', annotationName: "Annotation name" }).fetch();
 
     chai.assert.lengthOf(eggs, 1, 'No eggnog data found');
 
@@ -64,8 +64,8 @@ describe('eggnog', function testEggnog() {
     chai.assert.lengthOf(egg.GOs, 18);
     chai.assert.equal(egg.Description, 'UDP-glucuronic acid decarboxylase');
 
-    const gene1 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name'})
-    const gene2 = Genes.findOne({ID: 'BniB01g000010.2N', annotationName: 'Annotation name 2'})
+    const gene1 = Genes.findOne({ID: 'Bni|B01g000010.2N', annotationName: 'Annotation name'})
+    const gene2 = Genes.findOne({ID: 'Bni|B01g000010.2N', annotationName: 'Annotation name 2'})
 
     chai.assert.isDefined(gene1.eggnogId, "eggNodeId is not defined for the correct annotation")
     chai.assert.isUndefined(gene2.eggnogId, "eggNodeId is defined for the wrong annotation")

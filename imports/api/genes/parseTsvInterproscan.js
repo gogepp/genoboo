@@ -22,6 +22,8 @@ class ParseTsvFile extends InterproscanProcessor {
       pathwaysAnnotations, // Dbxref (gff3)
     ] = line.split('\t');
 
+    seqId = decodeURIComponent(seqId)
+
     // Add to bulk if protein changes
     if (seqId !== this.currentProt){
       if (seqId !== ""){

@@ -103,7 +103,7 @@ class XmlProcessor {
         await Promise.all(splitIterationQuery.map(async (iter) => {
           /** Chek if the queries exist in the genes collection. */
 
-          let geneQuery = { $or: [{'subfeatures.ID': iter}, {'subfeatures.protein_id': iter}] }
+          let geneQuery = { $or: [{'subfeatures.ID': decodeURIComponent(iter)}, {'subfeatures.protein_id': decodeURIComponent(iter)}] }
           if (typeof this.annot !== "undefined"){
               geneQuery['annotationName'] = this.annot
           }

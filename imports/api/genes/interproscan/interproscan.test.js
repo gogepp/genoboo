@@ -58,12 +58,12 @@ describe('interproscan', function testInterproscan() {
 
     let result = addInterproscan._execute(adminContext, interproParams);
 
-    const gene = Genes.findOne({ID: "BniB01g000010.2N"})
+    const gene = Genes.findOne({ID: "Bni|B01g000010.2N"})
 
     chai.assert.deepEqual(gene.attributes.Dbxref, [ 'InterPro:1236' ])
     chai.assert.deepEqual(gene.attributes.Ontology_term, [ 'GO:1238' ])
 
-    const interpros = interproscanCollection.find({gene_id: "BniB01g000010.2N", annotationName: "Annotation name"}).fetch();
+    const interpros = interproscanCollection.find({gene_id: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(interpros, 1, "No Interpro document found")
 
     const protein_domains = interpros[0].protein_domains
@@ -107,7 +107,7 @@ describe('interproscan', function testInterproscan() {
 
     let result = addInterproscan._execute(adminContext, interproParams);
 
-    const interpros = interproscanCollection.find({gene_id: "BniB01g000010.2N", annotationName: "Annotation name"}).fetch();
+    const interpros = interproscanCollection.find({gene_id: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(interpros, 1, "No Interpro document found")
 
     const protein_domains = interpros[0].protein_domains

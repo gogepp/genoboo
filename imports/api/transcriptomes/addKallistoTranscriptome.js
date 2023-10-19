@@ -13,7 +13,7 @@ import {
 import logger from '/imports/api/util/logger.js';
 
 const getGenomeId = (data, annot) => {
-  const firstTranscripts = data.slice(0, 10).map((line) => line.target_id);
+  const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line.target_id));
   logger.debug(firstTranscripts);
 
   let geneQuery = {
@@ -76,8 +76,8 @@ const parseKallistoTsv = ({
       data.forEach(({ target_id, tpm, est_counts }) => {
         let geneQuery = {
           $or: [
-            { ID: target_id },
-            { 'subfeatures.ID': target_id },
+            { ID: decodeURIComponent(target_id) },
+            { 'subfeatures.ID': decodeURIComponent(target_id) },
           ],
         }
 

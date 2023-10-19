@@ -45,6 +45,8 @@ class ParseGff3File extends InterproscanProcessor {
     if (!(line[0] === '#' || line.split('\t').length <= 1)) {
       const [seqId, source, type, start, end, score, , , attributeString, ] = line.split('\t');
 
+      seqId = decodeURIComponent(seqId)
+
       if (this.isProteinMatch(type)) {
         const attributes = this.parseAllAttributes(attributeString);
         if (attributes) {

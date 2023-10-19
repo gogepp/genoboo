@@ -13,7 +13,7 @@ import {
 import logger from '/imports/api/util/logger.js';
 
 const getGenomeId = (data, firstColumn, annot) => {
-  const firstTranscripts = data.slice(0, 10).map((line) => line[firstColumn]);
+  const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line[firstColumn]));
   logger.debug(firstTranscripts);
 
   let geneQuery = {
@@ -111,8 +111,8 @@ const parseExpressionTsv = ({
       data.forEach((row) => {
         let geneQuery = {
           $or: [
-            { ID: row[firstColumn] },
-            { 'subfeatures.ID': row[firstColumn] },
+            { ID: decodeURIComponent(row[firstColumn]) },
+            { 'subfeatures.ID': decodeURIComponent(row[firstColumn]) },
           ],
         }
 

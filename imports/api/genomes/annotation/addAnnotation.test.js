@@ -54,7 +54,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const gene = genes[0];
 
-    chai.assert.equal(gene.ID, 'BniB01g000010.2N');
+    chai.assert.equal(gene.ID, 'Bni|B01g000010.2N');
     chai.assert.equal(gene.annotationName, 'Test annotation');
     chai.assert.equal(gene.seqid, 'B1');
     chai.assert.equal(gene.source, 'AAFC_GIFS');
@@ -170,7 +170,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
     const mRNA = genes[0].subfeatures[0]
-    chai.assert.equal("BniB01g000010.2N.1-protattr", mRNA.protein_id)
+    chai.assert.equal("Bni|B01g000010.2N.1-protattr", mRNA.protein_id)
 
   });
 
@@ -192,7 +192,7 @@ describe('AddAnnotation', function testAnnotation() {
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
     const mRNA = genes[0].subfeatures[0]
-    chai.assert.equal("BniB01g000010.2N.1-protattr", mRNA.protein_id)
+    chai.assert.equal("Bni|B01g000010.2N.1-protattr", mRNA.protein_id)
   });
 
 });

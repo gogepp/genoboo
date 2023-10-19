@@ -75,11 +75,11 @@ export function addTestGenome(annot=false, multiple=false) {
   let geneId
 
   if (annot) {
-    const subfeature = {ID: "BniB01g000010.2N.1", phase: '.', protein_id: "BniB01g000010.2N.1-P", type: 'mRNA', parents: ['BniB01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
-    const cds = {ID: "BniB01g000010.2N.1.cds1", phase: '.', type: 'CDS', parents: ['BniB01g000010.2N.1'], seq: 'GTATTCTAAACT', start:13641, end:13653, score: '.', attributes: {}}
+    const subfeature = {ID: "Bni|B01g000010.2N.1", phase: '.', protein_id: "Bni|B01g000010.2N.1-P", type: 'mRNA', parents: ['Bni|B01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
+    const cds = {ID: "Bni|B01g000010.2N.1.cds1", phase: '.', type: 'CDS', parents: ['Bni|B01g000010.2N.1'], seq: 'GTATTCTAAACT', start:13641, end:13653, score: '.', attributes: {}}
 
     Genes.insert({
-      ID: 'BniB01g000010.2N',
+      ID: 'Bni|B01g000010.2N',
       seqid: 'B1',
       source: 'AAFC_GIFS',
       strand: '-',
@@ -96,7 +96,7 @@ export function addTestGenome(annot=false, multiple=false) {
 
     if (multiple){
       Genes.insert({
-        ID: 'BniB01g000010.2N',
+        ID: 'Bni|B01g000010.2N',
         seqid: 'B1',
         source: 'AAFC_GIFS',
         strand: '-',
@@ -113,7 +113,7 @@ export function addTestGenome(annot=false, multiple=false) {
     }
   }
 
-  return { genomeId, genomeSeqId, geneId: "BniB01g000010.2N" }
+  return { genomeId, genomeSeqId, geneId: "Bni|B01g000010.2N" }
 }
 
 export function addTestTranscriptome(genomeId, geneId) {

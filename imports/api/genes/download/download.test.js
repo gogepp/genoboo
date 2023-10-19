@@ -64,7 +64,7 @@ describe('download', function testDownload() {
     addTestGenome(annot=true)
 
     const dlParams = {
-      query: {ID: "BniB01g000010.2N"},
+      query: {ID: "Bni|B01g000010.2N"},
       dataType: 'Annotation',
       options: {},
       async: false
@@ -79,8 +79,8 @@ describe('download', function testDownload() {
     const expected = [
       '##gff-version 3',
       'B1\tAAFC_GIFS\tgene\t13640\t15401\t.\t-\t-\tmyNewAttribute=1',
-      'B1\tAAFC_GIFS\tmRNA\t13641\t15400\t.\t-\t.\tParent=BniB01g000010.2N',
-      'B1\tAAFC_GIFS\tCDS\t13641\t13653\t.\t-\t.\tParent=BniB01g000010.2N.1'
+      'B1\tAAFC_GIFS\tmRNA\t13641\t15400\t.\t-\t.\tParent=Bni|B01g000010.2N',
+      'B1\tAAFC_GIFS\tCDS\t13641\t13653\t.\t-\t.\tParent=Bni|B01g000010.2N.1'
     ]
 
     const data = await readFile(dataFile)
@@ -95,7 +95,7 @@ describe('download', function testDownload() {
     addTestGenome(annot=true)
 
     const dlParams = {
-      query: {ID: "BniB01g000010.2N"},
+      query: {ID: "Bni|B01g000010.2N"},
       dataType: 'Sequence',
       options: {seqType: "nucl", primaryTranscriptOnly: false},
       async: false
@@ -108,7 +108,7 @@ describe('download', function testDownload() {
     chai.assert.equal(stat.size, 51)
 
     const expected = [
-      ">BniB01g000010.2N.1",
+      ">Bni|B01g000010.2N.1",
       "AGTTTAGAATAC"
     ]
     const data = await readFile(dataFile)
@@ -124,7 +124,7 @@ describe('download', function testDownload() {
     const {expId, transcriptomeId} = addTestTranscriptome(genomeId, geneId)
 
     const dlParams = {
-      query: {ID: "BniB01g000010.2N"},
+      query: {ID: "Bni|B01g000010.2N"},
       dataType: 'Expression',
       options: {selectedSamples: ["replicaGroup"]},
       async: false
@@ -138,7 +138,7 @@ describe('download', function testDownload() {
 
     const expected = [
       "gene_id\treplicaGroup",
-      "BniB01g000010.2N\t60"
+      "Bni|B01g000010.2N\t60"
     ]
 
     const data = await readFile(dataFile)

@@ -53,6 +53,8 @@ class EggnogProcessor {
         pfams,
       ] = line.split('\t');
 
+      queryName = decodeURIComponent(queryName)
+
       // Organize data in a dictionary.
       const annotations = {
         query_name: queryName,

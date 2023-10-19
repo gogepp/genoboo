@@ -61,7 +61,7 @@ class PairwiseProcessor {
 
         /** In the event that it is the first element of the collection to be created. */
         if (typeof this.pairWise.iteration_query === 'undefined') {
-          this.pairWise.iteration_query = queryClean;
+          this.pairWise.iteration_query = decodeURIComponent(queryClean);
         }
 
         let geneQuery = {
@@ -111,7 +111,7 @@ class PairwiseProcessor {
 
         /** Initializes a new pairwise. */
         this.pairWise = new Pairwise({});
-        this.pairWise.iteration_query = queryClean;
+        this.pairWise.iteration_query = decodeURIComponent(queryClean);
         this.pairWise.iteration_hits = [];
       }
 

@@ -78,7 +78,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '1.80368')
     chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.equal(transcriptome.est_counts, '21')
@@ -133,7 +133,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
     chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
@@ -194,7 +194,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
     chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
@@ -261,7 +261,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
     chai.assert.isUndefined(transcriptome.est_counts)
     chai.assert.equal(transcriptome.annotationName, "Annotation name")
@@ -322,7 +322,7 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
     chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
