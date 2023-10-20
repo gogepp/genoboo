@@ -513,7 +513,7 @@ file extension is not "xml", "txt"`);
 Example:
     genenotebook add diamond mmucedo.xml -u admin -p admin
 or
-    genenotebook add diamond mmucedo.txt --format txt --program blastp --matrix BLOSUM90 -db "Non-reundant protein sequences (nr)" -u admin -p admin
+    genenotebook add diamond mmucedo.txt --format txt --matrix BLOSUM90 -db "Non-reundant protein sequences (nr)" -u admin -p admin
     `);
   })
   .exitOverride(customExitOverride(addDiamond));
