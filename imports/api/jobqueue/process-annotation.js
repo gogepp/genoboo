@@ -14,17 +14,19 @@ jobQueue.processJobs(
     const {
       fileName,
       genomeName,
+      annotationName,
       genomeId,
       re_protein,
       re_protein_capture,
       attr_protein,
       verbose,
     } = job.data;
-    logger.log(`Adding annotation file "${fileName}" to genome "${genomeName}"`);
+    logger.log(`Adding annotation file "${fileName}" with name "${annotationName}" to genome "${genomeName}"`);
 
     if(verbose){
       logger.log('file :', fileName);
       logger.log('name :', genomeName);
+      logger.log('annotation name : ', annotationName)
       logger.log('re_protein :', re_protein);
       logger.log('re_protein_capture', re_protein_capture);
       logger.log('attr_protein', attr_protein);
@@ -33,6 +35,7 @@ jobQueue.processJobs(
 
     const lineProcessor = new AnnotationProcessor(
       fileName,
+      annotationName,
       genomeId,
       re_protein,
       re_protein_capture,

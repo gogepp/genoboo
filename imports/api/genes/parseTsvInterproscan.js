@@ -4,7 +4,7 @@ import logger from '/imports/api/util/logger.js';
 
 class ParseTsvFile extends InterproscanProcessor {
   parse = async (line) => {
-    const [
+    let [
       seqId,
       md5,
       length,
@@ -22,6 +22,8 @@ class ParseTsvFile extends InterproscanProcessor {
       pathwaysAnnotations, // Dbxref (gff3)
     ] = line.split('\t');
 
+    seqId = decodeURIComponent(seqId)
+
     // Add to bulk if protein changes
     if (seqId !== this.currentProt){
       if (seqId !== ""){
@@ -30,9 +32,16 @@ class ParseTsvFile extends InterproscanProcessor {
 
       this.currentProt = seqId
       this.currentGene = ""
-      let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
+      let geneQuery = { $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] }
+      if (typeof this.annot !== "undefined"){
+          geneQuery['annotationName'] = this.annot
+      }
+      let gene = Genes.findOne(geneQuery);
       if (typeof gene !== "undefined"){
         this.currentGene = gene.ID
+        this.currentAnnotationName = gene.annotationName
+      } else {
+        logger.warn(logger.warn(`Warning ! No sub-feature was found for ${seqId}.`))
       }
 
       this.currentContent = []

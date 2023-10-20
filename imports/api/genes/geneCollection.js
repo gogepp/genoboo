@@ -1,5 +1,6 @@
 import SimpleSchema from 'simpl-schema';
 import { Mongo } from 'meteor/mongo';
+import logger from '/imports/api/util/logger.js';
 
 const VALID_SUBFEATURE_TYPES = [
   'transcript',
@@ -73,9 +74,7 @@ const SubfeatureSchema = new SimpleSchema(
     ID: {
       type: String,
       index: true,
-      unique: true,
-      // denyUpdate: true,
-      label: 'Unique subfeature ID',
+      label: 'Subfeature ID',
     },
     protein_id: {
       type: String,
@@ -129,9 +128,8 @@ const GeneSchema = new SimpleSchema(
   {
     ID: {
       type: String,
-      unique: true,
       index: true,
-      label: 'Unique gene ID',
+      label: 'Gene ID',
     },
     editing: {
       type: String,
@@ -160,6 +158,11 @@ const GeneSchema = new SimpleSchema(
       type: String,
       index: true,
       label: 'Reference genome DB identifier (_id in genome collection)',
+    },
+    annotationName: {
+      type: String,
+      index: true,
+      label: 'Annotation name',
     },
     orthogroup: {
       type: OrthogroupSchema,
@@ -208,6 +211,12 @@ const GeneSchema = new SimpleSchema(
 GeneSchema.extend(IntervalBaseSchema);
 
 Genes.attachSchema(GeneSchema);
+
+if (Meteor.isServer) {
+  Genes.createIndex({ID: 1, annotationName: 1}, {name: 'Id and annotation index', unique: true})
+  Genes.createIndex({'subfeatures.ID': 1, annotationName: 1}, {name: 'SubId and annotation index', unique: true})
+}
+
 
 export {
   Genes,

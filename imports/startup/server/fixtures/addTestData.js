@@ -49,9 +49,9 @@ export function addTestUsers() {
   return { adminId, newUserId, curatorId }
 }
 
-export function addTestGenome(annot=false) {
+export function addTestGenome(annot=false, multiple=false) {
 
-  const annotObj = annot ? { name: 'myfilename.gff'} : undefined
+  const annotObj = annot ? [{ name: 'myfilename.gff'}] : undefined
 
   const genomeId = genomeCollection.insert({
     name: "Test Genome",
@@ -75,11 +75,11 @@ export function addTestGenome(annot=false) {
   let geneId
 
   if (annot) {
-    const subfeature = {ID: "BniB01g000010.2N.1", phase: '.', protein_id: "BniB01g000010.2N.1-P", type: 'mRNA', parents: ['BniB01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
-    const cds = {ID: "BniB01g000010.2N.1.cds1", phase: '.', type: 'CDS', parents: ['BniB01g000010.2N.1'], seq: 'GTATTCTAAACT', start:13641, end:13653, score: '.', attributes: {}}
+    const subfeature = {ID: "Bni|B01g000010.2N.1", phase: '.', protein_id: "Bni|B01g000010.2N.1-P", type: 'mRNA', parents: ['Bni|B01g000010.2N'], seq: 'GTATTCTAAACT', start:13641, end:15400, score: '.', attributes: {}}
+    const cds = {ID: "Bni|B01g000010.2N.1.cds1", phase: '.', type: 'CDS', parents: ['Bni|B01g000010.2N.1'], seq: 'GTATTCTAAACT', start:13641, end:13653, score: '.', attributes: {}}
 
     Genes.insert({
-      ID: 'BniB01g000010.2N',
+      ID: 'Bni|B01g000010.2N',
       seqid: 'B1',
       source: 'AAFC_GIFS',
       strand: '-',
@@ -87,14 +87,33 @@ export function addTestGenome(annot=false) {
       start: 13640,
       end: 15401,
       genomeId: genomeId,
+      annotationName: "Annotation name",
       score: '.',
       subfeatures: [subfeature, cds],
       seq: 'AAAA',
       attributes: {"myNewAttribute": 1}
     })
+
+    if (multiple){
+      Genes.insert({
+        ID: 'Bni|B01g000010.2N',
+        seqid: 'B1',
+        source: 'AAFC_GIFS',
+        strand: '-',
+        type: 'gene',
+        start: 13640,
+        end: 15401,
+        genomeId: genomeId,
+        annotationName: "Annotation name 2",
+        score: '.',
+        subfeatures: [subfeature, cds],
+        seq: 'AAAA',
+        attributes: {"myNewAttribute": 1}
+      })
+    }
   }
 
-  return { genomeId, genomeSeqId, geneId: "BniB01g000010.2N" }
+  return { genomeId, genomeSeqId, geneId: "Bni|B01g000010.2N" }
 }
 
 export function addTestTranscriptome(genomeId, geneId) {
@@ -102,6 +121,7 @@ export function addTestTranscriptome(genomeId, geneId) {
   const expId = ExperimentInfo.insert({
     genomeId: genomeId,
     sampleName: "sampleName",
+    annotationName: "Annotation name",
     replicaGroup: "replicaGroup",
     description: 'description',
     permission: 'admin',
@@ -110,6 +130,7 @@ export function addTestTranscriptome(genomeId, geneId) {
 
   const transcriptomeId = Transcriptomes.insert({
     geneId: geneId,
+    annotationName: "Annotation name",
     tpm: "60",
     est_counts: "1000",
     experimentId: expId

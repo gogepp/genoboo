@@ -12,7 +12,7 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, parser } = job.data;
+    const { fileName, parser, annot } = job.data;
     logger.log(`Add ${fileName} interproscan file.`);
 
     const rl = readline.createInterface({
@@ -24,11 +24,11 @@ jobQueue.processJobs(
     switch (parser) {
       case 'tsv':
         logger.log('Format : .tsv');
-        lineProcessor = new ParseTsvFile();
+        lineProcessor = new ParseTsvFile(annot);
         break;
       case 'gff3':
         logger.log('Format : .gff3');
-        lineProcessor = new ParseGff3File();
+        lineProcessor = new ParseGff3File(annot);
         break;
     }
 

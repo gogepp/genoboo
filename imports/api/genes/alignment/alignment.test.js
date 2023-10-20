@@ -1,4 +1,4 @@
-7/* eslint-env mocha */
+/* eslint-env mocha */
 import chai from 'chai';
 import { Meteor } from 'meteor/meteor';
 import logger from '/imports/api/util/logger.js';
@@ -36,7 +36,7 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple=true)
 
     const diamondParams = {
       fileName: 'assets/app/data/Diamond_blastp_bnigra.xml',
@@ -45,6 +45,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'blosum62',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -59,13 +60,13 @@ describe('alignment', function testAlignment() {
 
     let result = addSimilarSequence._execute(adminContext, diamondParams);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
     const seq = simSeq[0]
 
     chai.assert.equal(seq.algorithm_ref, 'blastx')
-    chai.assert.equal(seq.protein_id, 'BniB01g000010.2N.1-P')
+    chai.assert.equal(seq.protein_id, 'Bni|B01g000010.2N.1-P')
     chai.assert.equal(seq.database_ref, 'nr')
     chai.assert.equal(seq.program_ref, 'diamond')
     chai.assert.equal(seq.query_len, 420)
@@ -78,6 +79,8 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
+    addTestGenome(annot=true, multiple=true)
+
     const diamondParams = {
       fileName: 'assets/app/data/Diamond_blastx_bnigra.txt',
       parser: 'txt',
@@ -85,6 +88,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'BLOSUM90',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -101,7 +105,7 @@ describe('alignment', function testAlignment() {
 
     //Meteor._sleepForMs(10000);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
 
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
@@ -119,6 +123,8 @@ describe('alignment', function testAlignment() {
     // Increase timeout
     this.timeout(20000);
 
+    addTestGenome(annot=true, multiple=true)
+
     const diamondParams = {
       fileName: 'assets/app/data/BLAST_blastx_bnigra.txt',
       parser: 'txt',
@@ -126,6 +132,7 @@ describe('alignment', function testAlignment() {
       algorithm: 'blastx',
       matrix: 'BLOSUM90',
       database: 'nr',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -140,7 +147,7 @@ describe('alignment', function testAlignment() {
 
     let result = addSimilarSequence._execute(adminContext, diamondParams);
 
-    const simSeq = similarSequencesCollection.find({iteration_query: "BniB01g000010.2N.1-P"}).fetch();
+    const simSeq = similarSequencesCollection.find({iteration_query: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(simSeq, 1, "No similar sequence found")
 
     const seq = simSeq[0]

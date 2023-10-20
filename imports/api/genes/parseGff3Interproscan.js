@@ -43,7 +43,9 @@ class ParseGff3File extends InterproscanProcessor {
   parse = (line) => {
     // Check if the line is different of fasta sequence or others indications.
     if (!(line[0] === '#' || line.split('\t').length <= 1)) {
-      const [seqId, source, type, start, end, score, , , attributeString, ] = line.split('\t');
+      let [seqId, source, type, start, end, score, , , attributeString, ] = line.split('\t');
+
+      seqId = decodeURIComponent(seqId)
 
       if (this.isProteinMatch(type)) {
         const attributes = this.parseAllAttributes(attributeString);
@@ -57,9 +59,16 @@ class ParseGff3File extends InterproscanProcessor {
 
             this.currentProt = seqId
             this.currentGene = ""
-            let gene = Genes.findOne({ $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] });
+            let geneQuery = { $or: [{'subfeatures.ID': seqId}, {'subfeatures.protein_id': seqId}] }
+            if (typeof this.annot !== "undefined"){
+                geneQuery['annotationName'] = this.annot
+            }
+            let gene = Genes.findOne(geneQuery);
             if (typeof gene !== "undefined"){
               this.currentGene = gene.ID
+              this.currentAnnotationName = gene.annotationName
+            } else {
+              logger.warn(`Warning ! No sub-feature was found for ${seqId}.`)
             }
 
             this.currentContent = []

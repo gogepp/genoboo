@@ -6,6 +6,10 @@ const hectarSchema = new SimpleSchema({
     type: String,
     label: 'Query sequence name and type.',
   },
+  annotationName: {
+    type: String,
+    label: 'Annotation name',
+  },
   predicted_targeting_category: {
     type: String,
     label: 'Predicted sub-cellular localization.',

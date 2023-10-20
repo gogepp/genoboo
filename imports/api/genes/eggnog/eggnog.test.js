@@ -6,6 +6,7 @@ import { eggnogCollection } from './eggnogCollection';
 import addEggnog from './addEggnog';
 import { addTestUsers, addTestGenome } from '../../../startup/server/fixtures/addTestData';
 import '../../jobqueue/process-eggnog';
+import { Genes } from '/imports/api/genes/geneCollection.js';
 
 describe('eggnog', function testEggnog() {
   let adminId;
@@ -29,10 +30,11 @@ describe('eggnog', function testEggnog() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot = true);
+    addTestGenome(annot = true, multiple = true);
 
     const eggNogParams = {
       fileName: 'assets/app/data/Bnigra_eggnog.tsv',
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -49,7 +51,7 @@ describe('eggnog', function testEggnog() {
 
     chai.assert.equal(result.nInserted, 1)
 
-    const eggs = eggnogCollection.find({ query_name: 'BniB01g000010.2N.1-P' }).fetch();
+    const eggs = eggnogCollection.find({ query_name: 'Bni|B01g000010.2N.1-P', annotationName: "Annotation name" }).fetch();
 
     chai.assert.lengthOf(eggs, 1, 'No eggnog data found');
 
@@ -61,5 +63,13 @@ describe('eggnog', function testEggnog() {
     chai.assert.lengthOf(egg.eggNOG_OGs, 5);
     chai.assert.lengthOf(egg.GOs, 18);
     chai.assert.equal(egg.Description, 'UDP-glucuronic acid decarboxylase');
+
+    const gene1 = Genes.findOne({ID: 'Bni|B01g000010.2N', annotationName: 'Annotation name'})
+    const gene2 = Genes.findOne({ID: 'Bni|B01g000010.2N', annotationName: 'Annotation name 2'})
+
+    chai.assert.isDefined(gene1.eggnogId, "eggNodeId is not defined for the correct annotation")
+    chai.assert.isUndefined(gene2.eggnogId, "eggNodeId is defined for the wrong annotation")
+
+
   });
 });

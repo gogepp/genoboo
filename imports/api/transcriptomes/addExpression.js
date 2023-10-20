@@ -12,24 +12,32 @@ import {
 } from '/imports/api/transcriptomes/transcriptome_collection.js';
 import logger from '/imports/api/util/logger.js';
 
-const getGenomeId = (data) => {
-  const firstTranscripts = data.slice(0, 10).map((line) => line.gene);
+const getGenomeId = (data, firstColumn, annot) => {
+  const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line[firstColumn]));
   logger.debug(firstTranscripts);
-  const gene = Genes.findOne({
+
+  let geneQuery = {
     $or: [
       { ID: { $in: firstTranscripts } },
       { 'subfeatures.ID': { $in: firstTranscripts } },
     ],
-  });
+  }
+
+  if (annot){
+    geneQuery['annotationName'] = annot
+  }
+
+  const gene = Genes.findOne(geneQuery);
+
   if (typeof gene === "undefined"){
-    return undefined
+    return {genomeId: undefined, annotationName: undefined}
   }
   logger.debug(gene.genomeId);
-  return gene.genomeId
+  return {genomeId: gene.genomeId, annotationName: gene.annotationName}
 };
 
 const parseExpressionTsv = ({
-  fileName, description, replicas = [], replicaNames = [], permission = 'admin', isPublic = false,
+  fileName, description, annot, replicas = [], replicaNames = [], permission = 'admin', isPublic = false,
 }) => new Promise((resolve, reject) => {
   const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
   const bulkOp = Transcriptomes.rawCollection().initializeUnorderedBulkOp();
@@ -80,7 +88,7 @@ const parseExpressionTsv = ({
       }
 
       let firstColumn = replicaGroups.shift();
-      const genomeId = getGenomeId(data);
+      const {genomeId, annotationName} = getGenomeId(data, firstColumn, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
@@ -91,6 +99,7 @@ const parseExpressionTsv = ({
           const replicaGroup = replicaIndex + 1 in replicaNamesDict ? replicaNamesDict[replicaIndex + 1] : sampleName
           experiments[sampleName] = ExperimentInfo.insert({
             genomeId,
+            annotationName,
             sampleName,
             replicaGroup,
             description,
@@ -100,12 +109,18 @@ const parseExpressionTsv = ({
       });
 
       data.forEach((row) => {
-        const gene = Genes.findOne({
+        let geneQuery = {
           $or: [
-            { ID: row[firstColumn] },
-            { 'subfeatures.ID': row[firstColumn] },
+            { ID: decodeURIComponent(row[firstColumn]) },
+            { 'subfeatures.ID': decodeURIComponent(row[firstColumn]) },
           ],
-        });
+        }
+
+        if (annot){
+          geneQuery['annotationName'] = annot
+        }
+
+        const gene = Genes.findOne(geneQuery);
 
         if (typeof gene === 'undefined') {
           logger.warn(`${target_id} not found`);
@@ -114,6 +129,7 @@ const parseExpressionTsv = ({
           replicaGroups.forEach((replicaGroup) => {
               bulkOp.insert({
                 geneId: gene.ID,
+                annotationName,
                 tpm: row[replicaGroup],
                 experimentId: experiments[replicaGroup]
               });
@@ -136,6 +152,10 @@ const addExpression = new ValidatedMethod({
   validate: new SimpleSchema({
     fileName: String,
     description: String,
+    annot: {
+      type: String,
+      optional: true,
+    },
     replicas: {
       type: Array,
       optional: true,
@@ -158,7 +178,7 @@ const addExpression = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, description, replicas, replicaNames, isPublic
+    fileName, description, annot, replicas, replicaNames, isPublic
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -167,7 +187,7 @@ const addExpression = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseExpressionTsv({
-      fileName, description, replicas, replicaNames, isPublic
+      fileName, description, annot, replicas, replicaNames, isPublic
     })
       .catch((error) => {
         logger.warn(error);

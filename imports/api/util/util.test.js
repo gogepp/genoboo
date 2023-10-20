@@ -42,8 +42,8 @@ describe('util', function testUtils() {
           const gene = Genes.findOne({ID: geneId})
           const seq = getGeneSequences(gene)
           const expected =  [{
-              ID: "BniB01g000010.2N.1",
-              protein_id: "BniB01g000010.2N.1-P",
+              ID: "Bni|B01g000010.2N.1",
+              protein_id: "Bni|B01g000010.2N.1-P",
               nucl: "AGTTTAGAATAC",
               prot: "SLEY"
           }]

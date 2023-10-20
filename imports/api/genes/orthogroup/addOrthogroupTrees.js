@@ -33,11 +33,19 @@ const addOrthogroupTrees = new ValidatedMethod({
         return true;
       },
     },
+    annotations: {
+      type: Array,
+      optional: true,
+      defaultValue: []
+    },
+    'annotations.$': {
+      type: String,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
-  run({ folderName, prefixes }) {
+  run({ folderName, prefixes, annotations }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -51,6 +59,7 @@ const addOrthogroupTrees = new ValidatedMethod({
       {
         folderName,
         prefixes,
+        annotations,
       },
     );
     const jobId = job.priority('high').save();

@@ -17,10 +17,11 @@ import { Genes, GeneSchema } from '../../../genes/geneCollection';
  * @param {Boolean} verbose - View more details.
  */
 class AnnotationProcessor {
-  constructor(filename, genomeID, re_protein=undefined, re_protein_capture="^(.*?)$", attr_protein=undefined, verbose = true) {
+  constructor(filename, annotationName, genomeID, re_protein=undefined, re_protein_capture="^(.*?)$", attr_protein=undefined, verbose = true) {
     this.filename = filename;
     this.genomeID = genomeID;
     this.verbose = verbose;
+    this.annotationName = annotationName
 
     // Protein ID stuff
     // Regex options .
@@ -501,6 +502,7 @@ class AnnotationProcessor {
       const features = {
         ID: identifier,
         genomeId: this.genomeID,
+        annotationName: this.annotationName,
         seqid: seqidGff,
         source: sourceGff,
         type: typeGff,
@@ -594,9 +596,9 @@ class AnnotationProcessor {
     genomeCollection.update({
       _id: this.genomeID,
     }, {
-      $set: {
+      $push: {
         annotationTrack: {
-          name: this.filename.split('/').pop(),
+          name: this.annotationName,
         },
       },
     });

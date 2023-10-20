@@ -10,13 +10,17 @@ import { ExperimentInfo } from '/imports/api/transcriptomes/transcriptome_collec
 
 import { Dropdown, DropdownMenu, DropdownButton } from '/imports/ui/util/Dropdown.jsx';
 
+import {
+  branch, compose, round, /* ErrorBoundary, */
+} from '/imports/ui/util/uiUtil.jsx';
+
 import './sampleSelection.scss';
 
 function dataTracker({ gene, showHeader, children }) {
-  const { genomeId } = gene;
+  const { genomeId, annotationName } = gene;
   const experimentSub = Meteor.subscribe('experimentInfo');
   const loading = !experimentSub.ready();
-  const experiments = ExperimentInfo.find({ genomeId }).fetch();
+  const experiments = ExperimentInfo.find({ genomeId, annotationName }).fetch();
   const replicaGroups = groupBy(experiments, 'replicaGroup');
   return {
     showHeader,
@@ -25,6 +29,31 @@ function dataTracker({ gene, showHeader, children }) {
     children,
     replicaGroups,
   };
+}
+
+
+function hasNoExpression({ experiments }) {
+  return experiments.length === 0;
+}
+
+function NoExpression({ showHeader }) {
+  return (
+    <>
+    { showHeader && 
+    <>
+      <hr / > 
+      <h4 className="subtitle is-4">Gene Expression</h4> 
+    </>
+    } 
+    <div className="card expression-plot">
+      <article className="message no-protein-domains" role="alert">
+        <div className="message-body">
+          <p className="has-text-grey">No samples found</p>
+        </div>
+      </article>
+    </div>
+   </>
+  );
 }
 
 const customStyles = {
@@ -70,10 +99,13 @@ function SampleSelection({
     }));
   }
 
+  let className = showHeader ? "is-pulled-right" : ""
+  let style = showHeader ? {} : {"text-align": "right"}
+
   return (
     <>
       { showHeader && <hr /> }
-      <div className="is-pulled-right">
+      <div className={className} style={style}>
         <div className="dropdown is-right is-hoverable">
           <div className="dropdown-trigger">
             <button type="button" className="button is-small">
@@ -197,4 +229,7 @@ function SampleSelection({
   );
 }
 
-export default withTracker(dataTracker)(SampleSelection);
+export default compose(
+  withTracker(dataTracker),
+  branch(hasNoExpression, NoExpression),
+)(SampleSelection);
