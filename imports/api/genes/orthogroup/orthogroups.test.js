@@ -79,7 +79,7 @@ describe('orthogroups', function testOrthogroups() {
     chai.assert.equal(ortho.name, 'OG0000001')
     chai.assert.sameMembers(ortho.annotations, ['Annotation name'])
 
-    let gene = Genes.findOne({ID: "Bni|B01g000010.2N", annotationName: "Annotation name 2"})
+    gene = Genes.findOne({ID: "Bni|B01g000010.2N", annotationName: "Annotation name 2"})
     chai.assert.isUndefined(gene.orthogroup, 'orthogroup key is undefined')
   });
 

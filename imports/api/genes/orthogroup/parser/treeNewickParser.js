@@ -137,8 +137,8 @@ class NewickProcessor {
            ],
          }
 
-         if (self.annotations.length > 0){
-             geneQuery['annotationName'] = { $in: self.annotations }
+         if (this.annotations.length > 0){
+             geneQuery['annotationName'] = { $in: this.annotations }
          }
 
          const gene = Genes.findOne(geneQuery)
@@ -184,8 +184,8 @@ class NewickProcessor {
 
     let geneQuery = { geneIds: { $in: rmDuplicateGeneIDs } }
 
-    if (self.annotations.length > 0){
-        geneQuery['annotations'] = { $in: self.annotations }
+    if (this.annotations.length > 0){
+        geneQuery['annotations'] = { $in: this.annotations }
     }
 
     // Add the orthogroups and link them to their genes.
@@ -197,7 +197,7 @@ class NewickProcessor {
           {
             name: name,
             geneIds: rmDuplicateGeneIDs,
-            annotations: self.annotations,
+            annotations: this.annotations,
             tree: tree,
             size: treeSize,
             genomes: genomeDict
@@ -212,10 +212,10 @@ class NewickProcessor {
       // Increment orthogroups.
       this.nOrthogroups += documentOrthogroup;
 
-      let geneQuery = { ID: { $in: rmDuplicateGeneIDs } }
+      geneQuery = { ID: { $in: rmDuplicateGeneIDs } }
 
-      if (self.annotations.length > 0){
-          geneQuery['annotationName'] = { $in: self.annotations }
+      if (this.annotations.length > 0){
+          geneQuery['annotationName'] = { $in: this.annotations }
       }
 
       const orthogroupIdentifiant = orthogroupCollection.findOne({ tree: tree })._id;
