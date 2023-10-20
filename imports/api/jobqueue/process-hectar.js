@@ -11,10 +11,10 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName } = job.data;
+    const { fileName, annot } = job.data;
     logger.log(`Add ${fileName} hectar file.`);
 
-    const lineProcessor = new HectarProcessor();
+    const lineProcessor = new HectarProcessor(annot);
 
     const rl = readline.createInterface({
       input: fs.createReadStream(fileName, 'utf8'),

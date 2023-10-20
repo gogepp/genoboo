@@ -6,7 +6,7 @@
   <BlastOutput_reference>Benjamin Buchfink, Xie Chao, and Daniel Huson (2015), &quot;Fast and sensitive protein alignment using DIAMOND&quot;, Nature Methods 12:59-60.</BlastOutput_reference>
   <BlastOutput_db>/db/nr/NR_2021-6-16/diamond/nr.dmnd</BlastOutput_db>
   <BlastOutput_query-ID>Query_1</BlastOutput_query-ID>
-  <BlastOutput_query-def>BniB01g000010.2N.1-P</BlastOutput_query-def>
+  <BlastOutput_query-def>Bni%7CB01g000010.2N.1-P</BlastOutput_query-def>
   <BlastOutput_query-len>420</BlastOutput_query-len>
   <BlastOutput_param>
     <Parameters>
@@ -21,7 +21,7 @@
 <Iteration>
   <Iteration_iter-num>1</Iteration_iter-num>
   <Iteration_query-ID>Query_1</Iteration_query-ID>
-  <Iteration_query-def>BniB01g000010.2N.1-P</Iteration_query-def>
+  <Iteration_query-def>Bni%7CB01g000010.2N.1-P</Iteration_query-def>
   <Iteration_query-len>420</Iteration_query-len>
 <Iteration_hits>
 <Hit>

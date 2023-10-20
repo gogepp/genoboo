@@ -70,24 +70,27 @@ const genomeSchema = new SimpleSchema({
     label: 'Organism name',
   },
   annotationTrack: {
-    type: Object,
+    type: Array,
     optional: true,
-    label: 'Genome annotation',
+    label: 'Genome annotations',
   },
-  'annotationTrack.name': {
+  'annotationTrack.$': {
+    type: Object
+  },
+  'annotationTrack.$.name': {
     type: String,
     label: 'Annotation track name',
   },
-  'annotationTrack.blastDb': {
+  'annotationTrack.$.blastDb': {
     type: Object,
     optional: true,
     label: 'Annotation track BLAST database identifiers',
   },
-  'annotationTrack.blastDb.nucl': {
+  'annotationTrack.$.blastDb.nucl': {
     type: String,
     label: 'Nucleotide BLAST database',
   },
-  'annotationTrack.blastDb.prot': {
+  'annotationTrack.$.blastDb.prot': {
     type: String,
     label: 'Protein BLAST database',
   },

@@ -8,10 +8,11 @@ import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
 
 class EggnogProcessor {
-  constructor() {
+  constructor(annot) {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
     this.nEggnog = 0;
+    this.annot = annot;
   }
 
   /**
@@ -28,7 +29,7 @@ class EggnogProcessor {
   parse = (line) => {
     if (!(line[0] === '#' || line.split('\t').length <= 1)) {
       // Get all eggnog informations line by line and separated by tabs.
-      const [
+      let [
         queryName,
         seedEggnogOrtholog,
         seedOrthologEvalue,
@@ -51,6 +52,8 @@ class EggnogProcessor {
         biggReaction,
         pfams,
       ] = line.split('\t');
+
+      queryName = decodeURIComponent(queryName)
 
       // Organize data in a dictionary.
       const annotations = {
@@ -90,38 +93,42 @@ class EggnogProcessor {
 
       // If subfeatures is found in genes database (e.g: ID =
       // MMUCEDO_000002-T1).
-      const subfeatureIsFound = Genes.findOne({
+
+      let geneQuery = {
           $or: [
             { 'subfeatures.ID': queryName },
             { 'subfeatures.protein_id': queryName },
           ],
-      });
+      }
+      if (typeof this.annot !== "undefined"){
+          geneQuery['annotationName'] = this.annot
+      }
+
+      const subfeatureIsFound = Genes.findOne(geneQuery);
 
       if (typeof subfeatureIsFound !== 'undefined') {
         // Increment eggnog.
         this.nEggnog += 1;
+        let annotationName = subfeatureIsFound.annotationName
+        annotations['annotationName'] = annotationName
 
         // Update or insert if no matching documents were found.
         const documentEggnog = eggnogCollection.upsert(
-          { query_name: queryName }, // selector.
+          { query_name: queryName, annotationName }, // selector.
           annotations, // modifier.
         );
 
         // Update eggnogId in genes database.
         if (typeof documentEggnog.insertedId !== 'undefined') {
           // Eggnog _id is created.
-          return this.genesDb.update({
-              $or: [
-                { 'subfeatures.ID': queryName },
-                { 'subfeatures.protein_id': queryName },
-            ]},
+          return this.genesDb.update(geneQuery,
             { $set: { eggnogId: documentEggnog.insertedId } },
           );
         } else {
           // Eggnog already exists.
-          const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName })._id;
+          const eggnogIdentifiant = eggnogCollection.findOne({ query_name: queryName, annotationName })._id;
           return this.genesDb.update(
-            { $or: [{'subfeatures.ID': queryName}, {'subfeatures.protein_id': queryName}] },
+            geneQuery,
             { $set: { eggnogId: eggnogIdentifiant } },
           );
         }
@@ -139,11 +146,15 @@ const addEggnog = new ValidatedMethod({
   name: 'addEggnog',
   validate: new SimpleSchema({
     fileName: { type: String },
+    annot: {
+      type: String,
+      optional: true,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName }) {
+  run({ fileName, annot }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -152,7 +163,7 @@ const addEggnog = new ValidatedMethod({
     }
 
     logger.log('file :', { fileName });
-    const job = new Job(jobQueue, 'addEggnog', { fileName });
+    const job = new Job(jobQueue, 'addEggnog', { fileName, annot });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;

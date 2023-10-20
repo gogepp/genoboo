@@ -29,13 +29,14 @@ import './expressionPlot.scss';
 function expressionDataTracker({
   gene, samples, loading,
 }) {
-  const transcriptomeSub = Meteor.subscribe('geneExpression', gene.ID);
+  const transcriptomeSub = Meteor.subscribe('geneExpression', gene.ID, gene.annotationName);
 
   const sampleInfo = groupBy(samples, '_id');
   const sampleIds = samples.map((sample) => sample._id);
 
   const values = Transcriptomes.find({
     geneId: gene.ID,
+    annotationName: gene.annotationName,
     experimentId: {
       $in: sampleIds,
     },
@@ -81,6 +82,23 @@ function Loading() {
     </div>
   );
 }
+
+function hasNoExpression({ values }) {
+    return values.length == 0;
+}
+
+function NoExpression() {
+    return(
+     <div className="card expression-plot">
+      <article className="message no-protein-domains" role="alert">
+        <div className="message-body">
+          <p className="has-text-grey">No expression data for the selected samples</p>
+        </div>
+      </article>
+    </div>
+    )
+}
+
 
 function YAxis({ scale, numTicks }) {
   const range = scale.range();
@@ -406,4 +424,5 @@ export default compose(
   branch(hasNoSamples, NoSamples),
   withTracker(expressionDataTracker),
   branch(isLoading, Loading),
+  branch(hasNoExpression, NoExpression)
 )(ExpressionPlot);

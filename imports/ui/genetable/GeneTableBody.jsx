@@ -45,7 +45,7 @@ function dataTracker({
 }) {
   const geneSub = Meteor.subscribe('genes', { query, sort, limit });
   const loading = !geneSub.ready();
-  const genes = Genes.find(query, { limit, sort }).fetch();
+  const genes = Genes.find({}, { limit, sort }).fetch();
 
   return {
     genes,
@@ -122,11 +122,11 @@ function Loading({ selectedColumns, ...props }) {
 }
 
 function AttributeColumn({
-  attributeName, attributeValue, geneId, genomeDataCache,
+  attributeName, attributeValue, gene, genomeDataCache,
 }) {
   switch (attributeName) {
     case 'Gene ID':
-      return <GeneLink geneId={geneId} />;
+      return <GeneLink gene={gene} />;
     case 'Genome':
       return (
         <GenomeName
@@ -179,7 +179,7 @@ function GeneTableRow({
               <AttributeColumn
                 attributeName={attributeName}
                 attributeValue={attributeValue}
-                geneId={gene.ID}
+                gene={gene}
                 genomeDataCache={genomeDataCache}
               />
             </td>

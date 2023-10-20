@@ -15,6 +15,9 @@ const addAnnotation = new ValidatedMethod({
     genomeName: {
       type: String,
     },
+    annotationName: {
+      type: String,
+    },
     re_protein: {
       type: String,
       optional: true,
@@ -36,7 +39,7 @@ const addAnnotation = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, genomeName, re_protein, re_protein_capture, attr_protein, verbose,
+    fileName, genomeName, annotationName, re_protein, re_protein_capture, attr_protein, verbose,
   }) {
     if (!this.userId || !Roles.userIsInRole(this.userId, 'admin')) {
       throw new Meteor.Error('not-authorized');
@@ -46,8 +49,11 @@ const addAnnotation = new ValidatedMethod({
     if (!existingGenome) {
       throw new Meteor.Error(`Unknown genome name: ${genomeName}`);
     }
+
     if (typeof existingGenome.annotationTrack !== 'undefined') {
-      throw new Meteor.Error(`Genome ${genomeName} already has an annotation track`);
+      if (existingGenome.annotationTrack.some(annot => annot.name === annotationName)){
+        throw new Meteor.Error(`Genome ${genomeName} already has an annotation track with the name ${annotationName}`);
+      }
     }
 
     const genomeId = existingGenome._id;
@@ -58,6 +64,7 @@ const addAnnotation = new ValidatedMethod({
       {
         fileName,
         genomeName,
+        annotationName,
         genomeId,
         re_protein,
         re_protein_capture,

@@ -318,9 +318,13 @@ addAnnotation
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
-  .option(
+  .requiredOption(
     '-n, --name <genome-name>',
     'Reference genome name to which the annotation should be added.',
+  )
+  .requiredOption(
+    '--annot <annotation-name>',
+    'Annotation name',
   )
   .option(
     '-r, --re_protein <pattern>',
@@ -352,6 +356,7 @@ addAnnotation
         password,
         port = 3000,
         name,
+        annot,
         re_protein,
         re_protein_capture,
         attr_protein,
@@ -389,6 +394,7 @@ addAnnotation
         {
           fileName,
           genomeName: name,
+          annotationName: annot,
           re_protein,
           re_protein_capture: correctProteinCapture,
           attr_protein,
@@ -434,6 +440,10 @@ running GeneNoteBook server.`
     'Port on which GeneNoteBook is running. Default: 3000'
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '-fmt, --format [parser]',
     `Choose a parser for the diamond output format. Parses .xml, .txt
     extensions.`
@@ -455,7 +465,7 @@ running GeneNoteBook server.`
   .action(
     (
       file,
-      { username, password, port = 3000, format, algorithm, matrix, database }
+      { username, password, port = 3000, annot, format, algorithm, matrix, database }
     ) => {
       if (typeof file !== 'string') addDiamond.help();
 
@@ -490,6 +500,7 @@ file extension is not "xml", "txt"`);
           fileName,
           parser: parserType,
           program: 'diamond',
+          annot: annot,
           algorithm: algorithm,
           matrix: matrix,
           database: database,
@@ -502,7 +513,7 @@ file extension is not "xml", "txt"`);
 Example:
     genenotebook add diamond mmucedo.xml -u admin -p admin
 or
-    genenotebook add diamond mmucedo.txt --format txt --program blastp --matrix BLOSUM90 -db "Non-reundant protein sequences (nr)" -u admin -p admin
+    genenotebook add diamond mmucedo.txt --format txt --matrix BLOSUM90 -db "Non-reundant protein sequences (nr)" -u admin -p admin
     `);
   })
   .exitOverride(customExitOverride(addDiamond));
@@ -524,6 +535,10 @@ running GeneNoteBook server.`
   .requiredOption(
     '-p, --password <adminPassword>',
     'GeneNoteBook admin password'
+  )
+  .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
   )
   .option(
     '--port [port]',
@@ -548,7 +563,7 @@ running GeneNoteBook server.`
   .action(
     (
       file,
-      { username, password, port = 3000, format, algorithm, matrix, database }
+      { username, password, port = 3000, annot, format, algorithm, matrix, database }
     ) => {
       if (typeof file !== 'string') addBlast.help();
 
@@ -584,6 +599,7 @@ file extension is not "xml", "txt"`);
           parser: parserType,
           program: 'blast',
           algorithm: algorithm,
+          annot: annot,
           matrix: matrix,
           database: database,
         }
@@ -620,6 +636,10 @@ addExpression
     'Description of the experiment'
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '-r, --replicas <replicas...>',
     'Comma-separated column positions, which are part of the same replica group. Can be set multiple times for multiple groups. The replica group name will be the first column, unless replica-names is set'
   )
@@ -639,7 +659,7 @@ addExpression
     const replicas = opts.replicas || [];
     const replicaNames = opts.replicaNames || [];
     const isPublic = opts.public;
-
+    const annot = opts.annot
     if (!(fileName && username && password)) {
       program.help();
     }
@@ -648,6 +668,7 @@ addExpression
       {
         fileName,
         description,
+        annot,
         replicas,
         replicaNames,
         isPublic
@@ -681,6 +702,10 @@ addExpression
       'Description of the experiment'
     )
     .option(
+      '--annot <annotation-ame>',
+      'Annotation name',
+    )
+    .option(
       '--public',
       'Set the generated replica groups as public. Default: false',
       false
@@ -692,6 +717,7 @@ addExpression
       const replicaGroup = opts.replicaGroup || fileName;
       const description = opts.sampleDescription || 'description';
       const isPublic = opts.public
+      const anot = opts.annot
 
       if (!(fileName && username && password)) {
         program.help();
@@ -701,6 +727,7 @@ addExpression
         {
           fileName,
           sampleName,
+          annot: annot,
           replicaGroup,
           description,
           isPublic
@@ -729,11 +756,15 @@ addInterproscan
     'Port on which GeneNoteBook is running. Default: 3000'
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '--format [parser]',
     `Choose a parser for the interproscan output files. Parses .gff3 and .tsv
     extensions.`
   )
-  .action((file, { username, password, port = 3000, format }) => {
+  .action((file, { username, password, port = 3000, format, annot }) => {
     if (typeof file !== 'string') addInterproscan.help();
 
     const fileName = path.resolve(file);
@@ -766,6 +797,7 @@ file extension is not "tsv", "gff3" or "xml".`);
       {
         fileName,
         parser: parserType,
+        annot: annot
       }
     );
   })
@@ -795,10 +827,14 @@ addEggnog
     'GeneNoteBook admin password'
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, port = 3000 }) => {
+  .action((file, { username, password, port = 3000, annot }) => {
     if (typeof file !== 'string') addEggnog.help();
 
     const fileName = path.resolve(file);
@@ -808,6 +844,7 @@ addEggnog
 
     new GeneNoteBookConnection({ username, password, port }).call('addEggnog', {
       fileName,
+      annot: annot
     });
   })
   .on('--help', () => {
@@ -834,10 +871,14 @@ addHectar
     'GeneNoteBook admin password'
   )
   .option(
+    '--annot <annotation-ame>',
+    'Annotation name',
+  )
+  .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, port = 3000 }) => {
+  .action((file, { username, password, port = 3000, annot }) => {
     if (typeof file !== 'string') addHectar.help();
 
     const fileName = path.resolve(file);
@@ -847,6 +888,7 @@ addHectar
 
     new GeneNoteBookConnection({ username, password, port }).call('addHectar', {
       fileName,
+      annot: annot
     });
   })
   .on('--help', () => {
@@ -878,16 +920,22 @@ addOrthogroups
     '-f, --force [force]',
     'Ignore the use of prefixes.',
   )
+  .option(
+    '-a, --annotations <annotations...>',
+    'Name of the annotation to use for gene matching. Can be set multiple times'
+  )
   .requiredOption('-u, --username <username>', 'GeneNoteBook admin username')
   .requiredOption('-p, --password <password>', 'GeneNoteBook admin password')
   .option(
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { prefixe, list, force, username, password, port = 3000 }) => {
+  .action((file, { prefixe, list, force, annotations, username, password, port = 3000 }) => {
     if (typeof file !== 'string') addOrthogroups.help();
     const folderName = path.resolve(file);
     const prefixes = (typeof list !== 'undefined' ? list : path.resolve(prefixe));
+
+    annotations = annotations || []
 
     if (!(folderName && username && password)) {
       addOrthogroups.help();
@@ -899,6 +947,7 @@ addOrthogroups
         folderName,
         force,
         prefixes,
+        annotations
       },
     );
   })

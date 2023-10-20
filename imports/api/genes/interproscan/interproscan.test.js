@@ -36,11 +36,12 @@ describe('interproscan', function testInterproscan() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple = true)
 
     const interproParams = {
       fileName: 'assets/app/data/Bnigra_interproscan.tsv',
       parser: "tsv",
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -57,12 +58,12 @@ describe('interproscan', function testInterproscan() {
 
     let result = addInterproscan._execute(adminContext, interproParams);
 
-    const gene = Genes.findOne({ID: "BniB01g000010.2N"})
+    const gene = Genes.findOne({ID: "Bni|B01g000010.2N"})
 
     chai.assert.deepEqual(gene.attributes.Dbxref, [ 'InterPro:1236' ])
     chai.assert.deepEqual(gene.attributes.Ontology_term, [ 'GO:1238' ])
 
-    const interpros = interproscanCollection.find({gene_id: "BniB01g000010.2N"}).fetch();
+    const interpros = interproscanCollection.find({gene_id: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(interpros, 1, "No Interpro document found")
 
     const protein_domains = interpros[0].protein_domains
@@ -84,11 +85,12 @@ describe('interproscan', function testInterproscan() {
     // Increase timeout
     this.timeout(20000);
 
-    addTestGenome(annot=true)
+    addTestGenome(annot=true, multiple = true)
 
     const interproParams = {
       fileName: 'assets/app/data/Bnigra_interproscan.gff',
       parser: "gff3",
+      annot: "Annotation name"
     };
 
     // Should fail for non-logged in
@@ -105,7 +107,7 @@ describe('interproscan', function testInterproscan() {
 
     let result = addInterproscan._execute(adminContext, interproParams);
 
-    const interpros = interproscanCollection.find({gene_id: "BniB01g000010.2N"}).fetch();
+    const interpros = interproscanCollection.find({gene_id: "Bni|B01g000010.2N", annotationName: "Annotation name"}).fetch();
     chai.assert.lengthOf(interpros, 1, "No Interpro document found")
 
     const protein_domains = interpros[0].protein_domains

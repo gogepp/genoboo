@@ -9,7 +9,13 @@ const interproscanSchema = new SimpleSchema({
   },
   protein_id: {
     type: String,
+    index: true,
     label: 'Linked protein ID',
+  },
+  annotationName: {
+    type: String,
+    index: true,
+    label: 'Annotation name',
   },
   protein_domains: {
     type: Array,
@@ -20,7 +26,7 @@ const interproscanSchema = new SimpleSchema({
     type: Object,
     label: 'Interproscan protein domain',
     blackbox: true,
-  },
+  }
 });
 
 const interproscanCollection = new Mongo.Collection('interproscan');

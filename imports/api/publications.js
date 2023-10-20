@@ -1,6 +1,7 @@
 import { Mongo } from 'meteor/mongo';
 import { Meteor } from 'meteor/meteor';
 import { Roles } from 'meteor/alanning:roles';
+import { fetch } from 'meteor/fetch';
 // jobqueue
 import jobQueue from '/imports/api/jobqueue/jobqueue.js';
 // genes
@@ -27,6 +28,7 @@ import { fileCollection } from '/imports/api/files/fileCollection.js';
 import fetchDbxref from '/imports/api/methods/fetchDbxref.js';
 // utilities
 import { DBXREF_REGEX } from '/imports/api/util/util.js';
+import logger from '/imports/api/util/logger.js'
 
 function availableGenomes({ userId }) {
   const roles = Roles.getRolesForUser(userId);
@@ -76,9 +78,37 @@ Meteor.publish({
     const queryGenomeIds = hasOwnProperty(query, 'genomeId')
       ? query.genomeId.$in.filter((genomeId) => genomeIds.includes(genomeId))
       : genomeIds;
+    let transformedQuery = {};
 
-    const transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
+    let config = Meteor.settings
 
+    if ( query.query !== undefined && config.public.externalSearch && typeof config.externalSearchOptions === "object" && config.externalSearchOptions.url){
+      let url = config.externalSearchOptions.url.replace(/,+$/, "") + "/";
+      let paramsDict = {}
+      let geneField = config.externalSearchOptions.gene_field ? config.externalSearchOptions.gene_field : "geneId"
+      if (config.externalSearchOptions.query_param){
+        paramsDict[config.externalSearchOptions.query_param] = query.query
+      } else {
+        url += query.query
+      }
+      if (config.externalSearchOptions.field_param){
+        paramsDict[config.externalSearchOptions.field_param] = geneField
+      }
+
+      if (config.externalSearchOptions.count_param){
+        paramsDict[config.externalSearchOptions.count_param] = limit
+      }
+
+      let geneResults = []
+      url = url + "?" + new URLSearchParams(paramsDict)
+      const response = HTTP.get(url);
+      if (response.statusCode === 200){
+        geneResults = response.data.data.map(result => result._source[geneField])
+      }
+      transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
+    } else {
+      transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
+    }
     return Genes.find(transformedQuery, { sort, limit });
   },
   singleGene({ geneId, transcriptId }) {
@@ -124,7 +154,7 @@ Meteor.publish({
       $or: [{ genomes: { $in: genomeIds } }, { allGenomes: true }],
     });
   },
-  geneExpression(geneId) {
+  geneExpression(geneId, annotationName) {
     const publication = this;
     const roles = Roles.getRolesForUser(publication.userId);
     const permission = { $in: roles };
@@ -138,6 +168,7 @@ Meteor.publish({
 
     return Transcriptomes.find({
       geneId,
+      annotationName,
       experimentId: {
         $in: experimentIds,
       },
@@ -187,6 +218,7 @@ Meteor.publish({
   alignment(gene) {
     const diamond = similarSequencesCollection.find(
       {
+        annotationName: gene.annotationName,
         $or: [
           { iteration_query: gene.ID },
           { iteration_query: { $in: gene.children } },
@@ -195,8 +227,8 @@ Meteor.publish({
     );
     return diamond;
   },
-  interpro(query){
-    return interproscanCollection.find({gene_id: query})
+  interpro(gene){
+    return interproscanCollection.find({gene_id: gene.ID, annotationName: gene.annotationName})
   },
   orthogroups(ID) {
     return orthogroupCollection.find({ _id: ID });

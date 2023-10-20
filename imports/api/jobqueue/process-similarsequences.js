@@ -13,14 +13,14 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, parser, program, algorithm, matrix, database } = job.data;
+    const { fileName, parser, program, algorithm, matrix, database, annot } = job.data;
     logger.log(`Add ${fileName} diamond file.`);
 
     // Different parser for the xml file.
     if (parser === 'xml') {
       const stream = fs.createReadStream(fileName);
       const xml = new XmlFlow(stream, { normalize: false });
-      const lineProcessor = new XmlProcessor(program, algorithm, matrix, database);
+      const lineProcessor = new XmlProcessor(program, algorithm, matrix, database, annot);
       const tag = 'blastoutput';
 
       xml.on(`tag:${tag}`, async (obj) => {
@@ -48,7 +48,7 @@ jobQueue.processJobs(
         input: fs.createReadStream(fileName, 'utf8'),
       });
 
-      const lineProcessor = new PairwiseProcessor(program, algorithm, matrix, database);
+      const lineProcessor = new PairwiseProcessor(program, algorithm, matrix, database, annot);
 
       for await (const line of lineReader) {
           try {

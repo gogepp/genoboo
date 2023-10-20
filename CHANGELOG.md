@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.8] 2023-10-20
+
+### Added
+
+- Option for redirecting the search to an external url ("public.redirectSearch" key in config)
+  - An additional key "public.redirectSearchAttribute", defaulting to 'query', will be used as the get parameter attribute. (ie: url + "?redirectSearchAttribute=query")
+- Options for using a remote search ending, and merging the results with GNB internal search.
+  - The 'public.externalSearch' option need to be set to true, and an 'externalSearchOptions' dict need to be set.
+  - 'url' key is the remote endpoint where the query will be sent
+  - 'gene_field' is the remote field to get the gene IDs (default to geneId)
+  - 'query_param' : optional get parameter to use for the query
+  - 'field_param': optional get parameter to use to restrict the results to the gene_field value
+  - 'count_param': optional get parameter to restrict the number of results
+- Multiple annotations for the same genome
+  - When adding an annotation, you must now set the '--annot' to set the annotation name.
+  - When integrating data afterward, you can use the --annot tag to specify the annotation you are aiming for.
+  - If you have multiple genes with the same ID, and do not specify '--annot', the results may be variables
+  - You can specify --annotations multiple time when integrating orthogroups
+- Will now decode proteins and genes IDs when integrating data. (It was already done when integrating gffs, so there was some mismatch with IDs)
+
+## Changed
+
+- Various UI fixes to better fit multiple annotation versions
+  - Including an 'annotation' selector in the gene list
+
 ## [0.4.7] 2023-09-26
 
 ### Fixed
@@ -399,4 +424,3 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 [0.1.3]: https://github.com/genenotebook/genenotebook/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/genenotebook/genenotebook/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/genenotebook/genenotebook/compare/v0.1.0...v0.1.1
-

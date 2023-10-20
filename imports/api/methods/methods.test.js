@@ -29,7 +29,7 @@ describe('methods', function testMethods() {
   it('Should get the genes query count', function testGetQueryCount() {
     addTestGenome(annot=true)
 
-    const queryParams = {query: {ID: "BniB01g000010.2N"}}
+    const queryParams = {query: {ID: "Bni|B01g000010.2N"}}
     const count = getQueryCount._execute({}, queryParams)
     chai.assert.equal(count, 1)
 

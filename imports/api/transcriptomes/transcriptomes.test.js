@@ -37,10 +37,11 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true, multiple=true)
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_kallisto_abundance.tsv',
+      annot: "Annotation name",
       sampleName: "mySample",
       replicaGroup: "replicaGroup",
       description: "A new description",
@@ -69,6 +70,7 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'mySample')
     chai.assert.equal(exp.replicaGroup, 'replicaGroup')
     chai.assert.equal(exp.description, 'A new description')
+    chai.assert.equal(exp.annotationName, "Annotation name")
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -76,8 +78,9 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '1.80368')
+    chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.equal(transcriptome.est_counts, '21')
 
   })
@@ -86,10 +89,11 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true, multiple=true)
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      annot: "Annotation name",
       description: "A new description",
       isPublic: false
     };
@@ -116,10 +120,12 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'sample1')
     chai.assert.equal(exp.replicaGroup, 'sample1')
     chai.assert.equal(exp.description, 'A new description')
+    chai.assert.equal(exp.annotationName, "Annotation name")
 
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'sample2')
     chai.assert.equal(exps[1].description, 'A new description')
+    chai.assert.equal(exps[1].annotationName, "Annotation name")
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -127,8 +133,9 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
 
   })
@@ -137,10 +144,11 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true, multiple=true)
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      annot: "Annotation name",
       description: "A new description",
       replicas: ["1,2"],
       isPublic: false
@@ -168,14 +176,17 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'sample1')
     chai.assert.equal(exp.replicaGroup, 'sample1')
     chai.assert.equal(exp.description, 'A new description')
+    chai.assert.equal(exp.annotationName, "Annotation name")
 
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'sample1')
     chai.assert.equal(exps[1].description, 'A new description')
+    chai.assert.equal(exps[1].annotationName, "Annotation name")
 
     chai.assert.equal(exps[2].sampleName, 'sample3')
     chai.assert.equal(exps[2].replicaGroup, 'sample3')
     chai.assert.equal(exps[2].description, 'A new description')
+    chai.assert.equal(exps[2].annotationName, "Annotation name")
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -183,8 +194,9 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
 
   })
@@ -193,10 +205,11 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true, multiple=true)
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      annot: "Annotation name",
       description: "A new description",
       replicas: ["1,2"],
       replicaNames: ["My replica group name", "Another group name"],
@@ -225,18 +238,22 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'sample1')
     chai.assert.equal(exp.replicaGroup, 'My replica group name')
     chai.assert.equal(exp.description, 'A new description')
+    chai.assert.equal(exp.annotationName, "Annotation name")
 
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'My replica group name')
     chai.assert.equal(exps[1].description, 'A new description')
+    chai.assert.equal(exps[1].annotationName, "Annotation name")
 
     chai.assert.equal(exps[2].sampleName, 'sample3')
     chai.assert.equal(exps[2].replicaGroup, 'Another group name')
     chai.assert.equal(exps[2].description, 'A new description')
+    chai.assert.equal(exps[2].annotationName, "Annotation name")
 
     chai.assert.equal(exps[3].sampleName, 'sample4')
     chai.assert.equal(exps[3].replicaGroup, 'sample4')
     chai.assert.equal(exps[3].description, 'A new description')
+    chai.assert.equal(exps[3].annotationName, "Annotation name")
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -244,9 +261,10 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
     chai.assert.isUndefined(transcriptome.est_counts)
+    chai.assert.equal(transcriptome.annotationName, "Annotation name")
 
   })
 
@@ -254,10 +272,11 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId} = addTestGenome(annot=true, multiple=true)
 
     const transcriParams = {
       fileName: 'assets/app/data/Bnigra_abundance.tsv',
+      annot: "Annotation name",
       description: "A new description",
       replicaNames: ["TestReplica1", "TestReplica2"],
       isPublic: false
@@ -285,14 +304,17 @@ describe('transcriptomes', function testTranscriptomes() {
     chai.assert.equal(exp.sampleName, 'sample1')
     chai.assert.equal(exp.replicaGroup, 'TestReplica1')
     chai.assert.equal(exp.description, 'A new description')
+    chai.assert.equal(exp.annotationName, "Annotation name")
 
     chai.assert.equal(exps[1].sampleName, 'sample2')
     chai.assert.equal(exps[1].replicaGroup, 'TestReplica2')
     chai.assert.equal(exps[1].description, 'A new description')
+    chai.assert.equal(exps[1].annotationName, "Annotation name")
 
     chai.assert.equal(exps[2].sampleName, 'sample3')
     chai.assert.equal(exps[2].replicaGroup, 'sample3')
     chai.assert.equal(exps[2].description, 'A new description')
+    chai.assert.equal(exps[2].annotationName, "Annotation name")
 
     const transcriptomes = Transcriptomes.find({experimentId: exp._id}).fetch()
 
@@ -300,8 +322,9 @@ describe('transcriptomes', function testTranscriptomes() {
 
     const transcriptome = transcriptomes[0]
 
-    chai.assert.equal(transcriptome.geneId, 'BniB01g000010.2N')
+    chai.assert.equal(transcriptome.geneId, 'Bni|B01g000010.2N')
     chai.assert.equal(transcriptome.tpm, '40')
+    chai.assert.equal(transcriptome.annotationName, "Annotation name")
     chai.assert.isUndefined(transcriptome.est_counts)
 
   })
@@ -311,7 +334,7 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId, geneId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId, geneId} = addTestGenome(annot=true, multiple=true)
     const {expId, transcriptomeId} = addTestTranscriptome(genomeId, geneId)
 
     const updateParams = {
@@ -347,7 +370,7 @@ describe('transcriptomes', function testTranscriptomes() {
     // Increase timeout
     this.timeout(20000);
 
-    const {genomeId, genomeSeqId, geneId} = addTestGenome(annot=true)
+    const {genomeId, genomeSeqId, geneId} = addTestGenome(annot=true, multiple=true)
     const {expId, transcriptomeId} = addTestTranscriptome(genomeId, geneId)
 
     const updateParams = {

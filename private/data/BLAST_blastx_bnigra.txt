@@ -1,8 +1,8 @@
 RID: G78X34UU01R
-Job Title:2 sequences (BniB01g000010.2Nq)
+Job Title:2 sequences (Bni%7CB01g000010.2Nq)
 Program: BLASTX
 Database: nr All non-redundant GenBank CDS translations+PDB+SwissProt+PIR+PRF excluding environmental samples from WGS projects
-Query #1: BniB01g000010.2N.1-P Query ID: Query_1 Length: 420
+Query #1: Bni%7CB01g000010.2N.1-P Query ID: Query_1 Length: 420
 
 
 Alignments:

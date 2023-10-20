@@ -12,21 +12,32 @@ import {
 } from '/imports/api/transcriptomes/transcriptome_collection.js';
 import logger from '/imports/api/util/logger.js';
 
-const getGenomeId = (data) => {
-  const firstTranscipts = data.slice(0, 10).map((line) => line.target_id);
-  logger.debug(firstTranscipts);
-  const { genomeId } = Genes.findOne({
+const getGenomeId = (data, annot) => {
+  const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line.target_id));
+  logger.debug(firstTranscripts);
+
+  let geneQuery = {
     $or: [
-      { ID: { $in: firstTranscipts } },
-      { 'subfeatures.ID': { $in: firstTranscipts } },
+      { ID: { $in: firstTranscripts } },
+      { 'subfeatures.ID': { $in: firstTranscripts } },
     ],
-  });
-  logger.debug(genomeId);
-  return genomeId;
+  }
+
+  if (annot){
+    geneQuery['annotationName'] = annot
+  }
+
+  const gene = Genes.findOne(geneQuery);
+
+  if (typeof gene === "undefined"){
+    return {genomeId: undefined, annotationName: undefined}
+  }
+  logger.debug(gene.genomeId);
+  return {genomeId: gene.genomeId, annotationName: gene.annotationName}
 };
 
 const parseKallistoTsv = ({
-  fileName, sampleName, replicaGroup,
+  fileName, annot, sampleName, replicaGroup,
   description, permission = 'admin', isPublic = false,
 }) => new Promise((resolve, reject) => {
   const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
@@ -43,7 +54,7 @@ const parseKallistoTsv = ({
     complete({ data }, _file) {
       let nInserted = 0;
 
-      const genomeId = getGenomeId(data);
+      const {genomeId, annotationName} = getGenomeId(data, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
@@ -53,6 +64,7 @@ const parseKallistoTsv = ({
 
       const experimentId = ExperimentInfo.insert({
         genomeId,
+        annotationName,
         sampleName,
         replicaGroup,
         description,
@@ -62,12 +74,18 @@ const parseKallistoTsv = ({
       });
 
       data.forEach(({ target_id, tpm, est_counts }) => {
-        const gene = Genes.findOne({
+        let geneQuery = {
           $or: [
-            { ID: target_id },
-            { 'subfeatures.ID': target_id },
+            { ID: decodeURIComponent(target_id) },
+            { 'subfeatures.ID': decodeURIComponent(target_id) },
           ],
-        });
+        }
+
+        if (annot){
+          geneQuery['annotationName'] = annot
+        }
+
+        const gene = Genes.findOne(geneQuery);
 
         if (typeof gene === 'undefined') {
           logger.warn(`${target_id} not found`);
@@ -75,6 +93,7 @@ const parseKallistoTsv = ({
           nInserted += 1;
           bulkOp.insert({
             geneId: gene.ID,
+            annotationName,
             tpm,
             est_counts,
             experimentId,
@@ -96,6 +115,10 @@ const addKallistoTranscriptome = new ValidatedMethod({
   name: 'addKallistoTranscriptome',
   validate: new SimpleSchema({
     fileName: String,
+    annot: {
+      type: String,
+      optional: true,
+    },
     sampleName: String,
     replicaGroup: String,
     description: String,
@@ -105,7 +128,7 @@ const addKallistoTranscriptome = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, sampleName, replicaGroup, description, isPublic
+    fileName, annot, sampleName, replicaGroup, description, isPublic
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -114,7 +137,7 @@ const addKallistoTranscriptome = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseKallistoTsv({
-      fileName, sampleName, replicaGroup, description, isPublic
+      fileName, annot, sampleName, replicaGroup, description, isPublic
     })
       .catch((error) => {
         logger.warn(error);

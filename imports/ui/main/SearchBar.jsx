@@ -5,7 +5,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Redirect, withRouter } from 'react-router-dom';
+import { Redirect, withRouter, useHistory } from 'react-router-dom';
 import { cloneDeep } from 'lodash';
 
 import { attributeCollection } from '/imports/api/genes/attributeCollection.js';
@@ -57,7 +57,7 @@ function SearchBar({
   const [selectedAttributes, setSelectedAttributes] = useState(
     new Set(['Gene ID', ...initialSelectedAttributes]),
   );
-
+  let history = useHistory()
   const inputRef = useRef();
   useEffect(() => {
     if (highLightSearch) {
@@ -90,6 +90,13 @@ function SearchBar({
 
   function submit(event) {
     event.preventDefault();
+    if (Meteor.settings.public.redirectSearch){
+        const query = new URLSearchParams();
+        const searchUrl = Meteor.settings.public.redirectSearch
+        const searchAttr = Meteor.settings.public.redirectSearchAttribute ? Meteor.settings.public.redirectSearchAttribute : 'query'
+        query.set(searchAttr, searchString.trim());
+        location.href = searchUrl + `?${query.toString()}`
+    }
     setRedirect(true);
   }
 
@@ -99,6 +106,7 @@ function SearchBar({
 
   if (redirect) {
     const query = new URLSearchParams();
+    let searchUrl = "/genes"
     query.set('attributes', [...selectedAttributes]);
     query.set('search', searchString.trim());
     const queryString = `?${query.toString()}`;
@@ -107,7 +115,7 @@ function SearchBar({
       <Redirect
         push
         to={{
-          pathname: '/genes',
+          pathname: searchUrl,
           search: searchString.length ? queryString : '',
           state: {
             redirected: true,
@@ -117,6 +125,9 @@ function SearchBar({
     );
   }
 
+  let label = Meteor.settings.public.externalSearch ? "Select attributes to display" : "Select attributes to search"
+  let display_attr = Meteor.settings.public.redirectSearch ? false : true
+
   return (
     <form
       className="navbar-item is-pulled-right"
@@ -124,6 +135,7 @@ function SearchBar({
       onSubmit={submit}
     >
       <div className="field has-addons">
+      {display_attr &&
         <div className="control has-dropdown">
           <div className="dropdown is-hoverable">
             <div className="dropdown-trigger">
@@ -135,7 +147,7 @@ function SearchBar({
             </div>
             <div className="dropdown-menu" id="dropdown-menu-search" role="menu">
               <div className="dropdown-content">
-                <h6 className="is-h6 dropdown-item">Select attributes to search</h6>
+                <h6 className="is-h6 dropdown-item">{label}</h6>
                 {attributes.map(({ name }) => {
                   const checked = selectedAttributes.has(name);
                   return (
@@ -157,6 +169,7 @@ function SearchBar({
             </div>
           </div>
         </div>
+        }
         <div className="control">
           <input
             type="text"

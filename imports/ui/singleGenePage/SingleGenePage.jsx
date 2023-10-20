@@ -2,6 +2,7 @@ import { Meteor } from 'meteor/meteor';
 import { withTracker } from 'meteor/react-meteor-data';
 
 import React from 'react';
+import { Link } from 'react-router-dom';
 import hash from 'object-hash';
 
 import { Genes } from '/imports/api/genes/geneCollection.js';
@@ -36,24 +37,69 @@ function isLoading({ loading }) {
   return loading;
 }
 
-function isNotFound({ gene }) {
-  return typeof gene === 'undefined';
+function isNotFound({ genes }) {
+  return genes.length === 0;
 }
 
-function geneDataTracker({ match, genomeDataCache }) {
+function isMultiple({ genes }) {
+  return genes.length > 1;
+}
+
+function Multiple( {genes} ){
+    let gene = genes[0]
+
+    let content = genes.map(gene => {
+      const query = new URLSearchParams();
+      query.set("annotation", gene.annotationName);
+      const url = `/gene/${gene.ID}?${query.toString()}`
+      return (
+        <p><Link to={url} className="genelink" title={gene.annotationName}>
+          { gene.annotationName }
+        </Link></p>
+      );
+    })
+
+    return (
+      <div className="container">
+        <div className="card single-gene-page">
+          <header className="has-background-light">
+            <h4 className="title is-size-4 has-text-weight-light">
+              {`${gene.ID} `}
+            </h4>
+            <div className="box">
+              <p>This gene is defined in several annotations. Please select one:</p>
+              <article className="message is-light">
+                {content}
+              </article>
+            </div>
+          </header>
+        </div>
+      </div>
+    );
+}
+
+function geneDataTracker({ match, genomeDataCache, location }) {
   const { geneId } = match.params;
+  const annotation = new URLSearchParams(location.search).get("annotation");
   const geneSub = Meteor.subscribe('singleGene', { geneId });
-  const gene = Genes.findOne({ ID: geneId });
+  let genes
+  if (annotation) {
+    genes = Genes.find({ ID: geneId, annotationName: annotation }).fetch();
+  } else {
+    genes = Genes.find({ ID: geneId }).fetch();
+  }
+
   const loading = !geneSub.ready();
   return {
     loading,
-    gene,
+    genes,
     genomeDataCache,
   };
 }
 
-function genomeDataTracker({ gene, genomeDataCache }) {
+function genomeDataTracker({ genes, genomeDataCache }) {
   // const genomeSub = Meteor.subscribe('genomes');
+  let gene = genes[0]
   const { genomeId } = gene;
   let genome;
   let genomeSub;
@@ -82,7 +128,8 @@ function SingleGenePage({ gene, genome = {} }) {
         <header className="has-background-light">
           <h4 className="title is-size-4 has-text-weight-light">
             {`${gene.ID} `}
-            <small className="text-muted">{genome.name}</small>
+            <small className="text-muted">{genome.name}&nbsp;</small>
+            <small className="text-muted">{gene.annotationName}</small>
           </h4>
           <div className="tabs is-boxed">
             <ul>
@@ -176,6 +223,7 @@ export default compose(
   withTracker(geneDataTracker),
   branch(isLoading, Loading),
   branch(isNotFound, NotFound),
+  branch(isMultiple, Multiple),
   withTracker(genomeDataTracker),
   branch(isLoading, Loading),
 )(SingleGenePage);
