@@ -36,8 +36,15 @@ function hasNoExpression({ experiments }) {
   return experiments.length === 0;
 }
 
-function NoExpression() {
+function NoExpression({ showHeader }) {
   return (
+    <>
+    { showHeader && 
+    <>
+      <hr / > 
+      <h4 className="subtitle is-4">Gene Expression</h4> 
+    </>
+    } 
     <div className="card expression-plot">
       <article className="message no-protein-domains" role="alert">
         <div className="message-body">
@@ -45,6 +52,7 @@ function NoExpression() {
         </div>
       </article>
     </div>
+   </>
   );
 }
 
