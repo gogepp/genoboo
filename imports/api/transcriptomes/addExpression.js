@@ -123,7 +123,7 @@ const parseExpressionTsv = ({
         const gene = Genes.findOne(geneQuery);
 
         if (typeof gene === 'undefined') {
-          logger.warn(`${target_id} not found`);
+          logger.warn(`${row[firstColumn]} not found`);
         } else {
           nInserted += 1;
           replicaGroups.forEach((replicaGroup) => {
