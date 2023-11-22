@@ -4,7 +4,7 @@ import { withTracker } from 'meteor/react-meteor-data';
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
-import SearchBar from './SearchBar.jsx';
+import SearchBar from '/imports/ui/main/SearchBar.jsx';
 
 import getQueryCount from '/imports/api/methods/getQueryCount.js';
 import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
@@ -43,7 +43,10 @@ function Stats({ genomes = [] }) {
             genomes.map(({
               _id, name, isPublic, annotationTrack
             }) => {
-              annotationTrack.map((annotation) => (
+              if (typeof annotationTrack === 'undefined'){
+                return []
+              }
+              return annotationTrack.map((annotation) => (
                   <tr key={_id} className="list-group-item d-flex justify-content-between">
                     <td>{name}</td>
                     <td>{ annotation.name }</td>
@@ -87,7 +90,7 @@ function statsDataTracker() {
 }
 
 function hasNoGenomes({ genomes }) {
-  return typeof genomes === 'undefined' || genomes.length === 0;
+  return typeof genomes === 'undefined' || genomes.length === 0 || !genomes.some((genome) => typeof genome.annotationTrack !== 'undefined' && genome.annotationTrack.length > 0);;
 }
 
 function NoGenomes() {
@@ -96,14 +99,14 @@ function NoGenomes() {
       ? (
         <article className="message is-info" role="alert">
           <div className="message-body">
-            Currently no genomes are available
+            Currently no annotated genomes are available
           </div>
         </article>
       )
       : (
         <article className="message is-info" role="alert">
           <div className="message-body">
-            No public genomes are available.&nbsp;
+            No public annotated genomes are available.&nbsp;
             {! Meteor.settings.public.disable_user_login && (
               <>
               <Link to="/login">
@@ -148,10 +151,12 @@ function LandingPage() {
     <>
       <section className="hero is-small is-light is-bold">
         <div className="hero-body">
-          { !Meteor.settings.public.disable_title &&
+          { !Meteor.settings.public.disable_title && (
+          <>
           <h1 className="title"> GeneNoteBook </h1>
           <h2 className="subtitle"> A collaborative notebook for genes and genomes </h2>
-          }
+          </>
+          )}
           <div className="box">
             <p className="font-weight-light">
               Through this site you can browse and query data for the following genomes:
