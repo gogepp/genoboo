@@ -175,7 +175,7 @@ function SearchBar({
           </div>
         </div>
         }
-        <div className="control " + expanded>
+        <div className={"control " + expanded}>
           <input
             type="text"
             className={"input " + size }
