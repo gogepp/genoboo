@@ -151,7 +151,7 @@ function LandingPage() {
     <>
       <section className="hero is-small is-light is-bold">
         <div className="hero-body">
-          { !Meteor.settings.public.disable_title && (
+          { !Meteor.settings.public.disable_header && (
           <>
           <h1 className="title"> GeneNoteBook </h1>
           <h2 className="subtitle"> A collaborative notebook for genes and genomes </h2>
@@ -179,10 +179,12 @@ function LandingPage() {
               &nbsp;Sign in
             </Link>
             )}
+            { !Meteor.settings.public.disable_header && (
             <a href="http://genenotebook.github.io/" className="button is-dark is-outlined">
               <span className="icon-github" aria-hidden="true" />
               &nbsp;About GeneNotebook
             </a>
+            )}
           </div>
           )
         }
@@ -247,7 +249,7 @@ function LandingPage() {
                     protein domains or manual annotations.
                   </div>
                   <div className="content">
-                    <SearchBar />
+                    <SearchBar isBlock={true}/>
                   </div>
                 </div>
               </div>

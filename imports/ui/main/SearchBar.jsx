@@ -51,6 +51,7 @@ function SearchBar({
   searchString: initialSearchString,
   attributes,
   highLightSearch,
+  isBlock: false
 }) {
   const [redirect, setRedirect] = useState(false);
   const [searchString, setSearchString] = useState(initialSearchString);
@@ -128,9 +129,13 @@ function SearchBar({
   let label = Meteor.settings.public.externalSearch ? "Select attributes to display" : "Select attributes to search"
   let display_attr = Meteor.settings.public.redirectSearch ? false : true
 
+  const className = "navbar-item" if isBlock else "navbar-item is-pulled-right"
+  const size = "" if isBlock else "is-small"
+  const expanded = "is-expanded " if isBlock else ""
+
   return (
     <form
-      className="navbar-item is-pulled-right"
+      className={className}
       role="search"
       onSubmit={submit}
     >
@@ -139,7 +144,7 @@ function SearchBar({
         <div className="control has-dropdown">
           <div className="dropdown is-hoverable">
             <div className="dropdown-trigger">
-              <button type="button" className="button is-small">
+              <button type="button" className={"button " + size }>
                 <span className="icon">
                   <span className="icon-down" />
                 </span>
@@ -173,7 +178,7 @@ function SearchBar({
         <div className="control">
           <input
             type="text"
-            className="input is-small"
+            className={"input " + expanded + size }
             placeholder="Search genes"
             value={searchString}
             onChange={(event) => setSearchString(event.target.value)}
@@ -182,7 +187,7 @@ function SearchBar({
           />
         </div>
         <div className="control">
-          <button type="submit" className="button is-small" disabled={invalidForm()}>
+          <button type="submit" className={"button " + size } disabled={invalidForm()}>
             <span className="icon-search" />
           </button>
         </div>
