@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.10] 2023-11-23
+
+### Added
+
+- Added 'disable_header' config option, to hide GeneNotebook links and display on the landing page
+
+### Fixed
+
+- Fixed test CI
+- Fixed gene list not re-rendering properly when searching
+- Fixed search block on the bottom of the landing page
+
 ## [0.4.9] 2023-11-17
 
 ### Fixed

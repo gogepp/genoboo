@@ -4,6 +4,7 @@ import { withTracker } from 'meteor/react-meteor-data';
 import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import SearchBar from '/imports/ui/main/SearchBar.jsx';
 
 import getQueryCount from '/imports/api/methods/getQueryCount.js';
 import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
@@ -14,9 +15,9 @@ import {
 
 import './landingpage.scss';
 
-function GeneNumber({ _id: genomeId }) {
+function GeneNumber({ _id: genomeId, annotationName: annotationName }) {
   const [geneNumber, setGeneNumber] = useState('...');
-  getQueryCount.call({ query: { genomeId } }, (err, res) => {
+  getQueryCount.call({ query: { genomeId, annotationName } }, (err, res) => {
     setGeneNumber(res);
   });
   return (
@@ -31,8 +32,8 @@ function Stats({ genomes = [] }) {
         <table className="table is-hoverable is-fullwidth has-background-white-bis">
           <thead>
             <tr>
-              <th className="has-text-weight-bold">Name</th>
-              <th className="has-text-weight-bold">Organism</th>
+              <th className="has-text-weight-bold">Genome</th>
+              <th className="has-text-weight-bold">Annotation</th>
               <th className="has-text-weight-bold has-text-centered">Status</th>
               <th className="has-text-weight-bold has-text-right">&#8470; genes</th>
             </tr>
@@ -40,23 +41,28 @@ function Stats({ genomes = [] }) {
           <tbody>
             {
             genomes.map(({
-              _id, name, organism, isPublic,
-            }) => (
-              <tr key={_id} className="list-group-item d-flex justify-content-between">
-                <td>{name}</td>
-                <td>{ organism }</td>
-                <td className="has-text-centered">
-                  {
-                  isPublic
-                    ? <span className="tag is-success is-light">Public</span>
-                    : <span className="tag is-warning is-light">Private</span>
-                  }
-                </td>
-                <td className="has-text-right">
-                  <GeneNumber _id={_id} />
-                </td>
-              </tr>
-            ))
+              _id, name, isPublic, annotationTrack
+            }) => {
+              if (typeof annotationTrack === 'undefined'){
+                return []
+              }
+              return annotationTrack.map((annotation) => (
+                  <tr key={annotation._id} className="list-group-item d-flex justify-content-between">
+                    <td>{name}</td>
+                    <td>{ annotation.name }</td>
+                    <td className="has-text-centered">
+                      {
+                      isPublic
+                        ? <span className="tag is-success is-light">Public</span>
+                        : <span className="tag is-warning is-light">Private</span>
+                      }
+                    </td>
+                    <td className="has-text-right">
+                      <GeneNumber _id={_id} annotationName={annotation.name} />
+                    </td>
+                  </tr>
+              ))
+            })
           }
           </tbody>
         </table>
@@ -84,7 +90,7 @@ function statsDataTracker() {
 }
 
 function hasNoGenomes({ genomes }) {
-  return typeof genomes === 'undefined' || genomes.length === 0;
+  return typeof genomes === 'undefined' || genomes.length === 0 || !genomes.some((genome) => typeof genome.annotationTrack !== 'undefined' && genome.annotationTrack.length > 0);;
 }
 
 function NoGenomes() {
@@ -93,21 +99,21 @@ function NoGenomes() {
       ? (
         <article className="message is-info" role="alert">
           <div className="message-body">
-            Currently no genomes are available
+            Currently no annotated genomes are available
           </div>
         </article>
       )
       : (
         <article className="message is-info" role="alert">
           <div className="message-body">
-            No public genomes are available.&nbsp;
+            No public annotated genomes are available.&nbsp;
             {! Meteor.settings.public.disable_user_login && (
               <>
               <Link to="/login">
                 Sign in
               </Link>
               &nbsp;to access private data.
-              </> 
+              </>
             )}
           </div>
         </article>
@@ -139,14 +145,18 @@ function LandingPage() {
       </a>
     )
   }
- 
+
 
   return (
     <>
       <section className="hero is-small is-light is-bold">
         <div className="hero-body">
+          { !Meteor.settings.public.disable_header && (
+          <>
           <h1 className="title"> GeneNoteBook </h1>
           <h2 className="subtitle"> A collaborative notebook for genes and genomes </h2>
+          </>
+          )}
           <div className="box">
             <p className="font-weight-light">
               Through this site you can browse and query data for the following genomes:
@@ -157,7 +167,7 @@ function LandingPage() {
           !Meteor.userId()
           && (
           <div className="buttons are-small" role="group">
-            {! (Meteor.settings.public.disable_user_login === true || Meteor.settings.public.disable_user_registration === true) && ( 
+            {! (Meteor.settings.public.disable_user_login === true || Meteor.settings.public.disable_user_registration === true) && (
             <Link to="/register" className="button is-success">
               <span className="icon-user-add" aria-hidden="true" />
               &nbsp;Create account
@@ -169,10 +179,12 @@ function LandingPage() {
               &nbsp;Sign in
             </Link>
             )}
+            { !Meteor.settings.public.disable_header && (
             <a href="http://genenotebook.github.io/" className="button is-dark is-outlined">
               <span className="icon-github" aria-hidden="true" />
               &nbsp;About GeneNotebook
             </a>
+            )}
           </div>
           )
         }
@@ -233,15 +245,9 @@ function LandingPage() {
                     </div>
                   </div>
                   <div className="content">
-                    Search genes by their attributes, such as GO-terms,
-                    protein domains or manual annotations.
+                    Search genes by their attributes, such as GO-terms, or protein domains.
                   </div>
-                  <div className="content">
-                    <Link to={{ path: '/', state: { highLightSearch: true } }} className="button is-warning is-light is-fullwidth">
-                      <span className="icon-search" aria-hidden="true" />
-                &nbsp;Search
-                    </Link>
-                  </div>
+                  <SearchBar isBlock={true}/>
                 </div>
               </div>
             </div>
@@ -269,7 +275,7 @@ function LandingPage() {
                   <div className="content">
                     BLAST your protein or DNA sequence to genome annotations.
                   </div>
-                  <div className="content"> 
+                  <div className="content">
                     {blastLink}
                   </div>
                 </div>
