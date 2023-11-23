@@ -47,7 +47,7 @@ function Stats({ genomes = [] }) {
                 return []
               }
               return annotationTrack.map((annotation) => (
-                  <tr key={_id} className="list-group-item d-flex justify-content-between">
+                  <tr key={annotation._id} className="list-group-item d-flex justify-content-between">
                     <td>{name}</td>
                     <td>{ annotation.name }</td>
                     <td className="has-text-centered">
