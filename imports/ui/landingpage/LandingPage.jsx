@@ -245,8 +245,7 @@ function LandingPage() {
                     </div>
                   </div>
                   <div className="content">
-                    Search genes by their attributes, such as GO-terms,
-                    protein domains or manual annotations.
+                    Search genes by their attributes, such as GO-terms, or protein domains.
                   </div>
                   <SearchBar isBlock={true}/>
                 </div>
