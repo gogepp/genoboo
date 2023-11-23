@@ -236,7 +236,7 @@ function GeneTableBody({
   return (
     <tbody className="genetable-body">
       {genes.map((gene) => (
-        <GeneTableRow key={gene.ID} gene={gene} {...props} />
+        <GeneTableRow key={gene._id._str} gene={gene} {...props} />
       ))}
     </tbody>
   );
