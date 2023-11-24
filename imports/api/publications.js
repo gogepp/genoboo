@@ -86,13 +86,14 @@ Meteor.publish({
       let url = config.externalSearchOptions.url.replace(/,+$/, "") + "/";
       let paramsDict = {}
       let geneField = config.externalSearchOptions.gene_field ? config.externalSearchOptions.gene_field : "geneId"
+      let annotationField = config.externalSearchOptions.annotation_field ? config.externalSearchOptions.annotation_field : "annotation"
       if (config.externalSearchOptions.query_param){
         paramsDict[config.externalSearchOptions.query_param] = query.query
       } else {
         url += query.query
       }
       if (config.externalSearchOptions.field_param){
-        paramsDict[config.externalSearchOptions.field_param] = geneField
+        paramsDict[config.externalSearchOptions.field_param] = geneField + "," + annotationField
       }
 
       if (config.externalSearchOptions.count_param){
@@ -103,9 +104,11 @@ Meteor.publish({
       url = url + "?" + new URLSearchParams(paramsDict)
       const response = HTTP.get(url);
       if (response.statusCode === 200){
-        geneResults = response.data.data.map(result => result._source[geneField])
+        geneResults = response.data.data.map(result => {
+          return {"ID": result._source[geneField], "annotationName": result._source[annotationField]}
+        })
       }
-      transformedQuery = {genomeId: { $in: queryGenomeIds }, ID: { $in: geneResults }}
+      transformedQuery = {genomeId: { $in: queryGenomeIds }, $or: geneResults}
     } else {
       transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
     }
@@ -120,7 +123,13 @@ Meteor.publish({
     if (typeof geneId === 'undefined') {
       Object.assign(query, { 'subfeatures.ID': transcriptId });
     } else {
-      Object.assign(query, { ID: geneId });
+      Object.assign(query, {
+        $or: [
+          {'ID': geneId},
+          { 'subfeatures.ID': geneId },
+          { 'subfeatures.protein_id': geneId },
+        ],
+      });
     }
 
     return Genes.find(query);

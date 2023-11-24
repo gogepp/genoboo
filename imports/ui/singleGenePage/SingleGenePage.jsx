@@ -84,9 +84,22 @@ function geneDataTracker({ match, genomeDataCache, location }) {
   const geneSub = Meteor.subscribe('singleGene', { geneId });
   let genes
   if (annotation) {
-    genes = Genes.find({ ID: geneId, annotationName: annotation }).fetch();
+    genes = Genes.find({
+      $or: [
+        {'ID': geneId},
+        { 'subfeatures.ID': geneId },
+        { 'subfeatures.protein_id': geneId },
+      ],
+      annotationName: annotation
+    }).fetch();
   } else {
-    genes = Genes.find({ ID: geneId }).fetch();
+    genes = Genes.find({
+      $or: [
+        {'ID': geneId},
+        { 'subfeatures.ID': geneId },
+        { 'subfeatures.protein_id': geneId },
+      ]
+    }).fetch();
   }
 
   const loading = !geneSub.ready();
