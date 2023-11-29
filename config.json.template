@@ -13,6 +13,7 @@
   "externalSearchOptions": {
     "url": "http://0.0.0.0:80",
     "gene_field": "gene_id",
+    "annotation_field": "annotation",
     "query_param": "q",
     "field_param": "display_fields",
     "count_param": "max_results"

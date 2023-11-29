@@ -86,14 +86,17 @@ Meteor.publish({
       let url = config.externalSearchOptions.url.replace(/,+$/, "") + "/";
       let paramsDict = {}
       let geneField = config.externalSearchOptions.gene_field ? config.externalSearchOptions.gene_field : "geneId"
-      let annotationField = config.externalSearchOptions.annotation_field ? config.externalSearchOptions.annotation_field : "annotation"
+      let annotationField = config.externalSearchOptions.annotation_field ? config.externalSearchOptions.annotation_field : ""
       if (config.externalSearchOptions.query_param){
         paramsDict[config.externalSearchOptions.query_param] = query.query
       } else {
         url += query.query
       }
       if (config.externalSearchOptions.field_param){
-        paramsDict[config.externalSearchOptions.field_param] = geneField + "," + annotationField
+        paramsDict[config.externalSearchOptions.field_param] = geneField
+        if (config.externalSearchOptions.annotation_field) {
+          paramsDict[config.externalSearchOptions.field_param] += "," + annotationField
+        }
       }
 
       if (config.externalSearchOptions.count_param){
@@ -105,7 +108,11 @@ Meteor.publish({
       const response = HTTP.get(url);
       if (response.statusCode === 200){
         geneResults = response.data.data.map(result => {
-          return {"ID": result._source[geneField], "annotationName": result._source[annotationField]}
+          if (config.externalSearchOptions.annotation_field){
+            return {"ID": result._source[geneField], "annotationName": result._source[annotationField]}
+          } else {
+            return {"ID": result._source[geneField]}
+          }
         })
       }
       transformedQuery = {genomeId: { $in: queryGenomeIds }, $or: geneResults}
