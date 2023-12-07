@@ -115,7 +115,8 @@ Meteor.publish({
           }
         })
       }
-      transformedQuery = {genomeId: { $in: queryGenomeIds }, $or: geneResults}
+      delete query.query
+      transformedQuery = {...query, genomeId: { $in: queryGenomeIds }, $or: geneResults}
     } else {
       transformedQuery = { ...query, genomeId: { $in: queryGenomeIds } };
     }
