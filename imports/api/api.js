@@ -1,3 +1,5 @@
+import { WebApp } from 'meteor/webapp';
+import logger from '/imports/api/util/logger.js';
 import './publications.js';
 
 /**
@@ -58,3 +60,9 @@ import './jobqueue/process-eggnog.js';
 import './jobqueue/process-hectar.js';
 import './jobqueue/process-similarsequences.js';
 import './jobqueue/process-orthogroup.js';
+
+WebApp.connectHandlers.use('/healthcheck', (req, res, next) => {
+  logger.log("Healthcheck OK")
+  res.writeHead(200);
+  res.end("OK");
+});

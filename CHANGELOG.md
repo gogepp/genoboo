@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.13] 2024-02-05
+
+### Added
+
+- Added /healthcheck endpoint to improve galaxy tool build (Will write a line in logs, and send a 200 response)
+
 ## [0.4.12] 2023-12-07
 
 ### Fixed
