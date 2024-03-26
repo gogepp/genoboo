@@ -23,7 +23,6 @@ class HectarProcessor {
    * hectar.
    */
   getNumberHectar() {
-    console.log("TEST CONSOLE.LOG")
     return this.nHectar;
   }
 
