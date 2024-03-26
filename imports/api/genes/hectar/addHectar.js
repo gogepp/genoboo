@@ -23,6 +23,7 @@ class HectarProcessor {
    * hectar.
    */
   getNumberHectar() {
+    console.log("TEST CONSOLE.LOG")
     return this.nHectar;
   }
 
@@ -57,10 +58,10 @@ class HectarProcessor {
       // Filters undefined data (with a dash) and splits into an array for
       // comma-separated data.
       for (const [key, value] of Object.entries(annotations)) {
-        if (value[0] === '-') {
+        if (value === undefined || value[0] === '-') {
           annotations[key] = undefined;
         }
-        if (value.indexOf(',') > -1) {
+        if (value !== undefined && value.indexOf(',') > -1) {
           annotations[key] = value.split(',');
         }
       }
