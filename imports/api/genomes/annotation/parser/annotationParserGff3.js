@@ -358,6 +358,8 @@ class AnnotationProcessor {
         features.attributes,
       );
       this.geneLevelHierarchy.attributes = attributesFiltered;
+
+      this.geneLevelHierarchy.subfeatures = [];
     } else {
       // Create an array if not exists for the subfeatures (exons, cds ...) of
       // the gene.
@@ -446,7 +448,7 @@ class AnnotationProcessor {
       GeneSchema.validate(geneWithoutId);
     } catch (err) {
       logger.error(err)
-      throw new Error('There is something wrong with the gene collection schema');
+      throw new Error('Current gene is not valid, stopping');
     }
     return true;
   };
@@ -538,6 +540,9 @@ class AnnotationProcessor {
 
           this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
 
+          // Validate schema before adding to bulk
+          this.isValidateGeneSchema();
+
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy)
 
@@ -554,7 +559,8 @@ class AnnotationProcessor {
           // Arbitrary break up of batch size to save ram
           if (this.geneBulkOperation.length > 500) {
               this.isReset = true
-              return this.geneBulkOperation.execute();
+              let execute = Meteor.wrapAsync(this.geneBulkOperation.execute, this.geneBulkOperation);
+              return execute()
           }
         }
       } else {
