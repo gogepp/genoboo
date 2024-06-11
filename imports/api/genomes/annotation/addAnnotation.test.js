@@ -63,7 +63,7 @@ describe('AddAnnotation', function testAnnotation() {
     chai.assert.equal(gene.start, 13640);
     chai.assert.equal(gene.end, 15401);
 
-    chai.assert.lengthOf(gene.subfeatures, 13, 'Number of subfeatures is not 13');
+    chai.assert.lengthOf(gene.subfeatures, 14, 'Number of subfeatures is not 14');
 
     // Check CDS with the same ID
     has_default_cds = gene.subfeatures.some((sub) => sub.type == "CDS" && sub.ID == "Bni|B01g000010.2N.1.cds1")

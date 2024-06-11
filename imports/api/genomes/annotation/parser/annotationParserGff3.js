@@ -395,7 +395,7 @@ class AnnotationProcessor {
 
       // Manage case of discontinuous CDS: Same ID -> we add a suffix to avoid crashing
       if (typeAttr === 'CDS'){
-        if identifiant in this.cds_ids:
+        if (identifiant in this.cds_ids){
            identifiant = identifiant + "." + this.cds_ids[identifiant]
            this.cds_ids[identifiant] += 1
         } else {
