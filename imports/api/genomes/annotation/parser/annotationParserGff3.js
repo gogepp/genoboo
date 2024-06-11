@@ -51,6 +51,8 @@ class AnnotationProcessor {
     // (this.IdParents[parents[0]] in addChildren function).
     this.IdParents = {};
     this.indexIdParent = 0;
+
+    this.cds_ids = {};
   }
 
   /**
@@ -389,7 +391,18 @@ class AnnotationProcessor {
         );
       }
 
-      const identifiant = features.ID
+      let identifiant = features.ID
+
+      // Manage case of discontinuous CDS: Same ID -> we add a suffix to avoid crashing
+      if (typeAttr === 'CDS'){
+        if identifiant in this.cds_ids:
+           identifiant = identifiant + "." + this.cds_ids[identifiant]
+           this.cds_ids[identifiant] += 1
+        } else {
+          this.cds_ids[identifiant] = 1
+        }
+      }
+
       let proteinID
 
       // Complete ID parents.
@@ -530,7 +543,7 @@ class AnnotationProcessor {
           // Increment.
           this.nAnnotation += 1;
 
-	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+      	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
             if(typeof children.protein_id === 'undefined'){
               return []
             } else {
@@ -552,6 +565,7 @@ class AnnotationProcessor {
           this.shiftSequence = 0;
           this.IdParents = {};
           this.indexIdParent = 0;
+          this.cds_ids = {};
 
           // Init new gene.
           this.initGeneHierarchy(features);
