@@ -51,6 +51,8 @@ class AnnotationProcessor {
     // (this.IdParents[parents[0]] in addChildren function).
     this.IdParents = {};
     this.indexIdParent = 0;
+
+    this.cds_ids = {};
   }
 
   /**
@@ -358,6 +360,8 @@ class AnnotationProcessor {
         features.attributes,
       );
       this.geneLevelHierarchy.attributes = attributesFiltered;
+
+      this.geneLevelHierarchy.subfeatures = [];
     } else {
       // Create an array if not exists for the subfeatures (exons, cds ...) of
       // the gene.
@@ -387,7 +391,18 @@ class AnnotationProcessor {
         );
       }
 
-      const identifiant = features.ID
+      let identifiant = features.ID
+
+      // Manage case of discontinuous CDS: Same ID -> we add a suffix to avoid crashing
+      if (typeAttr === 'CDS'){
+        if (identifiant in this.cds_ids){
+           identifiant = identifiant + "." + this.cds_ids[identifiant]
+           this.cds_ids[identifiant] += 1
+        } else {
+          this.cds_ids[identifiant] = 1
+        }
+      }
+
       let proteinID
 
       // Complete ID parents.
@@ -446,7 +461,7 @@ class AnnotationProcessor {
       GeneSchema.validate(geneWithoutId);
     } catch (err) {
       logger.error(err)
-      throw new Error('There is something wrong with the gene collection schema');
+      throw new Error('Current gene is not valid, stopping');
     }
     return true;
   };
@@ -528,7 +543,7 @@ class AnnotationProcessor {
           // Increment.
           this.nAnnotation += 1;
 
-	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
+      	  const protein_ids = this.geneLevelHierarchy.subfeatures.flatMap(children => {
             if(typeof children.protein_id === 'undefined'){
               return []
             } else {
@@ -537,6 +552,9 @@ class AnnotationProcessor {
           })
 
           this.geneLevelHierarchy.children = this.geneLevelHierarchy.children.concat(protein_ids)
+
+          // Validate schema before adding to bulk
+          this.isValidateGeneSchema();
 
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy)
@@ -547,6 +565,7 @@ class AnnotationProcessor {
           this.shiftSequence = 0;
           this.IdParents = {};
           this.indexIdParent = 0;
+          this.cds_ids = {};
 
           // Init new gene.
           this.initGeneHierarchy(features);
@@ -554,7 +573,8 @@ class AnnotationProcessor {
           // Arbitrary break up of batch size to save ram
           if (this.geneBulkOperation.length > 500) {
               this.isReset = true
-              return this.geneBulkOperation.execute();
+              let execute = Meteor.wrapAsync(this.geneBulkOperation.execute, this.geneBulkOperation);
+              return execute()
           }
         }
       } else {
