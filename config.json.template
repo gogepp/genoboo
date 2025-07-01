@@ -8,7 +8,13 @@
     "expression_unit": "My unit",
     "externalSearch": false,
     "redirectSearch": "",
-    "redirectSearchAttribute": ""
+    "redirectSearchAttribute": "",
+    "gene_dbxref": [
+       {"url": "https://test_url_gene/#GENEID", "label": "my gene label"}
+    ],
+    "protein_dbxref": [
+       {"url": "https://test_url_protein/#PROTEINID", "label": "my protein label"}
+    ]
   },
   "externalSearchOptions": {
     "url": "http://0.0.0.0:80",

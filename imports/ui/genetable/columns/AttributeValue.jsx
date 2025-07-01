@@ -13,17 +13,29 @@ function isArray(x) {
 }
 
 function notDbxref({ value }) {
+  if (typeof value === "object" && !Array.isArray(value)){
+    return true
+  }
+
+  let val = String(value)
   return !(
-    DBXREF_REGEX.go.test(value)
-    || DBXREF_REGEX.interpro.test(value)
+    DBXREF_REGEX.go.test(val)
+    || DBXREF_REGEX.interpro.test(val)
   );
 }
 
 function SimpleAttribute({ value }) {
-  return value;
+  // Manage custom dbxref
+  if (typeof value === "object" && !Array.isArray(value)){
+    return(
+    <><a href={value.url}>{value.label}</a></>
+    )
+  }
+  return String(value);
 }
 
 function dbxrefTracker({ value: dbxrefId }) {
+  dbxrefId = String(dbxrefId)
   const sub = Meteor.subscribe('dbxref', { dbxrefId });
   const loading = !sub.ready();
   const dbxref = dbxrefCollection.findOne({ dbxrefId });
@@ -67,7 +79,7 @@ function AttributeValueArray({
         values.map((value) => (
           <li key={value} className="list-group-item py-0 px-0">
             <DetailedSingleAttribute
-              value={String(value)}
+              value={value}
             />
           </li>
         ))
@@ -97,16 +109,6 @@ function AttributeValueArray({
 }
 
 
-function AttributeValueObject({attrObject}) {
-  return (
-    <ul>
-      <li key={attrObject.label} className="list-group-item py-0 px-0">
-          <a href={attrObject.url}>{attrObject.label}</a>
-      </li>
-    </ul>
-  );
-}
-
 export default function AttributeValue({ attributeValue }) {
   const [showAll, setShowAll] = useState(false);
   function toggleShowAll() {
@@ -115,14 +117,6 @@ export default function AttributeValue({ attributeValue }) {
 
   if (typeof attributeValue === 'undefined') {
     return <p />;
-  }
-
-  if (typeof attributeValue === 'object') {
-    return (
-      <AttributeValueObject
-        attrObject={attributeValue}
-      />
-    );
   }
 
   const attrArray = isArray(attributeValue)

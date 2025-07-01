@@ -230,30 +230,37 @@ function GeneInfo({
   } = gene;
   const currentVersion = editHistory[0];
 
-  if( Meteor.settings.public.protein_dbxref && typeof Meteor.settings.public.protein_dbxref == "array" && Meteor.settings.public.protein_dbxref.length > 0){
+  if( Meteor.settings.public.protein_dbxref && Array.isArray(Meteor.settings.public.protein_dbxref) && Meteor.settings.public.protein_dbxref.length > 0){
+    if (! gene.attributes['Dbxref']){
+      gene.attributes['Dbxref'] = []
+    }
+
     const protein_ids = gene.subfeatures
       .filter((sub) => sub.type === 'mRNA')
       .map((transcript) => transcript.protein_id)
       .sort();
 
-    for (dbxref in Meteor.settings.public.protein_dbxref ){
-      if (! dbxref.url){continue}
-      for (prot_id in protein_ids){
+    Meteor.settings.public.protein_dbxref.forEach((dbxref) => {
+      if (! dbxref.url){return}
+      protein_ids.forEach((prot_id) => { 
         let prot_url = dbxref.url.replace("#PROTEINID", prot_id)
         let prot_label = dbxref.label ? dbxref.label.replace("#PROTEINID", prot_id) : ""
         gene.attributes['Dbxref'].unshift({url: prot_url, label: prot_label})
-      }
-    }
+      })
+    })
   }
 
-  if( Meteor.settings.public.gene_dbxref && typeof Meteor.settings.public.gene_dbxref == "array" && Meteor.settings.public.gene_dbxref.length > 0){
-    for (dbxref in Meteor.settings.public.gene_dbxref ){
-      if (! dbxref.url){continue}
+  if( Meteor.settings.public.gene_dbxref && Array.isArray(Meteor.settings.public.gene_dbxref) && Meteor.settings.public.gene_dbxref.length > 0){
+    if (! gene.attributes['Dbxref']){
+      gene.attributes['Dbxref'] = []
+    }
 
+    Meteor.settings.public.gene_dbxref.forEach((dbxref) => {
+      if (! dbxref.url){return}
       let gene_url = dbxref.url.replace("#GENEID", gene.ID)
       let gene_label = dbxref.label ? dbxref.label.replace("#GENEID", gene.ID) : ""
       gene.attributes['Dbxref'].unshift({url: gene_url, label: gene_label})
-    }
+    })
   }
 
   const [reversions, setReversions] = useState(0);
