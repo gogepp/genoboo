@@ -53,43 +53,7 @@ const DetailedSingleAttribute = compose(
   branch(notDbxref, SimpleAttribute),
   withTracker(dbxrefTracker),
 )(DbxrefAttribute);
-/*
-function DetailedSingleAttribute({ value: valueStr }) {
-  const [description, setDescription] = useState('');
 
-  let url;
-
-  if (/^(GO:[0-9]{7})$/.test(valueStr)) {
-    url = `http://amigo.geneontology.org/amigo/term/${valueStr}`;
-    fetch(`http://api.geneontology.org/api/bioentity/${valueStr}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setDescription(data.label);
-      })
-      .catch(console.log);
-  } else if (/^(InterPro:IPR[0-9]{6})$/.test(valueStr)) {
-    url = `https://www.ebi.ac.uk/interpro/entry/${valueStr.replace('InterPro:', '')}`;
-    fetch(`https://www.ebi.ac.uk/interpro/api/entry/interpro/${valueStr.replace('InterPro:', '')}`)
-      .then((res) => res.json())
-      .then((data) => {
-        setDescription(data.metadata.name.name);
-      })
-      .catch(console.log);
-  }
-
-  const value = url !== 'undefined'
-    ? <a href={url}>{valueStr}</a>
-    : valueStr;
-
-  return (
-    <>
-      { value}
-      {' '}
-      {description}
-    </>
-  );
-}
-*/
 
 function AttributeValueArray({
   attrArray, showAll, toggleShowAll, maxLength = 2,
@@ -132,37 +96,16 @@ function AttributeValueArray({
   );
 }
 
-/*
-function SingleAttributeValue({
-  attributeValue, showAll, toggleShowAll, maxLength = 100,
-}) {
-  // const [description, setDescription] = useState('');
-  const attrVal = String(attributeValue);
-  const value = showAll || attrVal.length <= maxLength
-    ? attrVal
-    : `${attrVal.slice(0, maxLength)}...`;
 
+function AttributeValueObject({attrObject}) {
   return (
-    <>
-      <p className="mb-1">
-        <DetailedSingleAttribute value={value} />
-      </p>
-      {
-        attrVal.length > maxLength
-        && (
-          <button
-            type="button"
-            className="is-link"
-            onClick={toggleShowAll}
-          >
-            <small>{showAll ? 'Show less' : 'Show more ...'}</small>
-          </button>
-        )
-      }
-    </>
+    <ul>
+      <li key={attrObject.label} className="list-group-item py-0 px-0">
+          <a href={attrObject.url}>{attrObject.label}</a>
+      </li>
+    </ul>
   );
 }
-*/
 
 export default function AttributeValue({ attributeValue }) {
   const [showAll, setShowAll] = useState(false);
@@ -172,6 +115,14 @@ export default function AttributeValue({ attributeValue }) {
 
   if (typeof attributeValue === 'undefined') {
     return <p />;
+  }
+
+  if (typeof attributeValue === 'object') {
+    return (
+      <AttributeValueObject
+        attrObject={attributeValue}
+      />
+    );
   }
 
   const attrArray = isArray(attributeValue)
