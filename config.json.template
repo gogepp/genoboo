@@ -10,10 +10,10 @@
     "redirectSearch": "",
     "redirectSearchAttribute": "",
     "gene_dbxref": [
-       {"url": "https://test_url_gene/#GENEID", "label": "my gene label"}
+       {"url": "https://test_url_gene/#GENEID", "label": "my gene label", "assembly": "", "annotation": ""}
     ],
     "protein_dbxref": [
-       {"url": "https://test_url_protein/#PROTEINID", "label": "my protein label"}
+       {"url": "https://test_url_protein/#PROTEINID", "label": "my protein label", "assembly": "", "annotation": ""}
     ]
   },
   "externalSearchOptions": {

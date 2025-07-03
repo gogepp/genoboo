@@ -242,7 +242,9 @@ function GeneInfo({
 
     Meteor.settings.public.protein_dbxref.forEach((dbxref) => {
       if (! dbxref.url){return}
-      protein_ids.forEach((prot_id) => { 
+      let constraint_match = (! dbxref.assembly || dbxref.assembly === genome.name) && (! dbxref.annotation || dbxref.annotation === gene.annotationName)
+      if (! constraint_match){return}
+      protein_ids.forEach((prot_id) => {
         let prot_url = dbxref.url.replace("#PROTEINID", prot_id)
         let prot_label = dbxref.label ? dbxref.label.replace("#PROTEINID", prot_id) : ""
         gene.attributes['Dbxref'].unshift({url: prot_url, label: prot_label})
@@ -259,6 +261,8 @@ function GeneInfo({
       if (! dbxref.url){return}
       let gene_url = dbxref.url.replace("#GENEID", gene.ID)
       let gene_label = dbxref.label ? dbxref.label.replace("#GENEID", gene.ID) : ""
+      let constraint_match = (! dbxref.assembly || dbxref.assembly === genome.name) && (! dbxref.annotation || dbxref.annotation === gene.annotationName)
+      if (! constraint_match){return}
       gene.attributes['Dbxref'].unshift({url: gene_url, label: gene_label})
     })
   }
@@ -392,9 +396,6 @@ function GeneInfo({
               <td>Genome</td>
               <td>
                 {`${genome.name} `}
-                <small>
-                  { genome.organism }
-                </small>
               </td>
             </tr>
             <tr>
