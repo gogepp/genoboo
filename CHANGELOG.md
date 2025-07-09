@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.4.18] Unreleased
 
 - Fix GO API call
+- Add external links to genes and proteins via config file
+- Fix isoform headers
 
 ## [0.4.17] 2025-06-17
 
