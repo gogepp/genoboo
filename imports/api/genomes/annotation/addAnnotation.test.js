@@ -3,6 +3,7 @@ import chai from 'chai';
 import { resetDatabase } from 'meteor/xolvio:cleaner';
 import { addTestUsers, addTestGenome } from '../../../startup/server/fixtures/addTestData';
 import { Genes } from '../../genes/geneCollection';
+import { genomeCollection } from '/imports/api/genomes/genomeCollection.js';
 import addAnnotation from './addAnnotation';
 import '../../jobqueue/process-annotation';
 import logger from '/imports/api/util/logger.js';
@@ -49,6 +50,12 @@ describe('AddAnnotation', function testAnnotation() {
     addAnnotation._execute(adminContext, toAnnot);
 
     const genes = Genes.find({ genomeId: genomeId }).fetch();
+    const genome = genomeCollection.find({_id: genomeId}).fetch()[0]
+
+    chai.assert.lengthOf(genome.annotationTrack, 1, "Number of annotation tracks is not 1")
+    const gene_count = genome.annotationTrack[0].geneCount
+
+    chai.assert.equal(gene_count, 5, "geneCount is not equal to 5")
 
     chai.assert.lengthOf(genes, 5, 'Number of created genes is not 5');
 
