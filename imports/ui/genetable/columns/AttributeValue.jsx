@@ -8,8 +8,11 @@ import { DBXREF_REGEX } from '/imports/api/util/util.js';
 
 import { compose, branch } from '/imports/ui/util/uiUtil.jsx';
 
+
+// Unsure of the length check here?
 function isArray(x) {
-  return Array.isArray(x) && x.length > 1;
+  return Array.isArray(x) && x.length >= 1;
+//  return Array.isArray(x) && x.length > 1;
 }
 
 function notDbxref({ value }) {
