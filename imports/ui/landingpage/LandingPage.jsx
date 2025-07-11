@@ -15,11 +15,20 @@ import {
 
 import './landingpage.scss';
 
-function GeneNumber({ _id: genomeId, annotationName: annotationName }) {
+function GeneNumber({ _id: genomeId, annotation: annotation }) {
   const [geneNumber, setGeneNumber] = useState('...');
-  getQueryCount.call({ query: { genomeId, annotationName } }, (err, res) => {
-    setGeneNumber(res);
-  });
+
+  if (annotation.geneCount){
+    return (
+      <p>{ annotation.geneCount }</p>
+    );
+  } else {
+    //Retro-compatibility
+    const annotationName = annotation.name
+    getQueryCount.call({ query: { genomeId,  annotationName } }, (err, res) => {
+      setGeneNumber(res);
+    });
+  }
   return (
     <p>{ geneNumber }</p>
   );
@@ -58,7 +67,7 @@ function Stats({ genomes = [] }) {
                       }
                     </td>
                     <td className="has-text-right">
-                      <GeneNumber _id={_id} annotationName={annotation.name} />
+                      <GeneNumber _id={_id} annotation={annotation} />
                     </td>
                   </tr>
               ))

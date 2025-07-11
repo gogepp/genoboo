@@ -25,7 +25,8 @@ const fetchDbxref = new ValidatedMethod({
     switch (true) {
       case DBXREF_REGEX.go.test(dbxrefId):
         publicUrl = `http://amigo.geneontology.org/amigo/term/${dbxrefId}`;
-        apiUrl = `https://api.geneontology.org/api/go/${dbxrefId}`;
+//        apiUrl = `https://api.geneontology.org/api/go/${dbxrefId}`;
+        apiUrl =  `https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/${dbxrefId}`;
         dbType = 'go';
         break;
       case DBXREF_REGEX.interpro.test(dbxrefId):
@@ -39,6 +40,7 @@ const fetchDbxref = new ValidatedMethod({
     if (
       typeof dbType !== 'undefined'
     ) {
+      console.log("Should fetch " + apiUrl)
       return fetch(apiUrl)
         .then((res) => {
           //console.log({ res, status: res.status });
@@ -50,7 +52,7 @@ const fetchDbxref = new ValidatedMethod({
         .then((data) => {
           switch (dbType) {
             case 'go':
-              description = data.label;
+              description = data.results[0].name;
               break;
             case 'interpro':
               description = data.metadata.name.name;

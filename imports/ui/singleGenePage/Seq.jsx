@@ -91,7 +91,7 @@ export function Seq({
       // CDS, exons ...
       setTopHeader(headers[0]);
     }
-  }, [seqType]);
+  }, [seqType, headers]);
 
   const exceedsMaxLength = sequence.length > maxLength;
   const showSequence = showAll

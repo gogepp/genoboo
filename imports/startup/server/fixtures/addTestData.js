@@ -51,7 +51,7 @@ export function addTestUsers() {
 
 export function addTestGenome(annot=false, multiple=false) {
 
-  const annotObj = annot ? [{ name: 'myfilename.gff'}] : undefined
+  const annotObj = annot ? [{ name: 'myfilename.gff', geneCount: multiple ? 2 : 1}] : undefined
 
   const genomeId = genomeCollection.insert({
     name: "Test Genome",

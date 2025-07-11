@@ -94,6 +94,10 @@ const genomeSchema = new SimpleSchema({
     type: String,
     label: 'Protein BLAST database',
   },
+  'annotationTrack.$.geneCount': {
+    type: Number,
+    label: 'Total gene count of the annotation track',
+  },
 });
 
 genomeCollection.attachSchema(genomeSchema);

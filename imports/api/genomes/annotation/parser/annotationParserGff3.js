@@ -619,6 +619,7 @@ class AnnotationProcessor {
       $push: {
         annotationTrack: {
           name: this.annotationName,
+          geneCount: this.nAnnotation
         },
       },
     });
