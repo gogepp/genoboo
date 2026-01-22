@@ -81,14 +81,20 @@ class GeneNoteBookConnection {
 }
 
 function checkMongoLog(logPath) {
-  const tail = new Tail(logPath);
-  tail.on('line', (line) => {
-    const parts = line.split(' ');
-    const status = parts[1];
-    if (status === 'E') {
-      logger.error(`MongoDB error: ${parts.slice(2).join(' ')}`);
-      process.exit(1);
-    }
+  tailProcess = spawn('tail', ['-F', logPath]);
+
+  tailProcess.stdout.on('data', (data) => {
+    const lines = data.toString().split('\n');
+    lines.forEach((line) => {
+      if (line.trim() !== '') {
+        const parts = line.split(' ');
+        const status = parts[1];
+        if (status === 'E') {
+          logger.error(`MongoDB error: ${parts.slice(2).join(' ')}`);
+          process.exit(1);
+        }
+      }
+    });
   });
 }
 
