@@ -4,7 +4,7 @@
 const fs = require('fs');
 const commander = require('commander');
 const { Tail } = require('tail');
-const { spawn, execFileSync } = require('child_process');
+const { spawn, execFileSync, execSync } = require('child_process');
 const path = require('path');
 const asteroid = require('asteroid');
 const WebSocket = require('ws');
@@ -103,6 +103,16 @@ function startMongoDaemon(
   execFileSync('mkdir', ['-p', dataFolderPath, logFolderPath]);
   const logPath = `${dbPath}/log/mongod.log`;
 
+  // Delete log file if it exists to avoid rotation issues
+  try {
+    logger.log("Clearing log file if it exists")
+    fs.unlinkSync(logPath);
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+  }
+
   logger.log(`Using DB path: ${dbPath}`);
   logger.log(`MongoDB data files are in ${dataFolderPath}`);
   logger.log(`MongoDB logs are in ${logFolderPath}`);
@@ -123,6 +133,10 @@ function startMongoDaemon(
   );
 
   const mongoDaemon = spawn('mongod', mongodOptionArray);
+
+  // wait a bit to make sure the log files are setup
+  logger.log("Waiting 20 seconds for mongo to start")
+  execSync("sleep 20");
 
   mongoDaemon.on('error', (err) => {
     logger.error(err);
