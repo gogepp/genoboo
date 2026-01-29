@@ -302,7 +302,12 @@ addGenome
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, name, port = 3000, public = false }) => {
+  .option(
+    '--silent',
+    'Keep the upload process silent. Default: false',
+    false
+  )
+  .action((file, { username, password, name, port = 3000, public = false, silent = false }) => {
     if (typeof file !== 'string') addGenome.help();
     const fileName = path.resolve(file);
 
@@ -316,6 +321,7 @@ addGenome
       fileName,
       public,
       async: false,
+      silent
     });
   })
   .on('--help', () => {

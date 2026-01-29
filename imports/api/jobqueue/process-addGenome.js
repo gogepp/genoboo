@@ -145,7 +145,7 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, genomeName, public, permission = 'admin' } = job.data;
+    const { fileName, genomeName, public, permission = 'admin', silent = false } = job.data;
     logger.log(`Inserting ${fileName} as ${genomeName}`);
     const genomeId = genomeCollection.insert({
       name: genomeName,
@@ -168,7 +168,7 @@ jobQueue.processJobs(
       processedBytes += line.length + 1; // also count \n
       processedLines += 1;
       if ((processedLines % 10000) === 0) {
-        await job.progress(processedBytes, fileSize, { echo: true },
+        await job.progress(processedBytes, fileSize, { echo: !silent },
           (err) => { if (err) logger.error(err); });
       }
       try {

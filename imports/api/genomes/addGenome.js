@@ -17,6 +17,7 @@ const addGenome = new ValidatedMethod({
     genomeName: String,
     public: Boolean,
     async: Boolean,
+    silent: Boolean;
   }).validator(),
   applyOptions: {
     onResultReceived: (err, res) => {
@@ -24,7 +25,7 @@ const addGenome = new ValidatedMethod({
       return res;
     },
   },
-  run({ fileName, genomeName, public, async }) {
+  run({ fileName, genomeName, public, async, silent }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -39,7 +40,7 @@ const addGenome = new ValidatedMethod({
       throw new Meteor.Error(`Existing genome: ${genomeName}`);
     }
 
-    const job = new Job(jobQueue, 'addGenome', { fileName, genomeName, public });
+    const job = new Job(jobQueue, 'addGenome', { fileName, genomeName, public, silent });
     const jobId = job.priority('high').save();
     if (async) return { jobId };
 
