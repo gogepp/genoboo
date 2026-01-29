@@ -263,7 +263,7 @@ function GeneInfo({
       let gene_label = dbxref.label ? dbxref.label.replace("#GENEID", gene.ID) : ""
 
       // Loop over attributes, and replace in url / label if it matches
-      for const [key, value] of Object.entries(gene.attributes){
+      for (const [key, value] of Object.entries(gene.attributes)){
         const token = `#${key.toUpperCase()}`;
         gene_url = gene_url.replace(token, value);
         gene_label = gene_label.replace(token, value);

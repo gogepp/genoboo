@@ -64,11 +64,15 @@ class GeneNoteBookConnection {
         } else if (jobStatus) {
           if (jobStatus === 'failed') {
             logger.error('The job failed, something went wrong! (Look at the logs for more details).');
+            this.connection.disconnect();
+            process.exit(1);
           } else {
             logger.log(`Job status: ${jobStatus}`);
           }
         } else {
           logger.error('Undefined server response');
+          this.connection.disconnect();
+          process.exit(1);
         }
         this.connection.disconnect();
       })
@@ -76,6 +80,7 @@ class GeneNoteBookConnection {
         logger.error(error);
         console.log(error);
         this.connection.disconnect();
+        process.exit(1);
       });
   }
 }
