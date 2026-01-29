@@ -46,7 +46,7 @@ function eggnogDataTracker({ gene }) {
 }
 
 function SeedEggNOGOrtholog({ seed, evalue, score }) {
-  const uniprotUrl = 'https://www.uniprot.org/uniprot/';
+  const uniprotUrl = 'https://www.uniprot.org/uniprotkb?query=';
 
   // Split to get uniprot id (e.g: 36080.S2K726 -> S2K726).
   let uniprotID;
