@@ -31,7 +31,7 @@ function SimpleAttribute({ value }) {
   // Manage custom dbxref
   if (typeof value === "object" && !Array.isArray(value)){
     return(
-    <><a href={value.url}>{value.label}</a></>
+    <><a target="_blank" href={value.url}>{value.label}</a></>
     )
   }
   return String(value);
