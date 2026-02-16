@@ -646,9 +646,9 @@ const addExpression = add.command('expression');
 
 addExpression
   .description(
-    'Add gene expression to a running GeneNoteBook server'
+    'Add gene expression to a running GeneNoteBook server. Will use the first 10 genes to find the genome, using the genome name is passed'
   )
-  .usage('[options] <Kallisto abundance.tsv file>')
+  .usage('[options] <expression.tsv file>')
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
@@ -661,8 +661,12 @@ addExpression
     'Description of the experiment'
   )
   .option(
-    '--annot <annotation-ame>',
+    '--annot <annotation-name>',
     'Annotation name',
+  )
+  .option(
+    '--genome <genome-name>',
+    'Genome name',
   )
   .option(
     '-r, --replicas <replicas...>',
@@ -685,6 +689,7 @@ addExpression
     const replicaNames = opts.replicaNames || [];
     const isPublic = opts.public;
     const annot = opts.annot
+    const genome = opts.genome
     if (!(fileName && username && password)) {
       program.help();
     }
@@ -694,6 +699,7 @@ addExpression
         fileName,
         description,
         annot,
+        genome,
         replicas,
         replicaNames,
         isPublic

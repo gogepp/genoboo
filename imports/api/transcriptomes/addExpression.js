@@ -7,12 +7,29 @@ import Papa from 'papaparse';
 import fs from 'fs';
 
 import { Genes } from '/imports/api/genes/geneCollection.js';
+import { genomeCollection } from '/imports/api/genomes/genomeCollection';
 import {
   ExperimentInfo, Transcriptomes,
 } from '/imports/api/transcriptomes/transcriptome_collection.js';
 import logger from '/imports/api/util/logger.js';
 
-const getGenomeId = (data, firstColumn, annot) => {
+const getGenomeId = (data, firstColumn, genome, annot) => {
+
+  if (genome){
+    // Skip using the genes, directly get the genome itself using the name
+    let genomeQuery = {
+      name: genomeName
+    }
+    if (annot){
+      genomeQuery["annotationTrack.name"] = annot
+    }
+    const genome = genomeCollection.findOne(genomeQuery);
+    if (typeof genome === "undefined"){
+      return {genomeId: undefined, annotationName: undefined}
+    }
+    return {genomeId: genome._id, annotationName: annot}
+  }
+
   const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line[firstColumn]));
   logger.debug(firstTranscripts);
 
@@ -37,7 +54,7 @@ const getGenomeId = (data, firstColumn, annot) => {
 };
 
 const parseExpressionTsv = ({
-  fileName, description, annot, replicas = [], replicaNames = [], permission = 'admin', isPublic = false,
+  fileName, description, annot, genome, replicas = [], replicaNames = [], permission = 'admin', isPublic = false,
 }) => new Promise((resolve, reject) => {
   const fileHandle = fs.readFileSync(fileName, { encoding: 'binary' });
   const bulkOp = Transcriptomes.rawCollection().initializeUnorderedBulkOp();
@@ -102,7 +119,8 @@ const parseExpressionTsv = ({
       }
 
       let firstColumn = replicaGroups.shift();
-      const {genomeId, annotationName} = getGenomeId(data, firstColumn, annot);
+
+      const {genomeId, annotationName} = getGenomeId(data, firstColumn, genome, annot);
 
       if (typeof genomeId === 'undefined') {
         reject(new Meteor.Error('Could not find genomeId for first transcript'));
@@ -170,6 +188,10 @@ const addExpression = new ValidatedMethod({
       type: String,
       optional: true,
     },
+    genome: {
+      type: String,
+      optional: true,
+    },
     replicas: {
       type: Array,
       optional: true,
@@ -192,7 +214,7 @@ const addExpression = new ValidatedMethod({
     noRetry: true,
   },
   run({
-    fileName, description, annot, replicas, replicaNames, isPublic
+    fileName, description, annot, genome, replicas, replicaNames, isPublic
   }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
@@ -201,7 +223,7 @@ const addExpression = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
     return parseExpressionTsv({
-      fileName, description, annot, replicas, replicaNames, isPublic
+      fileName, description, annot, genome, replicas, replicaNames, isPublic
     })
       .catch((error) => {
         logger.warn(error);
