@@ -18,7 +18,7 @@ const getGenomeId = (data, firstColumn, genome, annot) => {
   if (genome){
     // Skip using the genes, directly get the genome itself using the name
     let genomeQuery = {
-      name: genomeName
+      name: genome
     }
     if (annot){
       genomeQuery["annotationTrack.name"] = annot

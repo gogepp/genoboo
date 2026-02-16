@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.19] TBA
+
+- Properly raises error when failing to add an annotation (#82)
+- Fix eggnog seed link (#89)
+- Add --silent option to add genome (#92)
+- Allow a 'range' (ex: `5:19`) of columns to be passed when loading expression files (#88)
+- Allow '--genome' to be passed when loading expression. This skips trying to predict genome based on first 10 genes (#87)
+- Cleanup mongo files at startup to avoid crashes (#86)
+- Open dbxref in newTab + allow using any of the gff attribute in the link (#85)
+
 ## [0.4.18] 2025-07-11
 
 - Fix GO API call
