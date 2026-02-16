@@ -176,11 +176,13 @@ function SingleGenePage({ gene, genome = {} }) {
                   EggNOG
                 </a>
               </li>
+              { Meteor.settings.public.enable_hectar && (
               <li>
                 <a href="#hectar">
                   Hectar
                 </a>
               </li>
+              )}
               <li>
                 <a href="#sequence-similarity">
                   Sequence Similarity
@@ -213,9 +215,11 @@ function SingleGenePage({ gene, genome = {} }) {
           <section id="eggnog">
             <Eggnog gene={gene} showHeader resizable />
           </section>
+          { Meteor.settings.public.enable_hectar && (
           <section id="hectar">
             <Hectar gene={gene} showHeader resizable />
           </section>
+          )}
           <section id="sequence-similarity">
             <SequenceSimilarity gene={gene} showHeader={true} resizable />
           </section>
