@@ -1,6 +1,7 @@
 {
   "public":{
     "disable_blast": false,
+    "enable_hectar": false,
     "disable_user_login": false,
     "disable_user_registration": false,
     "disable_header": false,
