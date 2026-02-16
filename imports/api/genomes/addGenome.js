@@ -17,7 +17,7 @@ const addGenome = new ValidatedMethod({
     genomeName: String,
     public: Boolean,
     async: Boolean,
-    silent: Boolean;
+    silent: Boolean
   }).validator(),
   applyOptions: {
     onResultReceived: (err, res) => {
