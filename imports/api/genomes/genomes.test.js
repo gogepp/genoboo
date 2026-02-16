@@ -42,6 +42,7 @@ describe('genomes', function testGenomes() {
       genomeName: 'Brassica nigra',
       public: true,
       async: false,
+      silent: false
     };
 
     // Should fail for non-logged in
