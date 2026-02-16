@@ -23,11 +23,11 @@ const getGenomeId = (data, firstColumn, genome, annot) => {
     if (annot){
       genomeQuery["annotationTrack.name"] = annot
     }
-    const genome = genomeCollection.findOne(genomeQuery);
-    if (typeof genome === "undefined"){
+    const foundGenome = genomeCollection.findOne(genomeQuery);
+    if (typeof foundGenome === "undefined"){
       return {genomeId: undefined, annotationName: undefined}
     }
-    return {genomeId: genome._id, annotationName: annot}
+    return {genomeId: foundGenome._id, annotationName: annot}
   }
 
   const firstTranscripts = data.slice(0, 10).map((line) => decodeURIComponent(line[firstColumn]));
