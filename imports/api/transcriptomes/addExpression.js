@@ -65,10 +65,10 @@ const parseExpressionTsv = ({
                   const [start, end] = part.split(':').map(Number);
                   const step = start <= end ? 1 : -1;
                   for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
-                      result.push(i);
+                      replicaColVal.push(i);
                   }
                 } else {
-                    result.push(Number(part));
+                    replicaColVal.push(Number(part));
                 }
               })
               let replicaName = replicaNumber + 1
