@@ -58,14 +58,28 @@ const parseExpressionTsv = ({
 
       if (replicas.length > 0){
           replicas.forEach((replica, replicaNumber) => {
-              let split = replica.split(",")
+              let replicaColVal = []
+              replica.split(",").forEach(part => {
+                part = part.trim();
+                if (part.includes(':')) {
+                  const [start, end] = part.split(':').map(Number);
+                  const step = start <= end ? 1 : -1;
+                  for (let i = start; step > 0 ? i <= end : i >= end; i += step) {
+                      result.push(i);
+                  }
+                } else {
+                    result.push(Number(part));
+                }
+              })
               let replicaName = replicaNumber + 1
+              // If there is a matching element in the replicaNames array, use it
               if (replicaNames.length >= replicaNumber + 1){
                   replicaName = replicaNames[replicaNumber]
-              } else if (replicaGroups.length > split[0]) {
-                  replicaName = replicaGroups[replicaName]
+              } else if (replicaGroups.length > replicaColVal[0]) {
+              // Else, use the name of the first column of the replicagroup
+                  replicaName = replicaGroups[replicaColVal[0]]
               }
-              split.forEach((column, i) => {
+              replicaColVal.forEach((column, i) => {
                   replicaNamesDict[column] = replicaName
               });
           });
