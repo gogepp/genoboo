@@ -65,8 +65,6 @@ Meteor.publish({
     const dbxref = dbxrefCollection.findOne({ dbxrefId });
     if (
       typeof dbxref === 'undefined'
-      && !DBXREF_REGEX.go.test(dbxrefId) // temporarily disable GO lookup due to 504 responses
-      // || dbxref.updated < new Date(Date.now() - 864e5)
     ) {
       fetchDbxref.call({ dbxrefId });
     }

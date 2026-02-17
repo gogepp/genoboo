@@ -235,7 +235,7 @@ function GogCategory({ category }) {
 
 function DescriptionGeneOntologyApi({ goterm }) {
   const [description, setDescription] = useState('');
-  const GOsApi = 'https://api.geneontology.org/api/bioentity/function/';
+  const GOsApi = 'https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/';
 
   // May cause Cross-Origin Request Blocked error.
   useEffect(() => {
@@ -247,7 +247,9 @@ function DescriptionGeneOntologyApi({ goterm }) {
         throw response;
       })
       .then((data) => {
-        setDescription(data.label);
+        if (data.results && data.results.length > 0){
+          setDescription(data.results[0].name);
+        }
       });
   }, [description]);
 
@@ -541,7 +543,8 @@ function PfamsApi({ id }) {
 
 function Pfams({ family }) {
   // e.g : https://pfam.xfam.org/family/Meth_synt_1
-  const PfamsUrl = 'https://pfam.xfam.org/family/';
+  // No longer maintained. Redirect to interpro search
+  const PfamsUrl = 'https://www.ebi.ac.uk/interpro/search/text/';
 
   const PfamsLibrary = (Array.isArray(family)
     ? family.map((val) => {
