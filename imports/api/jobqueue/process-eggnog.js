@@ -11,10 +11,10 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, annot } = job.data;
+    const { fileName, annot, goFile } = job.data;
     logger.log(`Add ${fileName} eggnog file.`);
 
-    const lineProcessor = new EggnogProcessor(annot);
+    const lineProcessor = new EggnogProcessor(annot, goFile);
 
     const rl = readline.createInterface({
       input: fs.createReadStream(fileName, 'utf8'),

@@ -7,12 +7,29 @@ import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
 
+import fs from 'fs';
+import path from 'path';
+
 class EggnogProcessor {
-  constructor(annot) {
+  constructor(annot, goFile) {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
     this.nEggnog = 0;
     this.annot = annot;
+    this.goContent = {}
+    this.addGo = []
+    loadGoContent()
+  }
+
+  /**
+  Function that load an option go.json file and store it as dict
+  */
+
+  loadGoContent(goFile){
+
+
+
+    this.goContent = {}
   }
 
   /**
@@ -22,7 +39,22 @@ class EggnogProcessor {
    * @return {Number} Return the total number of insertions or updates of
    * eggnog.
    */
-  getNumberEggnog() {
+  getNumberEggnog(goFile) {
+    if (! gofile){
+      return
+    }
+    try {
+      const raw = fs.readFileSync(filePath, 'utf8');
+      const goData = JSON.parse(raw);
+      goData.graphs[0].nodes.forEach(node => {
+        if (node.id && node.lbl) {
+          this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
+        }
+      })
+    } catch (error) {
+      logger.warn("Failed to load from " + goFile)
+      this.goContent = {}
+    }
     return this.nEggnog;
   }
 
@@ -154,7 +186,7 @@ const addEggnog = new ValidatedMethod({
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName, annot }) {
+  run({ fileName, annot, goFile }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -163,7 +195,7 @@ const addEggnog = new ValidatedMethod({
     }
 
     logger.log('file :', { fileName });
-    const job = new Job(jobQueue, 'addEggnog', { fileName, annot });
+    const job = new Job(jobQueue, 'addEggnog', { fileName, annot, goFile });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;
