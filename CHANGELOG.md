@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Allow '--genome' to be passed when loading expression. This skips trying to predict genome based on first 10 genes (#87)
 - Cleanup mongo files at startup to avoid crashes (#86)
 - Open dbxref in newTab + allow using any of the gff attribute in the link (#85)
+- Add cleaner error when document size is exceeded
 
 ## [0.4.18] 2025-07-11
 

@@ -167,8 +167,10 @@ jobQueue.processJobs(
     for await (const line of lineReader) {
       processedBytes += line.length + 1; // also count \n
       processedLines += 1;
+      let options = silent ? {} : {echo: true}
+
       if ((processedLines % 10000) === 0) {
-        await job.progress(processedBytes, fileSize, { echo: !silent },
+        await job.progress(processedBytes, fileSize, options,
           (err) => { if (err) logger.error(err); });
       }
       try {

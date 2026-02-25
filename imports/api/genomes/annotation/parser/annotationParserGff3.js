@@ -2,6 +2,9 @@ import logger from '../../../util/logger';
 import { parseAttributeString } from '../../../util/util';
 import { genomeSequenceCollection, genomeCollection } from '../../genomeCollection';
 import { Genes, GeneSchema } from '../../../genes/geneCollection';
+import { EJSON } from 'meteor/ejson';
+
+const MAX_DOC_SIZE = 16 * 1024 * 1024;
 
 /**
  * Read the annotation file in gff3 format. Add to the gene collection of
@@ -463,6 +466,12 @@ class AnnotationProcessor {
       logger.error(err)
       throw new Error('Current gene is not valid, stopping');
     }
+
+    // Check max size
+    if (Buffer.byteLength(EJSON.stringify(geneWithoutId), 'utf8') > MAX_DOC_SIZE){
+      logger.error(geneWithoutId)
+      throw new Error('Max document size exceeded for current gene: check isoforms for ' + geneWithoutId.ID);
+    }
     return true;
   };
 
@@ -555,6 +564,9 @@ class AnnotationProcessor {
 
           // Validate schema before adding to bulk
           this.isValidateGeneSchema();
+
+
+	  
 
           // Add to bulk operation.
           this.geneBulkOperation.insert(this.geneLevelHierarchy)
