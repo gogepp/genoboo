@@ -6,6 +6,7 @@ import logger from '/imports/api/util/logger.js';
 import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
+import { dbxrefCollection } from '/imports/api/genes/dbxrefCollection.js';
 
 import fs from 'fs';
 import path from 'path';
@@ -17,19 +18,54 @@ class EggnogProcessor {
     this.nEggnog = 0;
     this.annot = annot;
     this.goContent = {}
-    this.addGo = []
-    loadGoContent()
+    this.addGo = new Set()
+    this.hasGO = false
+    this.loadGoContent(goFile)
   }
 
   /**
   Function that load an option go.json file and store it as dict
   */
-
   loadGoContent(goFile){
+    if (! goFile) {
+      return
+    }
+    try {
+      const raw = fs.readFileSync(goFile, 'utf8');
+      const goData = JSON.parse(raw);
+      goData.graphs[0].nodes.forEach(node => {
+        if (node.id && node.lbl) {
+          this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
+        }
+      })
+      this.hasGO = true
+    } catch (error) {
+      logger.warn("Failed to load from " + goFile)
+      this.hasGO = false
+      this.goContent = {}
+    }
+  }
+  /** Function that add the GOterms in eggnog row into db */
+  createGOterms(){
 
+    this.addGo.forEach(goID => {
+      if (!(goID in this.goContent) || !(this.goContent[goID])){ 
+        logger.warn(`Missing ${goID} in GO ontology`)
+        return
+      }
 
-
-    this.goContent = {}
+      dbxrefCollection.upsert(
+        { dbxrefId: goID},
+        { $set: {
+            dbxrefId: goID,
+            url: `http://amigo.geneontology.org/amigo/term/${goID}`,
+            description: this.goContent[goID],
+            updated: new Date(),
+            dbType: "go",
+          }
+        }
+      );
+    })
   }
 
   /**
@@ -39,22 +75,7 @@ class EggnogProcessor {
    * @return {Number} Return the total number of insertions or updates of
    * eggnog.
    */
-  getNumberEggnog(goFile) {
-    if (! gofile){
-      return
-    }
-    try {
-      const raw = fs.readFileSync(filePath, 'utf8');
-      const goData = JSON.parse(raw);
-      goData.graphs[0].nodes.forEach(node => {
-        if (node.id && node.lbl) {
-          this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
-        }
-      })
-    } catch (error) {
-      logger.warn("Failed to load from " + goFile)
-      this.goContent = {}
-    }
+  getNumberEggnog() {
     return this.nEggnog;
   }
 
@@ -96,7 +117,7 @@ class EggnogProcessor {
         eggNOG_OGs: eggnogOGs,
         max_annot_lvl: maxAnnotLvl,
         COG_category: cogCategory,
-        Description: description,
+         Description: description,
         Preferred_name: preferredName,
         GOs: gos,
         EC: ec,
@@ -150,6 +171,11 @@ class EggnogProcessor {
           annotations, // modifier.
         );
 
+
+        if (this.hasGO && annotations.GOs){
+	  annotations.GOs.forEach(item => this.addGo.add(item))
+        }
+
         // Update eggnogId in genes database.
         if (typeof documentEggnog.insertedId !== 'undefined') {
           // Eggnog _id is created.
@@ -179,6 +205,10 @@ const addEggnog = new ValidatedMethod({
   validate: new SimpleSchema({
     fileName: { type: String },
     annot: {
+      type: String,
+      optional: true,
+    },
+    goFile: {
       type: String,
       optional: true,
     },

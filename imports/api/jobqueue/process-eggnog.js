@@ -50,6 +50,9 @@ jobQueue.processJobs(
         callback();
       }
     }
+
+    lineProcessor.createGOterms();
+
     logger.log(`Inserted ${nEggnog} EggNog`);
     job.done({ nInserted: nEggnog });
     callback();
