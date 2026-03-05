@@ -1,8 +1,9 @@
 /* eslint-disable react/prop-types */
 import { eggnogCollection } from '/imports/api/genes/eggnog/eggnogCollection.js';
-import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
+import { branch, compose, isLoading, Loading, } from '/imports/ui/util/uiUtil.jsx';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { withTracker } from 'meteor/react-meteor-data';
+import { dbxrefTracker } from '/imports/ui/genetable/columns/AttributeValue.jsx'
 import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import './eggnog.scss';
@@ -233,6 +234,19 @@ function GogCategory({ category }) {
   );
 }
 
+const GoElement = compose(
+  withTracker(dbxrefTracker),
+  branch(isLoading, Loading),
+)(GoDescription);
+
+
+function GoDescription({dbxrefId, dbxref, loading}) {
+  return (
+    <p className="gogcategory">{dbxref.description}</p>
+  );
+}
+
+
 function DescriptionGeneOntologyApi({ goterm }) {
   const [description, setDescription] = useState('');
   const GOsApi = 'https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/';
@@ -272,7 +286,7 @@ function GeneOntology({ gosID }) {
           >
             {ID}
           </a>
-          <DescriptionGeneOntologyApi goterm={ID} />
+          <GoElement value={ID} />
         </div>
       );
     })

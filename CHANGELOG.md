@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Cleanup mongo files at startup to avoid crashes (#86)
 - Open dbxref in newTab + allow using any of the gff attribute in the link (#85)
 - Add cleaner error when document size is exceeded
+- Add optionnal GO json file when loading eggnog, to store used goterms, and avoid requests later.
+- Add conf option to display a warning message related to isoforms
 
 ## [0.4.18] 2025-07-11
 
