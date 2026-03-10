@@ -16,7 +16,7 @@
     "protein_dbxref": [
        {"url": "https://test_url_protein/#PROTEINID", "label": "my protein label", "assembly": "", "annotation": ""}
     ],
-    "isoform-filtered": false
+    "isoform_filtered": false
   },
   "externalSearchOptions": {
     "url": "http://0.0.0.0:80",

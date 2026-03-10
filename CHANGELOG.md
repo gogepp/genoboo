@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - Properly raises error when failing to add an annotation (#82)
 - Fix eggnog seed link (#89)
-- Add --silent option to add genome (#92)
+- Add --silent option to add genome (#92) and add Eggnog
 - Allow a 'range' (ex: `5:19`) of columns to be passed when loading expression files (#88)
 - Allow '--genome' to be passed when loading expression. This skips trying to predict genome based on first 10 genes (#87)
 - Cleanup mongo files at startup to avoid crashes (#86)

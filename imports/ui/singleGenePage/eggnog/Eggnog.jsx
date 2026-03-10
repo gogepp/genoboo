@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
 import { eggnogCollection } from '/imports/api/genes/eggnog/eggnogCollection.js';
+import { dbxrefCollection } from '/imports/api/genes/dbxrefCollection.js';
 import { branch, compose, isLoading, Loading, } from '/imports/ui/util/uiUtil.jsx';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { withTracker } from 'meteor/react-meteor-data';
-import { dbxrefTracker } from '/imports/ui/genetable/columns/AttributeValue.jsx'
 import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import './eggnog.scss';
@@ -20,6 +20,30 @@ function Header() {
 function hasNoEggnog({ eggnog }) {
   return typeof eggnog === 'undefined';
 }
+
+
+function GoDescription({dbxrefId, dbxref, loading}) {
+  return (
+    <p className="gogcategory">{dbxref.description}</p>
+  );
+}
+
+function dbxrefTracker({ value: dbxrefId }) {
+  dbxrefId = String(dbxrefId)
+  const sub = Meteor.subscribe('dbxref', { dbxrefId });
+  const loading = !sub.ready();
+  const dbxref = dbxrefCollection.findOne({ dbxrefId });
+  return {
+    dbxrefId,
+    dbxref,
+    loading,
+  };
+}
+
+const GoElement = compose(
+  withTracker(dbxrefTracker),
+  branch(isLoading, Loading),
+)(GoDescription);
 
 function NoEggnog({ showHeader }) {
   return (
@@ -234,19 +258,6 @@ function GogCategory({ category }) {
   );
 }
 
-const GoElement = compose(
-  withTracker(dbxrefTracker),
-  branch(isLoading, Loading),
-)(GoDescription);
-
-
-function GoDescription({dbxrefId, dbxref, loading}) {
-  return (
-    <p className="gogcategory">{dbxref.description}</p>
-  );
-}
-
-
 function DescriptionGeneOntologyApi({ goterm }) {
   const [description, setDescription] = useState('');
   const GOsApi = 'https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/';
@@ -286,7 +297,7 @@ function GeneOntology({ gosID }) {
           >
             {ID}
           </a>
-          <GoElement value={ID} />
+        <GoElement value={ID} />
         </div>
       );
     })

@@ -197,7 +197,7 @@ function SingleGenePage({ gene, genome = {} }) {
           </div>
         </header>
         <div className="card-content">
-          { Meteor.settings.public.isoform-filtered && (
+          { Meteor.settings.public.isoform_filtered && (
           <h4>This gene might have multiple isoforms. This page will only display the longest.</h4>
           )}
           <GeneralInfo

@@ -853,6 +853,11 @@ addEggnog
     '--gofile <gofile>',
     'Path to Gene Ontology json file',
   )
+  .option(
+    '--silent',
+    'Keep the upload process silent. Default: false',
+    false
+  )
   .requiredOption(
     '-u, --username <adminUsername>',
     'GeneNoteBook admin username'
@@ -869,7 +874,7 @@ addEggnog
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, port = 3000, annot, goFile }) => {
+  .action((file, { username, password, port = 3000, annot, gofile, silent = false }) => {
     if (typeof file !== 'string') addEggnog.help();
 
     const fileName = path.resolve(file);
@@ -880,7 +885,8 @@ addEggnog
     new GeneNoteBookConnection({ username, password, port }).call('addEggnog', {
       fileName,
       annot: annot,
-      goFile
+      goFile: gofile,
+      silent
     });
   })
   .on('--help', () => {
