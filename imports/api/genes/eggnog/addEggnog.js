@@ -36,6 +36,13 @@ class EggnogProcessor {
       goData.graphs[0].nodes.forEach(node => {
         if (node.id && node.lbl) {
           this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
+          if (node.basicPropertyValues){
+            node.basicPropertyValues.forEach(bpv => {
+              if (bpv.pred == "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId" && bpv.val){
+                this.goContent[bpv.val] = node.lbl
+              }
+            })
+          }
         }
       })
       this.hasGO = true
@@ -49,7 +56,7 @@ class EggnogProcessor {
   createGOterms(){
 
     this.addGo.forEach(goID => {
-      if (!(goID in this.goContent) || !(this.goContent[goID])){ 
+      if (!(goID in this.goContent) || !(this.goContent[goID])){
         logger.warn(`Missing ${goID} in GO ontology`)
         return
       }
