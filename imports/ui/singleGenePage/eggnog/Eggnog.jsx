@@ -71,7 +71,7 @@ function eggnogDataTracker({ gene }) {
 }
 
 function SeedEggNOGOrtholog({ seed, evalue, score }) {
-  const uniprotUrl = 'https://www.uniprot.org/uniprotkb?query=';
+  const uniprotUrl = 'https://www.uniprot.org/uniparc?query=';
 
   // Split to get uniprot id (e.g: 36080.S2K726 -> S2K726).
   let uniprotID;
@@ -384,45 +384,50 @@ function KeggApi({ database, query }) {
 }
 
 function Kegg({ database, query }) {
-  let KeggEntryUrl;
-  switch (database) {
-    case 'brite':
-      KeggEntryUrl = 'https://www.genome.jp/brite/';
-      break;
-    default:
-      KeggEntryUrl = 'https://www.genome.jp/entry/';
-  }
+  let KeggEntryUrl = 'https://www.genome.jp/entry/'
 
   const KeggRecAttribute = (Array.isArray(query)
     ? query.map((ID) => {
+      let subid = database == "brite" ? ID.replace("ko", "br:") : ID;
+      if (subid == "br:00000"){
+        return (<div>{ID}</div>)
+      }
       return (
         <div className="seed_eggnog_ortholog_table">
           <a
-            href={`${KeggEntryUrl}${ID}`}
+            href={`${KeggEntryUrl}${subid}`}
             target="_blank"
             rel="noreferrer"
           >
-            {ID}
+          {ID}
           </a>
         </div>
       );
     })
-    : (
+    : (() => {
+      let subid = database == "brite" ? query.replace("ko", "br:") : query;
+      if (subid == "br:00000"){
+        return (<div>{query}</div>)
+      }
+      return (
       <div>
         <a
-          href={`${KeggEntryUrl}${query}`}
+          href={`${KeggEntryUrl}${subid}`}
           target="_blank"
           rel="noreferrer"
         >
-          {query}
+        {query}
         </a>
       </div>
-    ));
+      );
+    }));
 
   return (
     <EggnogGeneralInformations informations={KeggRecAttribute} maxArray={2} />
   );
 }
+
+
 
 function Cazy({ cazy }) {
   const cazyUrl = 'http://www.cazy.org/';

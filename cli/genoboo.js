@@ -140,8 +140,8 @@ function startMongoDaemon(
   const mongoDaemon = spawn('mongod', mongodOptionArray);
 
   // wait a bit to make sure the log files are setup
-  logger.log("Waiting 20 seconds for mongo to start")
-  execSync("sleep 20");
+  logger.log("Waiting 10 seconds for mongo to start")
+  execSync("sleep 10");
 
   mongoDaemon.on('error', (err) => {
     logger.error(err);
