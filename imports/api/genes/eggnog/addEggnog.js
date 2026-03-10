@@ -31,13 +31,14 @@ class EggnogProcessor {
       return
     }
     try {
+      logger.log("Loading GO annotation from :" + goFile)
       const raw = fs.readFileSync(goFile, 'utf8');
       const goData = JSON.parse(raw);
       goData.graphs[0].nodes.forEach(node => {
         if (node.id && node.lbl) {
           this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
-          if (node.basicPropertyValues){
-            node.basicPropertyValues.forEach(bpv => {
+          if (node.meta && node.meta.basicPropertyValues){
+            node.meta.basicPropertyValues.forEach(bpv => {
               if (bpv.pred == "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId" && bpv.val){
                 this.goContent[bpv.val] = node.lbl
               }
@@ -47,6 +48,7 @@ class EggnogProcessor {
       })
       this.hasGO = true
     } catch (error) {
+      logger.error(error)
       logger.warn("Failed to load from " + goFile)
       this.hasGO = false
       this.goContent = {}
@@ -219,11 +221,15 @@ const addEggnog = new ValidatedMethod({
       type: String,
       optional: true,
     },
+    silent: {
+      type: Boolean,
+      optional: true,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName, annot, goFile }) {
+  run({ fileName, annot, goFile, silent }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -231,8 +237,7 @@ const addEggnog = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
 
-    logger.log('file :', { fileName });
-    const job = new Job(jobQueue, 'addEggnog', { fileName, annot, goFile });
+    const job = new Job(jobQueue, 'addEggnog', { fileName, annot, goFile, silent });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;

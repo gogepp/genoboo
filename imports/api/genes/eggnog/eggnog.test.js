@@ -121,7 +121,7 @@ describe('eggnog', function testEggnog() {
 
     const xrefs = dbxrefCollection.find({}).fetch()
 
-    chai.assert.lengthOf(xrefs, 3, 'Incorrect number of goterms');
+    chai.assert.lengthOf(xrefs, 4, 'Incorrect number of goterms');
 
   });
 

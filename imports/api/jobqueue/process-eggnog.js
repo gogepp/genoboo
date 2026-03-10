@@ -11,7 +11,7 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, annot, goFile } = job.data;
+    const { fileName, annot, goFile, silent = false } = job.data;
     logger.log(`Add ${fileName} eggnog file.`);
 
     const lineProcessor = new EggnogProcessor(annot, goFile);
@@ -25,6 +25,7 @@ jobQueue.processJobs(
     let processedBytes = 0;
     let processedLines = 0;
     let nEggnog = 0;
+    let options = silent ? {} : { echo: true }
 
     for await (const line of rl) {
       processedBytes += line.length + 1; // also count \n
@@ -34,7 +35,7 @@ jobQueue.processJobs(
         await job.progress(
           processedBytes,
           fileSize,
-          { echo: true },
+          options,
           (err) => {
             if (err) logger.error(err);
           },
