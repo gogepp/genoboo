@@ -28,14 +28,14 @@ jobQueue.processJobs(
     let options = silent ? {} : { echo: true }
 
     for await (const line of rl) {
-      processedBytes += line.length + 1; // also count \n
+      processedBytes += line.length + 1; 	// also count \n
       processedLines += 1;
 
       if ((processedLines % 100) === 0) {
         await job.progress(
           processedBytes,
           fileSize,
-          options,
+          {...options},
           (err) => {
             if (err) logger.error(err);
           },

@@ -170,7 +170,7 @@ jobQueue.processJobs(
       let options = silent ? {} : {echo: true}
 
       if ((processedLines % 10000) === 0) {
-        await job.progress(processedBytes, fileSize, options,
+        await job.progress(processedBytes, fileSize, {...options},
           (err) => { if (err) logger.error(err); });
       }
       try {
