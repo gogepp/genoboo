@@ -4,7 +4,7 @@
 const fs = require('fs');
 const commander = require('commander');
 const { Tail } = require('tail');
-const { spawn, execFileSync } = require('child_process');
+const { spawn, execFileSync, execSync } = require('child_process');
 const path = require('path');
 const asteroid = require('asteroid');
 const WebSocket = require('ws');
@@ -64,11 +64,15 @@ class GeneNoteBookConnection {
         } else if (jobStatus) {
           if (jobStatus === 'failed') {
             logger.error('The job failed, something went wrong! (Look at the logs for more details).');
+            this.connection.disconnect();
+            process.exit(1);
           } else {
             logger.log(`Job status: ${jobStatus}`);
           }
         } else {
           logger.error('Undefined server response');
+          this.connection.disconnect();
+          process.exit(1);
         }
         this.connection.disconnect();
       })
@@ -76,6 +80,7 @@ class GeneNoteBookConnection {
         logger.error(error);
         console.log(error);
         this.connection.disconnect();
+        process.exit(1);
       });
   }
 }
@@ -103,6 +108,16 @@ function startMongoDaemon(
   execFileSync('mkdir', ['-p', dataFolderPath, logFolderPath]);
   const logPath = `${dbPath}/log/mongod.log`;
 
+  // Delete log file if it exists to avoid rotation issues
+  try {
+    logger.log("Clearing log file if it exists")
+    fs.unlinkSync(logPath);
+  } catch (err) {
+    if (err.code !== "ENOENT") {
+      throw err;
+    }
+  }
+
   logger.log(`Using DB path: ${dbPath}`);
   logger.log(`MongoDB data files are in ${dataFolderPath}`);
   logger.log(`MongoDB logs are in ${logFolderPath}`);
@@ -123,6 +138,10 @@ function startMongoDaemon(
   );
 
   const mongoDaemon = spawn('mongod', mongodOptionArray);
+
+  // wait a bit to make sure the log files are setup
+  logger.log("Waiting 10 seconds for mongo to start")
+  execSync("sleep 10");
 
   mongoDaemon.on('error', (err) => {
     logger.error(err);
@@ -283,7 +302,12 @@ addGenome
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, name, port = 3000, public = false }) => {
+  .option(
+    '--silent',
+    'Keep the upload process silent. Default: false',
+    false
+  )
+  .action((file, { username, password, name, port = 3000, public = false, silent = false }) => {
     if (typeof file !== 'string') addGenome.help();
     const fileName = path.resolve(file);
 
@@ -297,6 +321,7 @@ addGenome
       fileName,
       public,
       async: false,
+      silent
     });
   })
   .on('--help', () => {
@@ -621,9 +646,9 @@ const addExpression = add.command('expression');
 
 addExpression
   .description(
-    'Add gene expression to a running GeneNoteBook server'
+    'Add gene expression to a running GeneNoteBook server. Will use the first 10 genes to find the genome, using the genome name is passed'
   )
-  .usage('[options] <Kallisto abundance.tsv file>')
+  .usage('[options] <expression.tsv file>')
   .arguments('<file>')
   .option('-u, --username <username>', 'GeneNoteBook admin username')
   .option('-p, --password <password>', 'GeneNoteBook admin password')
@@ -636,8 +661,12 @@ addExpression
     'Description of the experiment'
   )
   .option(
-    '--annot <annotation-ame>',
+    '--annot <annotation-name>',
     'Annotation name',
+  )
+  .option(
+    '--genome <genome-name>',
+    'Genome name',
   )
   .option(
     '-r, --replicas <replicas...>',
@@ -645,7 +674,7 @@ addExpression
   )
   .option(
     '-n, --replica-names <replicaNames...>',
-    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group). Will match replica groups in order, whether they are multiple of single columns.'
+    'Name of the replica group. Will defaut to the first column header if not set. Can be set multiple time (for each replica group). Will match replica groups in order, whether they are multiple or single columns.'
   )
   .option(
     '--public',
@@ -660,6 +689,7 @@ addExpression
     const replicaNames = opts.replicaNames || [];
     const isPublic = opts.public;
     const annot = opts.annot
+    const genome = opts.genome
     if (!(fileName && username && password)) {
       program.help();
     }
@@ -669,6 +699,7 @@ addExpression
         fileName,
         description,
         annot,
+        genome,
         replicas,
         replicaNames,
         isPublic
@@ -818,6 +849,15 @@ addEggnog
   .description('Add EggNog-mapper results to a running GeneNoteBook server')
   .usage('[options] <EggNog-mapper tsv output file>')
   .arguments('<file>')
+  .option(
+    '--gofile <gofile>',
+    'Path to Gene Ontology json file',
+  )
+  .option(
+    '--silent',
+    'Keep the upload process silent. Default: false',
+    false
+  )
   .requiredOption(
     '-u, --username <adminUsername>',
     'GeneNoteBook admin username'
@@ -834,7 +874,7 @@ addEggnog
     '--port [port]',
     'Port on which GeneNoteBook is running. Default: 3000'
   )
-  .action((file, { username, password, port = 3000, annot }) => {
+  .action((file, { username, password, port = 3000, annot, gofile, silent = false }) => {
     if (typeof file !== 'string') addEggnog.help();
 
     const fileName = path.resolve(file);
@@ -844,7 +884,9 @@ addEggnog
 
     new GeneNoteBookConnection({ username, password, port }).call('addEggnog', {
       fileName,
-      annot: annot
+      annot: annot,
+      goFile: gofile,
+      silent
     });
   })
   .on('--help', () => {

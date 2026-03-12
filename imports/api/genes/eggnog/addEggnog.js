@@ -6,13 +6,75 @@ import logger from '/imports/api/util/logger.js';
 import { Roles } from 'meteor/alanning:roles';
 import SimpleSchema from 'simpl-schema';
 import { Meteor } from 'meteor/meteor';
+import { dbxrefCollection } from '/imports/api/genes/dbxrefCollection.js';
+
+import fs from 'fs';
+import path from 'path';
 
 class EggnogProcessor {
-  constructor(annot) {
+  constructor(annot, goFile) {
     // Not a bulk mongo suite.
     this.genesDb = Genes.rawCollection();
     this.nEggnog = 0;
     this.annot = annot;
+    this.goContent = {}
+    this.addGo = new Set()
+    this.hasGO = false
+    this.loadGoContent(goFile)
+  }
+
+  /**
+  Function that load an option go.json file and store it as dict
+  */
+  loadGoContent(goFile){
+    if (! goFile) {
+      return
+    }
+    try {
+      logger.log("Loading GO annotation from :" + goFile)
+      const raw = fs.readFileSync(goFile, 'utf8');
+      const goData = JSON.parse(raw);
+      goData.graphs[0].nodes.forEach(node => {
+        if (node.id && node.lbl) {
+          this.goContent[node.id.replace("http://purl.obolibrary.org/obo/", "").replace("_", ":")] = node.lbl;
+          if (node.meta && node.meta.basicPropertyValues){
+            node.meta.basicPropertyValues.forEach(bpv => {
+              if (bpv.pred == "http://www.geneontology.org/formats/oboInOwl#hasAlternativeId" && bpv.val){
+                this.goContent[bpv.val] = node.lbl
+              }
+            })
+          }
+        }
+      })
+      this.hasGO = true
+    } catch (error) {
+      logger.error(error)
+      logger.warn("Failed to load from " + goFile)
+      this.hasGO = false
+      this.goContent = {}
+    }
+  }
+  /** Function that add the GOterms in eggnog row into db */
+  createGOterms(){
+
+    this.addGo.forEach(goID => {
+      if (!(goID in this.goContent) || !(this.goContent[goID])){
+        logger.warn(`Missing ${goID} in GO ontology`)
+        return
+      }
+
+      dbxrefCollection.upsert(
+        { dbxrefId: goID},
+        { $set: {
+            dbxrefId: goID,
+            url: `http://amigo.geneontology.org/amigo/term/${goID}`,
+            description: this.goContent[goID],
+            updated: new Date(),
+            dbType: "go",
+          }
+        }
+      );
+    })
   }
 
   /**
@@ -64,7 +126,7 @@ class EggnogProcessor {
         eggNOG_OGs: eggnogOGs,
         max_annot_lvl: maxAnnotLvl,
         COG_category: cogCategory,
-        Description: description,
+         Description: description,
         Preferred_name: preferredName,
         GOs: gos,
         EC: ec,
@@ -118,6 +180,11 @@ class EggnogProcessor {
           annotations, // modifier.
         );
 
+
+        if (this.hasGO && annotations.GOs){
+	  annotations.GOs.forEach(item => this.addGo.add(item))
+        }
+
         // Update eggnogId in genes database.
         if (typeof documentEggnog.insertedId !== 'undefined') {
           // Eggnog _id is created.
@@ -150,11 +217,19 @@ const addEggnog = new ValidatedMethod({
       type: String,
       optional: true,
     },
+    goFile: {
+      type: String,
+      optional: true,
+    },
+    silent: {
+      type: Boolean,
+      optional: true,
+    },
   }).validator(),
   applyOptions: {
     noRetry: true,
   },
-  run({ fileName, annot }) {
+  run({ fileName, annot, goFile, silent }) {
     if (!this.userId) {
       throw new Meteor.Error('not-authorized');
     }
@@ -162,8 +237,7 @@ const addEggnog = new ValidatedMethod({
       throw new Meteor.Error('not-authorized');
     }
 
-    logger.log('file :', { fileName });
-    const job = new Job(jobQueue, 'addEggnog', { fileName, annot });
+    const job = new Job(jobQueue, 'addEggnog', { fileName, annot, goFile, silent });
     const jobId = job.priority('high').save();
 
     let { status } = job.doc;

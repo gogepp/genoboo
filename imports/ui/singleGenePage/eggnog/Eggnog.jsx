@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { eggnogCollection } from '/imports/api/genes/eggnog/eggnogCollection.js';
-import { branch, compose } from '/imports/ui/util/uiUtil.jsx';
+import { dbxrefCollection } from '/imports/api/genes/dbxrefCollection.js';
+import { branch, compose, isLoading, Loading, } from '/imports/ui/util/uiUtil.jsx';
 import { Genes } from '/imports/api/genes/geneCollection.js';
 import { withTracker } from 'meteor/react-meteor-data';
 import React, { useEffect, useState } from 'react';
@@ -19,6 +20,30 @@ function Header() {
 function hasNoEggnog({ eggnog }) {
   return typeof eggnog === 'undefined';
 }
+
+
+function GoDescription({dbxrefId, dbxref, loading}) {
+  return (
+    <p className="gogcategory">{dbxref.description}</p>
+  );
+}
+
+function dbxrefTracker({ value: dbxrefId }) {
+  dbxrefId = String(dbxrefId)
+  const sub = Meteor.subscribe('dbxref', { dbxrefId });
+  const loading = !sub.ready();
+  const dbxref = dbxrefCollection.findOne({ dbxrefId });
+  return {
+    dbxrefId,
+    dbxref,
+    loading,
+  };
+}
+
+const GoElement = compose(
+  withTracker(dbxrefTracker),
+  branch(isLoading, Loading),
+)(GoDescription);
 
 function NoEggnog({ showHeader }) {
   return (
@@ -46,7 +71,7 @@ function eggnogDataTracker({ gene }) {
 }
 
 function SeedEggNOGOrtholog({ seed, evalue, score }) {
-  const uniprotUrl = 'https://www.uniprot.org/uniprot/';
+  const uniprotUrl = 'https://www.uniprot.org/uniparc?query=';
 
   // Split to get uniprot id (e.g: 36080.S2K726 -> S2K726).
   let uniprotID;
@@ -235,7 +260,7 @@ function GogCategory({ category }) {
 
 function DescriptionGeneOntologyApi({ goterm }) {
   const [description, setDescription] = useState('');
-  const GOsApi = 'https://api.geneontology.org/api/bioentity/function/';
+  const GOsApi = 'https://www.ebi.ac.uk/QuickGO/services/ontology/go/terms/';
 
   // May cause Cross-Origin Request Blocked error.
   useEffect(() => {
@@ -247,7 +272,9 @@ function DescriptionGeneOntologyApi({ goterm }) {
         throw response;
       })
       .then((data) => {
-        setDescription(data.label);
+        if (data.results && data.results.length > 0){
+          setDescription(data.results[0].name);
+        }
       });
   }, [description]);
 
@@ -270,7 +297,7 @@ function GeneOntology({ gosID }) {
           >
             {ID}
           </a>
-          <DescriptionGeneOntologyApi goterm={ID} />
+        <GoElement value={ID} />
         </div>
       );
     })
@@ -357,45 +384,50 @@ function KeggApi({ database, query }) {
 }
 
 function Kegg({ database, query }) {
-  let KeggEntryUrl;
-  switch (database) {
-    case 'brite':
-      KeggEntryUrl = 'https://www.genome.jp/brite/';
-      break;
-    default:
-      KeggEntryUrl = 'https://www.genome.jp/entry/';
-  }
+  let KeggEntryUrl = 'https://www.genome.jp/entry/'
 
   const KeggRecAttribute = (Array.isArray(query)
     ? query.map((ID) => {
+      let subid = database == "brite" ? ID.replace("ko", "br:") : ID;
+      if (subid == "br:00000"){
+        return (<div>{ID}</div>)
+      }
       return (
         <div className="seed_eggnog_ortholog_table">
           <a
-            href={`${KeggEntryUrl}${ID}`}
+            href={`${KeggEntryUrl}${subid}`}
             target="_blank"
             rel="noreferrer"
           >
-            {ID}
+          {ID}
           </a>
         </div>
       );
     })
-    : (
+    : (() => {
+      let subid = database == "brite" ? query.replace("ko", "br:") : query;
+      if (subid == "br:00000"){
+        return (<div>{query}</div>)
+      }
+      return (
       <div>
         <a
-          href={`${KeggEntryUrl}${query}`}
+          href={`${KeggEntryUrl}${subid}`}
           target="_blank"
           rel="noreferrer"
         >
-          {query}
+        {query}
         </a>
       </div>
-    ));
+      );
+    }));
 
   return (
     <EggnogGeneralInformations informations={KeggRecAttribute} maxArray={2} />
   );
 }
+
+
 
 function Cazy({ cazy }) {
   const cazyUrl = 'http://www.cazy.org/';
@@ -541,7 +573,8 @@ function PfamsApi({ id }) {
 
 function Pfams({ family }) {
   // e.g : https://pfam.xfam.org/family/Meth_synt_1
-  const PfamsUrl = 'https://pfam.xfam.org/family/';
+  // No longer maintained. Redirect to interpro search
+  const PfamsUrl = 'https://www.ebi.ac.uk/interpro/search/text/';
 
   const PfamsLibrary = (Array.isArray(family)
     ? family.map((val) => {

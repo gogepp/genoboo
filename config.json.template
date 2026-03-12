@@ -1,6 +1,7 @@
 {
   "public":{
     "disable_blast": false,
+    "enable_hectar": false,
     "disable_user_login": false,
     "disable_user_registration": false,
     "disable_header": false,
@@ -14,7 +15,8 @@
     ],
     "protein_dbxref": [
        {"url": "https://test_url_protein/#PROTEINID", "label": "my protein label", "assembly": "", "annotation": ""}
-    ]
+    ],
+    "isoform_filtered": false
   },
   "externalSearchOptions": {
     "url": "http://0.0.0.0:80",
