@@ -176,11 +176,13 @@ function SingleGenePage({ gene, genome = {} }) {
                   EggNOG
                 </a>
               </li>
+              { Meteor.settings.public.enable_hectar && (
               <li>
                 <a href="#hectar">
                   Hectar
                 </a>
               </li>
+              )}
               <li>
                 <a href="#sequence-similarity">
                   Sequence Similarity
@@ -195,6 +197,9 @@ function SingleGenePage({ gene, genome = {} }) {
           </div>
         </header>
         <div className="card-content">
+          { Meteor.settings.public.isoform_filtered && (
+          <p class="subtitle is-5" style={{ color:"red" }}> This gene might have multiple isoforms. This page will only display the longest.</p>
+          )}
           <GeneralInfo
             key={hash(gene.attributes)}
             gene={gene}
@@ -213,9 +218,11 @@ function SingleGenePage({ gene, genome = {} }) {
           <section id="eggnog">
             <Eggnog gene={gene} showHeader resizable />
           </section>
+          { Meteor.settings.public.enable_hectar && (
           <section id="hectar">
             <Hectar gene={gene} showHeader resizable />
           </section>
+          )}
           <section id="sequence-similarity">
             <SequenceSimilarity gene={gene} showHeader={true} resizable />
           </section>

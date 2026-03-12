@@ -40,7 +40,6 @@ const fetchDbxref = new ValidatedMethod({
     if (
       typeof dbType !== 'undefined'
     ) {
-      console.log("Should fetch " + apiUrl)
       return fetch(apiUrl)
         .then((res) => {
           //console.log({ res, status: res.status });

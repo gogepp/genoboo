@@ -11,10 +11,10 @@ jobQueue.processJobs(
     payload: 1,
   },
   async (job, callback) => {
-    const { fileName, annot } = job.data;
+    const { fileName, annot, goFile, silent = false } = job.data;
     logger.log(`Add ${fileName} eggnog file.`);
 
-    const lineProcessor = new EggnogProcessor(annot);
+    const lineProcessor = new EggnogProcessor(annot, goFile);
 
     const rl = readline.createInterface({
       input: fs.createReadStream(fileName, 'utf8'),
@@ -25,16 +25,17 @@ jobQueue.processJobs(
     let processedBytes = 0;
     let processedLines = 0;
     let nEggnog = 0;
+    let options = silent ? {} : { echo: true }
 
     for await (const line of rl) {
-      processedBytes += line.length + 1; // also count \n
+      processedBytes += line.length + 1; 	// also count \n
       processedLines += 1;
 
       if ((processedLines % 100) === 0) {
         await job.progress(
           processedBytes,
           fileSize,
-          { echo: true },
+          {...options},
           (err) => {
             if (err) logger.error(err);
           },
@@ -50,6 +51,9 @@ jobQueue.processJobs(
         callback();
       }
     }
+
+    lineProcessor.createGOterms();
+
     logger.log(`Inserted ${nEggnog} EggNog`);
     job.done({ nInserted: nEggnog });
     callback();

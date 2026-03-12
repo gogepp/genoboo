@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html)
 
+## [0.4.19] 2026-03-12
+
+- Properly raises error when failing to add an annotation (#82)
+- Fix eggnog seed link (#89)
+- Add --silent option to add genome (#92) and add Eggnog
+- Allow a 'range' (ex: `5:19`) of columns to be passed when loading expression files (#88)
+- Allow '--genome' to be passed when loading expression. This skips trying to predict genome based on first 10 genes (#87)
+- Cleanup mongo files at startup to avoid crashes (#86)
+- Open dbxref in newTab + allow using any of the gff attribute in the link (#85)
+- Add cleaner error when document size is exceeded
+- Add optionnal GO json file when loading eggnog, to store used goterms, and avoid requests later.
+- Add conf option to display a warning message related to isoforms
+
 ## [0.4.18] 2025-07-11
 
 - Fix GO API call
